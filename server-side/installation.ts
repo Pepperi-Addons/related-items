@@ -9,8 +9,44 @@ The error Message is importent! it will be written in the audit log and help the
 */
 
 import { Client, Request } from '@pepperi-addons/debug-server'
+import { PapiClient } from '@pepperi-addons/papi-sdk'
 
 export async function install(client: Client, request: Request): Promise<any> {
+
+    const papiClient = new PapiClient({
+        baseURL: client.BaseURL, 
+        token: client.OAuthAccessToken,
+        addonUUID: client.AddonUUID,
+        addonSecretKey: client.AddonSecretKey,
+        actionUUID: client["ActionUUID"]
+    }); 
+
+    await papiClient.addons.data.schemes.post({
+        Name: 'Collection',
+        Type: 'meta_data',
+        Fields: {
+            Name: {
+                Type: 'String',
+            },
+            Description: {
+                Type: 'String',
+            }
+        }
+    });
+
+    await papiClient.addons.data.schemes.post({
+        Name: 'Relation',
+        Type: 'cpi_meta_data',
+        Fields: {
+            ItemUUID: {
+                Type: 'String',
+            },
+            CollectionName: {
+                Type: 'String',
+            }
+        }
+    });
+
     return {success:true,resultObject:{}}
 }
 

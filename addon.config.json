@@ -19,7 +19,7 @@
     "ClientStack": "ng10",
     "Editors": [
       {
-        "ParentPackageName": "Related_Items1",
+        "ParentPackageName": "Related_Items",
         "PackageName": "Collection Management",
         "Description": "CHANGE_TO_ADDON_DESCRIPTION"
       }
