@@ -1,0 +1,32 @@
+{
+    "AddonUUID": "",
+    "AddonVersion": "0.0.0",
+    "DebugPort": 4500,
+    "WebappBaseUrl": "https://app.sandbox.pepperi.com",
+    "DefaultEditor": "main",
+    "Endpoints": [
+        "installation.ts",
+        "api.ts"
+    ],
+    "Editors": [
+        "main"
+    ],
+    "Assets": [
+        "en.json",
+        "en.ngx-lib.json"
+    ],
+    "PublishConfig": {
+        "ClientStack": "ng10",
+        "Editors": [
+            {
+                "ParentPackageName": "Related_Items",
+                "PackageName": "Collection_Management",
+                "Description": "CHANGE_TO_ADDON_DESCRIPTION"
+            }
+        ],
+        "Dependencies": {},
+        "CPISide": [
+            "addon-cpi.ts"
+        ]
+    }
+}
