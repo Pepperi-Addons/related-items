@@ -10,6 +10,7 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk'
+import {COLLECTION_TABLE_NAME, RELATION_TABLE_NAME} from '../shared/entities'
 
 export async function install(client: Client, request: Request): Promise<any> {
 
@@ -40,7 +41,7 @@ export async function downgrade(client: Client, request: Request): Promise<any> 
 
 async function createADALSchemes(papiClient: PapiClient) {
     var collectionsScheme: AddonDataScheme = {
-        Name: 'Collection',
+        Name: COLLECTION_TABLE_NAME,
         Type: 'meta_data',
         Fields: {
             Name: {
@@ -53,7 +54,7 @@ async function createADALSchemes(papiClient: PapiClient) {
     };
 
     var relationsScheme: AddonDataScheme = {
-        Name: 'Relations',
+        Name: RELATION_TABLE_NAME,
         Type: 'cpi_meta_data'
     };
     await papiClient.addons.data.schemes.post(collectionsScheme);

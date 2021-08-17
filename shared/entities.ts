@@ -1,3 +1,5 @@
+export const COLLECTION_TABLE_NAME = 'Collection';
+export const RELATION_TABLE_NAME = 'Relations';
 
 export interface Collection {
     Name: string, 
