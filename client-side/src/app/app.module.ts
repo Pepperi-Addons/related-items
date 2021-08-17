@@ -14,12 +14,15 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { PepFileService, PepAddonService } from '@pepperi-addons/ngx-lib';
 import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
+import { GenericListComponent } from './components/generic-list/generic-list.component'
+import { CollectionsListComponent } from './components/collections/collections-list.component';
 
 
 @NgModule({
     declarations: [
-        AppComponent
-
+        AppComponent,
+        CollectionsListComponent,
+        GenericListComponent
     ],
     imports: [
         BrowserModule,

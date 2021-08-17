@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { Component } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AddonComponent } from './components/addon/addon.component';
+import { CollectionsListComponent } from './components/collections/collections-list.component';
 
 // Important for single spa
 @Component({
@@ -15,10 +16,14 @@ const routes: Routes = [
         path: `settings/:addon_uuid`,
         children: [
             {
-                path: ':editor',
+                path: 'relateditems',
                 component: AddonComponent
                 // TODO: solve routing
                 // loadChildren: () => import('./components/addon/index').then(m => m.AddonModule)
+            },
+            {
+                path: 'relateditems/collections',
+                component: CollectionsListComponent
             }
         ]
     },
