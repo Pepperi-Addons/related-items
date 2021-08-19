@@ -5,26 +5,30 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
-  selector: 'addon-collections',
-  templateUrl: './collections-list.component.html',
-  styleUrls: ['./collections-list.component.scss']
+  selector: 'addon-related-collections',
+  templateUrl: './related-collections.component.html',
+  styleUrls: ['./related-collections.component.scss']
 })
-export class CollectionsListComponent implements OnInit {
-  @ViewChild(GenericListComponent) genericList: GenericListComponent;
+export class RelatedCollections implements OnInit {
 
   constructor(
     public translate: TranslateService,
     public router: Router,
     public route: ActivatedRoute,
-    public relatedItemsService: RelatedItemsService
-  ) {
+    public relatedItemsService: RelatedItemsService,
+    public activatedRoute: ActivatedRoute,
+  ) { 
+    this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
   }
 
-  ngOnInit() { }
+  collectionName: string;
+
+  ngOnInit() {
+  }
 
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
-      let res = this.relatedItemsService.getCollections();
+      let res = this.relatedItemsService.getRelations(this.collectionName);
       return res;
     },
 
@@ -36,26 +40,26 @@ export class CollectionsListComponent implements OnInit {
           ScreenSize: 'Landscape'
         },
         Type: 'Grid',
-        Title: 'Related Items',
+        Title: 'Related Collections',
         Fields: [
           {
-            FieldID: 'Name',
+            FieldID: 'ItemUUID',
             Type: 'TextBox',
-            Title: this.translate.instant('Name'),
+            Title: this.translate.instant('Item'),
             Mandatory: false,
             ReadOnly: true
           },
           {
-            FieldID: 'Description',
+            FieldID: 'CollectionName',
             Type: 'TextBox',
-            Title: this.translate.instant('Description'),
+            Title: this.translate.instant('Collection Name'),
             Mandatory: false,
             ReadOnly: true
           },
           {
-            FieldID: 'Count',
-            Type: 'NumberInteger',
-            Title: this.translate.instant('Count'),
+            FieldID: 'Relateditems',
+            Type: 'ListOfObjects',
+            Title: this.translate.instant('Related Items'),
             Mandatory: false,
             ReadOnly: true
           }
@@ -78,18 +82,6 @@ export class CollectionsListComponent implements OnInit {
 
     getActions: async (objs) => {
       const actions = [];
-
-      if (objs.length === 1) {
-        actions.push({
-          title: this.translate.instant("Edit"),
-          handler: async (objs) => {
-            this.router.navigate([objs[0].Name], {
-              relativeTo: this.route,
-              queryParamsHandling: 'merge'
-            });
-          }
-        });
-      }
 
       return actions;
     },

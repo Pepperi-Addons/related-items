@@ -2,7 +2,9 @@ import { NgModule } from '@angular/core';
 import { Component } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AddonComponent } from './components/addon/addon.component';
+import { CollectionForm } from './components/collection-form/collection-form.component';
 import { CollectionsListComponent } from './components/collections/collections-list.component';
+import { RelatedCollections } from './components/related-collections/related-collections.component';
 
 // Important for single spa
 @Component({
@@ -16,14 +18,16 @@ const routes: Routes = [
         path: `settings/:addon_uuid`,
         children: [
             {
-                path: 'relateditems',
-                component: AddonComponent
-                // TODO: solve routing
-                // loadChildren: () => import('./components/addon/index').then(m => m.AddonModule)
+                path: 'collections',
+                component: CollectionsListComponent
             },
             {
-                path: 'relateditems/collections',
-                component: CollectionsListComponent
+                path: 'collections/additem',
+                component: CollectionForm
+            },
+            {
+                path: 'collections/:collection_name',
+                component: RelatedCollections
             }
         ]
     },

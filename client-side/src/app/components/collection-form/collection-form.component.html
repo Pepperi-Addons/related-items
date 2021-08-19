@@ -1,0 +1,20 @@
+<div class="content">
+  <pep-top-bar [inline]="false">
+      <div header-start-content>
+          <h2 class="title">{{ 'Edit to-do entry' | translate}}</h2>
+      </div>
+      <div  header-end-content>
+          <pep-button [value]="'Back' | translate" (buttonClick)="backClicked()"></pep-button>
+          <pep-button [value]="'Save' | translate" [styleType]="'strong'" (buttonClick)="saveClicked()"></pep-button>  
+      </div>
+  </pep-top-bar>
+  <br/>
+  <div *ngIf="" class="form">
+      <div class="grid-container">
+          <div class="name">
+              <pep-textbox [mandatory]="true" label="Name" [disabled]="false" [readonly]="false"> </pep-textbox>
+          </div>
+          <div class="desc">
+              <pep-textbox [mandatory]="true" label="Description" [disabled]="false" [readonly]="false"></pep-textbox>
+          </div>
+      </div>     
