@@ -37,6 +37,16 @@ class RelatedItemsService {
         }
     }
 
+    async getCollectionByKey(key) {
+        let collection = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).key(key).get();
+
+        if(key.fields && key.fields.includes('Count')) {
+            const relationsArray = await this.getRelationsItems({ 'collection': collection.Name });
+            collection.Count = relationsArray.length; 
+        }
+        return collection;
+    }
+
     upsertRelatedCollection(body: Collection) {
         if (body.Name) {
             body.Key = body.Name;
@@ -61,12 +71,16 @@ class RelatedItemsService {
             return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).find({ where: `Key like '${body.collection}_%'` });
         }
         else {
-            let key = this.generateRelationItemKey({
-                'CollectionName': body.collection,
-                'ItemUUID': body.item
-            });
-            return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).find({ where: `Key like '${key}%'` });
+            return this.getRelationByKey(body)
         }
+    }
+
+    getRelationByKey(body: { collection: string, item?: string }) {
+        let key = this.generateRelationItemKey({
+            'CollectionName': body.collection,
+            'ItemUUID': body.item
+        });
+        return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).key(key).get();
     }
 
     async addItemsToRelation(body: RelationItem) {
@@ -74,18 +88,18 @@ class RelatedItemsService {
         if (body.CollectionName && body.ItemUUID) {
             body.Key = this.generateRelationItemKey(body);
 
-            let collection = await this.getCollections({ where: `Name = '${body.CollectionName}'` });
-            if (collection.length > 0) {
+            let collection = await this.getCollectionByKey(body.CollectionName);
+            if (collection) {
                 // if the RealationItem exists - adds new Relateditems to the item's relatedItems array, else creates new RealationItem
-                let items = await this.getRelationsItems({ collection: body.CollectionName, item: body.ItemUUID });
-                if (items && items.length > 0) {
-                    if (items[0].RelatedItems) {
-                        items[0].RelatedItems = items[0].RelatedItems.concat(body.RelatedItems);
+                let item = await this.getRelationByKey({ collection: body.CollectionName, item: body.ItemUUID })//this.getRelationsItems({ collection: body.CollectionName, item: body.ItemUUID });
+                if (item) {
+                    if (item.RelatedItems) {
+                        item.RelatedItems = item.RelatedItems.concat(body.RelatedItems);
                     }
                     else {
-                        items[0].RelatedItems = body.RelatedItems;
+                        item.RelatedItems = body.RelatedItems;
                     }
-                    return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).upsert(items[0])
+                    return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).upsert(item)
                 }
                 else {
                     return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).upsert(body)
@@ -102,11 +116,11 @@ class RelatedItemsService {
         let itemsToRemove = body.RelatedItems;
         if (itemsToRemove) {
             if (body.CollectionName && body.ItemUUID) {
-                let items = await this.getRelationsItems({ collection: body.CollectionName, item: body.ItemUUID });
-                if (items && items.length > 0) {
-                    items[0].RelatedItems = await this.deleteItemsFromGivenArray(itemsToRemove, items[0].RelatedItems);
+                let item = await this.getRelationByKey({ collection: body.CollectionName, item: body.ItemUUID });
+                if (item) {
+                    item.RelatedItems = await this.deleteItemsFromGivenArray(itemsToRemove, item.RelatedItems);
 
-                    return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).upsert(items[0]);
+                    return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).upsert(item);
                 }
                 else {
                     throw new Error(`Relation does not exist`);
@@ -118,13 +132,13 @@ class RelatedItemsService {
         }
     }
 
-    deleteItemsFromGivenArray(itemsToRemove: [string], array: [string]) {
-        array.sort();
+    deleteItemsFromGivenArray(itemsToRemove: string[], array: string[]) {
         itemsToRemove.sort();
 
-        for (let index = 0; index<array.length; index++) {
+        for (let index = 0; index < array.length; index++) {
             if (itemsToRemove.includes(array[index])) {
                 array.splice(index, 1);
+                index--;
             }
         }
         return array;
