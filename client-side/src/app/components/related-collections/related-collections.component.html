@@ -1,7 +1,8 @@
 <div>
-  <p>
-      Related Collections
-  </p>
+  <div  class="header-content">
+    <pep-button [value]="'<' | translate" (buttonClick)="backClicked()"></pep-button>
+    <p class="subtitle"> {{collectionName}} </p>
+  </div>
   <generic-list [allowMultipleSelection]="true" [inline]="true" [dataSource]="listDataSource">
   </generic-list>
 </div>

@@ -22,7 +22,7 @@ const routes: Routes = [
                 component: CollectionsListComponent
             },
             {
-                path: 'collections/additem',
+                path: 'collections/addCollection',
                 component: CollectionForm
             },
             {

@@ -3,6 +3,7 @@ import { GenericListComponent, GenericListDataSource } from '../generic-list/gen
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
 
 @Component({
   selector: 'addon-related-collections',
@@ -16,7 +17,8 @@ export class RelatedCollections implements OnInit {
     public router: Router,
     public route: ActivatedRoute,
     public relatedItemsService: RelatedItemsService,
-    public activatedRoute: ActivatedRoute,
+    public loaderService: PepLoaderService,
+    public activatedRoute: ActivatedRoute
   ) { 
     this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
   }
@@ -46,13 +48,6 @@ export class RelatedCollections implements OnInit {
             FieldID: 'ItemUUID',
             Type: 'TextBox',
             Title: this.translate.instant('Item'),
-            Mandatory: false,
-            ReadOnly: true
-          },
-          {
-            FieldID: 'CollectionName',
-            Type: 'TextBox',
-            Title: this.translate.instant('Collection Name'),
             Mandatory: false,
             ReadOnly: true
           },
@@ -93,5 +88,16 @@ export class RelatedCollections implements OnInit {
       });
     }
   }
+
+  goBack() {
+    this.router.navigate(['..'], {
+        relativeTo: this.activatedRoute,
+        queryParamsHandling: 'preserve'
+    })
+}
+
+backClicked() {
+    this.goBack();
+}
 
 }

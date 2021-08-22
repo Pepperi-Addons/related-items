@@ -3,6 +3,7 @@ import { GenericListComponent, GenericListDataSource } from '../generic-list/gen
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
 
 @Component({
   selector: 'addon-collections',
@@ -12,12 +13,20 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 export class CollectionsListComponent implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
+  showLoading = false;
+
   constructor(
     public translate: TranslateService,
     public router: Router,
     public route: ActivatedRoute,
+    public loaderService: PepLoaderService,
     public relatedItemsService: RelatedItemsService
   ) {
+
+    this.loaderService.onChanged$
+    .subscribe((show) => {
+        this.showLoading = show;
+    });
   }
 
   ngOnInit() { }
@@ -95,7 +104,7 @@ export class CollectionsListComponent implements OnInit {
     },
 
     getAddHandler: async () => {
-      return this.router.navigate(["./addItem"], {
+      return this.router.navigate(["./addCollection"], {
         relativeTo: this.route,
         queryParamsHandling: 'merge'
       });

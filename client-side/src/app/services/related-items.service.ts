@@ -16,6 +16,10 @@ export class RelatedItemsService {
         return this.addonService.papiClient.addons.api.uuid(this.addonService.addonUUID).file('api').func('collections').get();
     }
 
+    saveCollection(collection) {
+        return this.addonService.papiClient.addons.api.uuid(this.addonService.addonUUID).file('api').func('collections').post(undefined, collection);
+    }
+
     getRelations(collectionName: String) {
         return this.addonService.papiClient.addons.api.uuid(this.addonService.addonUUID).file('api').func('relation').get({collection: collectionName});
     }

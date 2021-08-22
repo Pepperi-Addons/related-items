@@ -20,8 +20,8 @@
     "Editors": [
       {
         "ParentPackageName": "Related_Items",
-        "PackageName": "Collection Management",
-        "Description": "CHANGE_TO_ADDON_DESCRIPTION"
+        "PackageName": "collections",
+        "Description": "Collection Managment"
       }
     ],
     "Dependencies": {},

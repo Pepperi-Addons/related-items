@@ -1,7 +1,7 @@
 <div class="content">
   <pep-top-bar [inline]="false">
       <div header-start-content>
-          <h2 class="title">{{ 'Edit to-do entry' | translate}}</h2>
+          <h2 class="title">{{ 'Add collection' | translate}}</h2>
       </div>
       <div  header-end-content>
           <pep-button [value]="'Back' | translate" (buttonClick)="backClicked()"></pep-button>
@@ -9,7 +9,7 @@
       </div>
   </pep-top-bar>
   <br/>
-  <div *ngIf="" class="form">
+  <div *ngIf="!loading" class="form">
       <div class="grid-container">
           <div class="name">
               <pep-textbox [mandatory]="true" label="Name" [disabled]="false" [readonly]="false"> </pep-textbox>
@@ -17,4 +17,6 @@
           <div class="desc">
               <pep-textbox [mandatory]="true" label="Description" [disabled]="false" [readonly]="false"></pep-textbox>
           </div>
-      </div>     
+      </div>
+    </div>  
+</div>       

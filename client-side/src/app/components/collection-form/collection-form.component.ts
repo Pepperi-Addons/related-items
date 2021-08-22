@@ -5,6 +5,8 @@ import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
 import { PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { GenericListDataSource } from '../generic-list/generic-list.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
+import { RelatedItemsService } from '../../services/related-items.service';
 
 @Component({
   selector: 'addon-collection-form',
@@ -20,7 +22,9 @@ export class CollectionForm implements OnInit {
     public translate: TranslateService,
     public dialogService: PepDialogService,
     public router: Router,
-    public activatedRoute: ActivatedRoute
+    public activatedRoute: ActivatedRoute,
+    public loaderService: PepLoaderService,
+    private relatedItemsService: RelatedItemsService
   ) {
 
     this.layoutService.onResize$.subscribe(size => {
@@ -28,6 +32,13 @@ export class CollectionForm implements OnInit {
     });
 
   }
+
+  loading: boolean = true
+
+  collection = {
+    Name: '',
+    Description: ''
+};
 
   ngOnInit() {
   }
@@ -44,6 +55,9 @@ export class CollectionForm implements OnInit {
   }
 
   saveClicked() {
+    this.relatedItemsService.saveCollection(this.collection).then(() => {
+      this.goBack();
+  });
   }
 
   cancelClicked() {
