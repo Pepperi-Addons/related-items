@@ -30,21 +30,17 @@ class RelatedItemsService {
         else {
             for (const collection of collectionArray) {
                 const relationsArray = await this.getRelationsItems({ 'collection': collection.Name });
-                collection.Count = relationsArray.length;
+                if (relationsArray){
+                    collection.Count = relationsArray.length;
+                }
             }
 
             return collectionArray;
         }
     }
 
-    async getCollectionByKey(key) {
-        let collection = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).key(key).get();
-
-        if(key.fields && key.fields.includes('Count')) {
-            const relationsArray = await this.getRelationsItems({ 'collection': collection.Name });
-            collection.Count = relationsArray.length; 
-        }
-        return collection;
+    async getCollectionByKey(key: string) {
+        return this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).key(key).get();
     }
 
     upsertRelatedCollection(body: Collection) {
@@ -75,12 +71,17 @@ class RelatedItemsService {
         }
     }
 
-    getRelationByKey(body: { collection: string, item?: string }) {
+    async getRelationByKey(body: { collection: string, item?: string }) {
         let key = this.generateRelationItemKey({
             'CollectionName': body.collection,
             'ItemUUID': body.item
         });
-        return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).key(key).get();
+        try {
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATION_TABLE_NAME).key(key).get();
+        }
+        catch(error) {
+            return;
+        }
     }
 
     async addItemsToRelation(body: RelationItem) {
@@ -91,7 +92,7 @@ class RelatedItemsService {
             let collection = await this.getCollectionByKey(body.CollectionName);
             if (collection) {
                 // if the RealationItem exists - adds new Relateditems to the item's relatedItems array, else creates new RealationItem
-                let item = await this.getRelationByKey({ collection: body.CollectionName, item: body.ItemUUID })//this.getRelationsItems({ collection: body.CollectionName, item: body.ItemUUID });
+                let item = await this.getRelationByKey({ collection: body.CollectionName, item: body.ItemUUID })
                 if (item) {
                     if (item.RelatedItems) {
                         item.RelatedItems = item.RelatedItems.concat(body.RelatedItems);
