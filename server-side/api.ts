@@ -16,6 +16,18 @@ export async function collections(client: Client, request: Request) {
         }
 };
 
+export async function delete_collections(client: Client, request: Request) {
+    const service = new RelatedItemsService(client)
+
+    if (request.method === 'POST') {
+        return service.deleteCollections(request.body);
+    }
+    else {
+        throw new Error(`Method ${request.method} not supported`);
+        }
+
+}
+
 
 // Relation table endpoints
 

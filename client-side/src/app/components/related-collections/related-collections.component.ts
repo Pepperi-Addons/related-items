@@ -11,6 +11,9 @@ import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepper
   styleUrls: ['./related-collections.component.scss']
 })
 export class RelatedCollections implements OnInit {
+  @ViewChild(GenericListComponent) genericList: GenericListComponent;
+
+  showLoading = true;
 
   constructor(
     public translate: TranslateService,
@@ -19,8 +22,13 @@ export class RelatedCollections implements OnInit {
     public relatedItemsService: RelatedItemsService,
     public loaderService: PepLoaderService,
     public activatedRoute: ActivatedRoute
-  ) { 
+  ) {
     this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
+
+    this.loaderService.onChanged$
+    .subscribe((show) => {
+        this.showLoading = show;
+    });
   }
 
   collectionName: string;
@@ -30,7 +38,12 @@ export class RelatedCollections implements OnInit {
 
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
-      let res = this.relatedItemsService.getRelations(this.collectionName);
+
+      let res = await this.relatedItemsService.getRelations(this.collectionName);
+      for (const item of res) {
+        item.ItemsUUIDList = item.RelatedItems.join(", ");
+      }
+
       return res;
     },
 
@@ -52,8 +65,8 @@ export class RelatedCollections implements OnInit {
             ReadOnly: true
           },
           {
-            FieldID: 'Relateditems',
-            Type: 'ListOfObjects',
+            FieldID: 'ItemsUUIDList',
+            Type: 'TextBox',
             Title: this.translate.instant('Related Items'),
             Mandatory: false,
             ReadOnly: true
@@ -90,14 +103,15 @@ export class RelatedCollections implements OnInit {
   }
 
   goBack() {
+    this.loaderService.show;
     this.router.navigate(['..'], {
-        relativeTo: this.activatedRoute,
-        queryParamsHandling: 'preserve'
+      relativeTo: this.activatedRoute,
+      queryParamsHandling: 'preserve'
     })
-}
+  }
 
-backClicked() {
+  backClicked() {
     this.goBack();
-}
+  }
 
 }

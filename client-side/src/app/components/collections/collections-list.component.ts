@@ -13,7 +13,7 @@ import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepper
 export class CollectionsListComponent implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
-  showLoading = false;
+  showLoading = true;
 
   constructor(
     public translate: TranslateService,
@@ -33,7 +33,11 @@ export class CollectionsListComponent implements OnInit {
 
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
-      let res = this.relatedItemsService.getCollections();
+      let res = await this.relatedItemsService.getCollections({});
+
+      if (state.searchString != "") {
+        res = res.filter(collection => collection.Name.toLowerCase().includes(state.searchString.toLowerCase()))
+    }
       return res;
     },
 
@@ -95,6 +99,16 @@ export class CollectionsListComponent implements OnInit {
             this.router.navigate([objs[0].Name], {
               relativeTo: this.route,
               queryParamsHandling: 'merge'
+            });
+          }
+        });
+      }
+      if (objs.length >= 1) {
+        actions.push({
+          title: this.translate.instant("Delete"),
+          handler: async (objs) => {
+            this.relatedItemsService.deleteCollections(objs).then(() => {
+                this.genericList.reload();
             });
           }
         });

@@ -9,13 +9,13 @@
       </div>
   </pep-top-bar>
   <br/>
-  <div *ngIf="!loading" class="form">
+  <div class="form">
       <div class="grid-container">
           <div class="name">
-              <pep-textbox [mandatory]="true" label="Name" [disabled]="false" [readonly]="false"> </pep-textbox>
+              <pep-textbox [mandatory]="true" label="Name" [(value)]="collection.Name" [disabled]="false" [readonly]="false"> </pep-textbox>
           </div>
           <div class="desc">
-              <pep-textbox [mandatory]="true" label="Description" [disabled]="false" [readonly]="false"></pep-textbox>
+              <pep-textbox [mandatory]="true" label="Description" [(value)]="collection.Description" [disabled]="false" [readonly]="false"></pep-textbox>
           </div>
       </div>
     </div>  

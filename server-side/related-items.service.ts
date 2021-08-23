@@ -3,6 +3,7 @@ import { Client } from '@pepperi-addons/debug-server';
 import { v4 as uuid } from 'uuid';
 import {Collection} from '../shared/entities'
 import {RelationItem} from '../shared/entities'
+import { collections } from './api';
 
 const COLLECTION_TABLE_NAME = 'Collection';
 const RELATION_TABLE_NAME = 'Relations';
@@ -44,6 +45,15 @@ class RelatedItemsService {
         else {
             throw new Error(`Name is required`);  
         }
+    }
+
+    async deleteCollections(body: [Collection]) {
+        let collections = body.map(collectionToDelete => {
+            collectionToDelete.Hidden = true;
+            return this.upsertRelatedCollection(collectionToDelete);
+        })
+        const p = await Promise.all(collections);
+        return collections
     }
 
     //Relations table functions

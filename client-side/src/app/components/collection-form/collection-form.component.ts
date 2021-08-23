@@ -30,10 +30,7 @@ export class CollectionForm implements OnInit {
     this.layoutService.onResize$.subscribe(size => {
       this.screenSize = size;
     });
-
   }
-
-  loading: boolean = true
 
   collection = {
     Name: '',

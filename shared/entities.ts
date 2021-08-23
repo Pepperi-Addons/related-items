@@ -4,6 +4,7 @@ export interface Collection {
     Description?: string,
     Count?: string
     Key?: string
+    Hidden?: boolean
 }
 
 export interface RelationItem {
