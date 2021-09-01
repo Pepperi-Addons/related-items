@@ -21,8 +21,9 @@ export default config.Endpoints.map(endpoint => {
                  compilerOptions: {
                      module: "es2015",
                      declaration: false
-                 }
-             }
+                 },
+             },
+             include: ['**/*.ts', '../shared/**/*.ts']
           }),
           resolve(),
           commonjs(),

@@ -1,37 +1,28 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { GenericListComponent, GenericListDataSource } from '../generic-list/generic-list.component';
 import { RelatedItemsService } from '../../services/related-items.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router'
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
-import { ItemSelectionComponent } from '../item-selection/item-selection.component'
+import { PepDialogActionsType, PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 
 @Component({
-  selector: 'addon-related-collections',
-  templateUrl: './related-collections.component.html',
-  styleUrls: ['./related-collections.component.scss']
+  selector: 'addon-related-collection-form',
+  templateUrl: './related-collection-form.component.html',
+  styleUrls: ['./related-collection-form.component.scss']
 })
-export class RelatedCollections implements OnInit {
+export class RelatedCollectionFormComponent implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
-  showLoading = true;
-  itemsInCollection = [];
-
-  constructor(
-    public translate: TranslateService,
-    public router: Router,
-    public route: ActivatedRoute,
-    public relatedItemsService: RelatedItemsService,
-    public loaderService: PepLoaderService,
-    public activatedRoute: ActivatedRoute
-  ) {
-    this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
-
-    this.loaderService.onChanged$
-    .subscribe((show) => {
-        this.showLoading = show;
-    });
-  }
+  constructor(public translate: TranslateService,
+              public router: Router,
+              public route: ActivatedRoute,
+              public relatedItemsService: RelatedItemsService,
+              public loaderService: PepLoaderService,
+              public activatedRoute: ActivatedRoute,
+              private dialogService: PepDialogService) { 
+                this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
+              }
 
   collectionName: string;
 
@@ -41,16 +32,7 @@ export class RelatedCollections implements OnInit {
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
 
-      this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
-      for (const item of this.itemsInCollection) {
-        item.ItemsExternalIDList = item.RelatedItems.join(", ");
-      }
-
-      if (state.searchString != "") {
-        this.itemsInCollection = this.itemsInCollection.filter(relatedItem => relatedItem.ItemExternalID.toLowerCase().includes(state.searchString.toLowerCase()))
-    }
-
-      return this.itemsInCollection;
+      return [];
     },
 
     getDataView: async () => {
@@ -112,18 +94,14 @@ export class RelatedCollections implements OnInit {
     },
 
     getAddHandler: async () => {
-      let callback = async(data) => {
-        if (data) {
-         this.router.navigate(["./addRelation"], {
-            relativeTo: this.route,
-            queryParamsHandling: 'merge'
-          });
-        }
-      }
-      let data = {itemsList: this.itemsInCollection}
-      return this.relatedItemsService.openDialog("Add Relation", ItemSelectionComponent, [], {data: data}, callback);
+      return this.router.navigate(["./addRelation"], {
+        relativeTo: this.route,
+        queryParamsHandling: 'merge'
+      });
     }
   }
+
+  fileChange() {}
 
   goBack() {
     this.loaderService.show;

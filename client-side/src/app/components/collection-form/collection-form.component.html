@@ -1,22 +1,40 @@
-<div class="content">
-  <pep-top-bar [inline]="false">
-      <div header-start-content>
-          <h2 class="title">{{ 'Add collection' | translate}}</h2>
-      </div>
-      <div  header-end-content>
-          <pep-button [value]="'Back' | translate" (buttonClick)="backClicked()"></pep-button>
-          <pep-button [value]="'Save' | translate" [styleType]="'strong'" (buttonClick)="saveClicked()"></pep-button>  
-      </div>
-  </pep-top-bar>
-  <br/>
-  <div class="form">
-      <div class="grid-container">
-          <div class="name">
-              <pep-textbox [mandatory]="true" label="Name" [(value)]="collection.Name" [disabled]="false" [readonly]="false"> </pep-textbox>
+
+<div class="dialog">
+    <h2 mat-dialog-title class="mat-dialog-title pepperi-border-bottom">
+        <span >  
+            <h2 class="title">{{ 'Add collection' | translate}}</h2>
+        </span>
+    </h2>
+    <div mat-dialog-content class="mat-dialog-content">
+        <div class="form">
+            <div class="grid-container">
+                <div class="name">
+                    <pep-textbox [mandatory]="true" label="Name" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('Name', $event)"</pep-textbox>
+                </div>
+                <div class="desc">
+                    <pep-textbox [mandatory]="true" label="Description" [(value)]="dialogData.Description" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Description', $event)"></pep-textbox>
+                </div>
+            </div>
           </div>
-          <div class="desc">
-              <pep-textbox [mandatory]="true" label="Description" [(value)]="collection.Description" [disabled]="false" [readonly]="false"></pep-textbox>
-          </div>
-      </div>
-    </div>  
-</div>       
+    </div>
+    <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
+        style="justify-content: flex-end;">
+        <div class="spacing-element-negative">
+            <button class="spacing-element pepperi-button md weak mat-button" mat-button [mat-dialog-close]>
+                <span class="mat-button-wrapper">
+                    {{ 'Cancel' | translate }}
+                </span>
+                <div class="mat-button-ripple mat-ripple" matripple></div>
+                <div class="mat-button-focus-overlay"></div>
+            </button>
+            <button class="spacing-element pepperi-button md strong mat-button" mat-button
+             (click)="onSaveButtonClicked()">
+                <span class="mat-button-wrapper">
+                    {{ ('Save') | translate }}
+                </span>
+                <div class="mat-button-ripple mat-ripple" matripple></div>
+                <div class="mat-button-focus-overlay"></div>
+            </button>
+        </div>
+    </div>
+</div>

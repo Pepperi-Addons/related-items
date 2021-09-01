@@ -4,4 +4,16 @@
 .inline-top-bar-container {
     margin-top: 1rem;
     margin-left: 15px;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.right-button {
+    margin-right: 15px;
+    margin-bottom: 15px;
+}
+
+.menu-button {
+    margin-right: 15px;
+    margin-left: 15px;
 }

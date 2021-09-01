@@ -1,8 +1,8 @@
 <div>
   <div  class="header-content">
-    <pep-button [value]="'<' | translate" (buttonClick)="backClicked()"></pep-button>
+    <pep-button iconName="arrow_left_alt" sizeType="sm" (buttonClick)="backClicked()"></pep-button>
     <p class="subtitle"> {{collectionName}} </p>
   </div>
-  <generic-list [allowMultipleSelection]="true" [inline]="true" [dataSource]="listDataSource">
+  <generic-list [allowMultipleSelection]="true" [inline]="true" [dataSource]="listDataSource" [showSearch]="true" [addButtonTitle]="'Add Related Items'">
   </generic-list>
 </div>

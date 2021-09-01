@@ -10,9 +10,11 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk'
-import {COLLECTION_TABLE_NAME, RELATION_TABLE_NAME} from '../shared/entities'
+import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME} from '../shared/entities'
+import RelatedItemsService from './related-items.service'
 
 export async function install(client: Client, request: Request): Promise<any> {
+    const service = new RelatedItemsService(client)
 
     const papiClient = new PapiClient({
         baseURL: client.BaseURL, 
@@ -23,6 +25,7 @@ export async function install(client: Client, request: Request): Promise<any> {
     }); 
 
     await createADALSchemes(papiClient);
+    await service.createPNSSubscription();
 
     return {success:true,resultObject:{}}
 }
@@ -54,9 +57,23 @@ async function createADALSchemes(papiClient: PapiClient) {
     };
 
     var relationsScheme: AddonDataScheme = {
-        Name: RELATION_TABLE_NAME,
+        Name: RELATED_ITEM_CPI_META_DATA_TABLE_NAME,
         Type: 'cpi_meta_data'
+    };
+
+    var relatedItemsMetaDataScheme: AddonDataScheme = {
+        Name: RELATED_ITEM_META_DATA_TABLE_NAME,
+        Type: 'meta_data',
+        Fields: {
+            ItemExternalID: {
+                Type: 'String'
+            },
+            CollectionName: {
+                Type: 'String'
+            }
+        }
     };
     await papiClient.addons.data.schemes.post(collectionsScheme);
     await papiClient.addons.data.schemes.post(relationsScheme);
+    await papiClient.addons.data.schemes.post(relatedItemsMetaDataScheme);
 }

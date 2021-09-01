@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { GenericListComponent, GenericListDataSource } from '../generic-list/generic-list.component';
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
+import { CollectionForm } from '../collection-form/collection-form.component';
 
 @Component({
   selector: 'addon-collections',
@@ -20,13 +21,13 @@ export class CollectionsListComponent implements OnInit {
     public router: Router,
     public route: ActivatedRoute,
     public loaderService: PepLoaderService,
-    public relatedItemsService: RelatedItemsService
+    public relatedItemsService: RelatedItemsService,
   ) {
 
     this.loaderService.onChanged$
-    .subscribe((show) => {
+      .subscribe((show) => {
         this.showLoading = show;
-    });
+      });
   }
 
   ngOnInit() { }
@@ -37,7 +38,7 @@ export class CollectionsListComponent implements OnInit {
 
       if (state.searchString != "") {
         res = res.filter(collection => collection.Name.toLowerCase().includes(state.searchString.toLowerCase()))
-    }
+      }
       return res;
     },
 
@@ -91,15 +92,11 @@ export class CollectionsListComponent implements OnInit {
 
     getActions: async (objs) => {
       const actions = [];
-
       if (objs.length === 1) {
         actions.push({
           title: this.translate.instant("Edit"),
           handler: async (objs) => {
-            this.router.navigate([objs[0].Name], {
-              relativeTo: this.route,
-              queryParamsHandling: 'merge'
-            });
+            this.goToRelatedCollection(objs[0].Name);
           }
         });
       }
@@ -108,7 +105,7 @@ export class CollectionsListComponent implements OnInit {
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
             this.relatedItemsService.deleteCollections(objs).then(() => {
-                this.genericList.reload();
+              this.genericList.reload();
             });
           }
         });
@@ -118,11 +115,20 @@ export class CollectionsListComponent implements OnInit {
     },
 
     getAddHandler: async () => {
-      return this.router.navigate(["./addCollection"], {
-        relativeTo: this.route,
-        queryParamsHandling: 'merge'
-      });
+      let callback = async(data) => {
+        if (data) {
+          await this.relatedItemsService.saveCollection(data);
+          this.goToRelatedCollection(data.Name)
+        }
+      }
+      return this.relatedItemsService.openDialog("Add collection", CollectionForm, [], {data: {}}, callback);
     }
   }
-
+  
+  goToRelatedCollection(collectionName: string) {
+    this.router.navigate([`${collectionName}`], {
+      relativeTo: this.route,
+      queryParamsHandling: 'preserve'
+    })
+  }
 }

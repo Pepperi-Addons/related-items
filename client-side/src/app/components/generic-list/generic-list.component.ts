@@ -65,6 +65,12 @@ export class GenericListComponent implements OnInit, AfterViewInit {
 
   @Input()
   title: string = ''
+  
+  @Input()
+  addButtonTitle: string = '+';
+
+  @Input()
+  shouldShowMenuButton: boolean = true;
 
   @Input()
   inline: boolean = false;
@@ -127,7 +133,7 @@ export class GenericListComponent implements OnInit, AfterViewInit {
   getMenuObjects() {
     let uuids = this.customList.getSelectedItemsData().rows ?? [];
     if (this.customList.getIsAllSelectedForActions()) {
-      uuids = this.dataObjects.map(obj => obj.UID).filter(x => uuids.indexOf(x) === -1);
+      uuids = this.dataObjects.map(obj => obj.UID).filter(x => uuids.indexOf(x) != -1);
     }
     const objects = uuids.map(uuid => this.getObject(uuid))
     return objects;
@@ -140,6 +146,8 @@ export class GenericListComponent implements OnInit, AfterViewInit {
   onMenuItemClicked(action: IPepMenuItemClickEvent): void {
     this.menuHandlers[action.source.key](this.getMenuObjects());
   }
+
+  onImportButtonClicked() {}
 
   onSearchChanged($event) {
     this.searchString = $event.value

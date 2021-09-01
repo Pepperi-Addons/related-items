@@ -13,6 +13,7 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { PepFileService, PepAddonService } from '@pepperi-addons/ngx-lib';
 import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
 import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
+import { PepImageModule } from '@pepperi-addons/ngx-lib/image';
 import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 import { PepDialogModule } from '@pepperi-addons/ngx-lib/dialog';
 import { GenericListComponent } from '../app/components/generic-list/generic-list.component'
@@ -24,6 +25,8 @@ import { PepDateModule } from '@pepperi-addons/ngx-lib/date';
 import { CollectionsListComponent } from './components/collections/collections-list.component';
 import { CollectionForm } from './components/collection-form/collection-form.component';
 import { RelatedCollections } from './components/related-collections/related-collections.component';
+import { RelatedCollectionFormComponent } from './components/related-collection-form/related-collection-form.component';
+import { ItemSelectionComponent } from './components/item-selection/item-selection.component';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -54,7 +57,9 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         CollectionsListComponent,
         GenericListComponent,
         CollectionForm,
-        RelatedCollections
+        RelatedCollections,
+        RelatedCollectionFormComponent,
+        ItemSelectionComponent
         ],
     imports: [
         BrowserModule,
@@ -74,6 +79,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         PepTextboxModule,
         MatDialogModule,
         PepDateModule,
+        PepImageModule,
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,

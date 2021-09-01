@@ -7,12 +7,11 @@
                 <ng-content select="[left-buttons]"></ng-content>
             </div>
             <div  header-end-content>
+                <pep-button class="menu-button" styleType="weak" styleStateType="system" sizeType="sm" [disabled]="false" iconPosition="end" iconName="system_menu" [visible]="shouldShowMenuButton"(buttonClick)="onImportButtonClicked()"></pep-button>
                 <ng-content select="[right-buttons]"></ng-content>
-                <pep-button [value]="'Add' | translate" [styleType]="'strong'" (buttonClick)="addClicked()"></pep-button>
+                <pep-button class="right-button" sizeType="sm" [value]="addButtonTitle" [styleType]="'strong'" (buttonClick)="addClicked()"></pep-button>
             </div>
             <pep-list-actions [sizeType]="inline ? 'sm' : 'md'" [actions]="menuActions" (actionClick)="onMenuItemClicked($event)"></pep-list-actions>
-            <pep-list-total [totalRows]="customList ? customList.totalRows : -1"></pep-list-total>
-    
             <pep-search [sizeType]="inline ? 'sm' : 'md'" *ngIf="showSearch" (search)="onSearchChanged($event)">
             </pep-search>
         </pep-top-bar>
