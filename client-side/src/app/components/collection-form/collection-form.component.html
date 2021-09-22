@@ -1,21 +1,15 @@
 
 <div class="dialog">
     <h2 mat-dialog-title class="mat-dialog-title pepperi-border-bottom">
-        <span >  
-            <h2 class="title">{{ 'Add collection' | translate}}</h2>
-        </span>
+        {{ 'Add collection' | translate}}
     </h2>
-    <div mat-dialog-content class="mat-dialog-content">
-        <div class="form">
-            <div class="grid-container">
-                <div class="name">
-                    <pep-textbox [mandatory]="true" label="Name" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('Name', $event)"</pep-textbox>
-                </div>
-                <div class="desc">
-                    <pep-textbox [mandatory]="true" label="Description" [(value)]="dialogData.Description" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Description', $event)"></pep-textbox>
-                </div>
-            </div>
-          </div>
+    <div class="grid-container">
+        <div class="name" *ngIf="shouldShowNameField">
+            <pep-textbox [label]="'Name' | translate" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('Name', $event)" onsubmit=</pep-textbox>
+        </div>
+        <div class="desc">
+            <pep-textarea [label]="'Description' | translate" [(value)]="dialogData.Description" [disabled]="false" [readonly]="false" [rowSpan]="2" (valueChange)="onValueChanged('Description', $event)"></pep-textarea>
+        </div>
     </div>
     <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
         style="justify-content: flex-end;">

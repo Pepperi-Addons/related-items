@@ -1,6 +1,6 @@
 import { MatCardModule } from '@angular/material/card';
 import { PepListModule } from '@pepperi-addons/ngx-lib/list';
-import { AddonService } from './addon.service';
+import { AddonService } from '../../services/addon.service';
 import { PepTopBarModule } from '@pepperi-addons/ngx-lib/top-bar';
 // import { RouterModule, Routes } from '@angular/router';
 import { CommonModule } from '@angular/common';

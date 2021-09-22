@@ -1,9 +1,6 @@
 import { AddonService } from "../components/addon";
 import { Injectable } from '@angular/core';
-import { Collection } from '../../../../shared/entities';
-import { RelationItem } from '../../../../shared/entities';
-import { PepHttpService } from "@pepperi-addons/ngx-lib";
-import { PepDialogActionsType, PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
+import { Collection, RelationItem } from '../../../../server-side/entities';
 
 @Injectable({
     providedIn: 'root'
@@ -11,16 +8,18 @@ import { PepDialogActionsType, PepDialogData, PepDialogService } from '@pepperi-
 
 export class RelatedItemsService {
 
-    dialogRef;
-
-    constructor(private addonService: AddonService,
-        private pepHttp: PepHttpService,
-        private dialogService: PepDialogService) {
-
+    constructor(
+        private addonService: AddonService
+    )  {
+          
     }
 
-    getCollections(option) {
-        return this.addonService.pepGet(`/addons/api/${this.addonService.addonUUID}/api/collections?${option}`).toPromise();
+    getCollections(collectionName?: string) {
+        let url = `/addons/api/${this.addonService.addonUUID}/api/collections`
+        if (collectionName) {
+            url = url + `?Name=${collectionName}`;
+        }
+        return this.addonService.pepGet(encodeURI(url)).toPromise();
     }
 
     saveCollection(collection) {
@@ -31,8 +30,9 @@ export class RelatedItemsService {
         return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/delete_collections`, collections).toPromise();
     }
 
-    getRelations(collectionName: String) {
-        return this.addonService.papiClient.addons.api.uuid(this.addonService.addonUUID).file('api').func('relation').get({ CollectionName: collectionName });
+    getRelations(collectionName: string) {
+        let url = `/addons/api/${this.addonService.addonUUID}/api/relation?` + `CollectionName=${collectionName}`;
+        return this.addonService.pepGet(encodeURI(url)).toPromise();
     }
 
     deleteRelations(relation: RelationItem[]) {
@@ -43,18 +43,16 @@ export class RelatedItemsService {
         return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/add_items_to_relation_with_externalid`, relatedItems).toPromise();
     }
 
-    deleteRelatedItems(relatedItems: RelationItem[]) {
-        return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/remove_items_from_relation_with_externalid`, relatedItems).toPromise();
+    deleteRelatedItems(itemToUpdate) {
+        return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/remove_items_from_relation_with_externalid`, itemToUpdate).toPromise();
     }
 
-    openDialog(title = 'Modal Test', content, buttons, input, callbackFunc = null): void {
-        const dialogConfig = this.dialogService.getDialogConfig({ disableClose: true, panelClass: 'pepperi-standalone' }, 'inline')
-        const data = new PepDialogData({ title: title, actionsType: 'custom', content: content, actionButtons: buttons })
-        dialogConfig.data = data;
+    getItemsInCollection(collectionName: string, relationExternalId: string) {
+        let url = `/addons/api/${this.addonService.addonUUID}/api/get_items?` + `CollectionName=${collectionName}&ExternalID=${relationExternalId}`;
+        return this.addonService.pepGet(encodeURI(url)).toPromise();
+    }
 
-        this.dialogRef = this.dialogService.openDialog(content, input, dialogConfig);
-        this.dialogRef.afterClosed().subscribe(res => {
-            callbackFunc(res);
-        });
+    getItemsWithExternalId(externalID: string) {
+        return this.addonService.papiClient.items.find({fields:['UUID'], where: `ExternalID like '${externalID}'` });
     }
 }

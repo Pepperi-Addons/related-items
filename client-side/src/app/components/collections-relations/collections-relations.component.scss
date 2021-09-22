@@ -1,0 +1,39 @@
+.header-content {
+    display: flex;
+    position: relative;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    margin-left: 15px;
+    width: 80%;
+}
+
+.subtitle {
+    margin-top: 5px;
+    margin-left: 10px;
+    font-weight:bold;
+}
+
+.pepperi-border-top {
+    width: 80%;
+    margin-left: 15px;
+    margin-top: 0px;
+}
+
+.description {
+    margin-left: 15px;
+    font-size: 16px;
+    font-weight: normal;
+    width: 544px;
+    margin-top: 15px;
+}
+
+.edit-button {
+    float: right;
+    margin-top: 5px;
+    margin-left: auto;
+}
+
+.right-buttons {
+    display: flex;
+}
+

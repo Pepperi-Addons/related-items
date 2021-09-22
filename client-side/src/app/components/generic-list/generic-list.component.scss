@@ -1,19 +1,12 @@
 @import 'ngx-lib/src/core/style/abstracts/mixins';
 @import 'ngx-lib/src/core/style/abstracts/variables';
 
+.addon-page-container{
+    width: 80%;
+    margin-left: 15px;
+}
+
 .inline-top-bar-container {
     margin-top: 1rem;
-    margin-left: 15px;
     max-width: 100%;
-    overflow-x: hidden;
-}
-
-.right-button {
-    margin-right: 15px;
-    margin-bottom: 15px;
-}
-
-.menu-button {
-    margin-right: 15px;
-    margin-left: 15px;
 }

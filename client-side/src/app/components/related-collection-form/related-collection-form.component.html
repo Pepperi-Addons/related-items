@@ -1,22 +1,29 @@
 <div>
   <div  class="header-content">
-    <pep-button iconName="arrow_left_alt"(buttonClick)="backClicked()"></pep-button>
-    <p class="subtitle"> {{collectionName}} </p>
+    <pep-button [sizeType]="'sm'" iconName="arrow_left_alt"(buttonClick)="backClicked()"></pep-button>
+    <p class="subtitle"> {{externalID}} </p>
   </div>
   <div class="image-section">
     <div class="item-image">
-      <pep-image src="https://idpfiles.sandbox.pepperi.com/f389fd2e-4a31-4965-a21e-3a98b4553300/images/left-side-background.jpg" label=""[mandatory]="false" 
-      [disabled]="true" xAlignment="left" [rowSpan]="4"[showTitle]="false" (fileChange)="fileChange()"> </pep-image>
+      <pep-image [src]="imageSource" label=""[mandatory]="false" 
+      [disabled]="true" xAlignment="left" [rowSpan]="4"[showTitle]="false"> </pep-image>
     </div>
     <div class="image-text">
       <h2 class="image-title">
-        Title
+        {{itemTitle}}
       </h2>
       <p class="image-description">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. At non ex earum, libero dignissimos voluptates. Quis beatae dolorem autem ipsa!
+        {{itemDescription}}
       </p>
     </div>
   </div>
-  <generic-list [allowMultipleSelection]="true" [inline]="true" [dataSource]="listDataSource" [addButtonTitle]="'Add A Related Item'">
+  <generic-list 
+  [allowMultipleSelection]="true"
+  [inline]="true"
+  [dataSource]="listDataSource"
+  [showSearch]="true">
+  <div right-buttons>
+    <pep-button [sizeType]="'sm'" [value]="'Add a Related Item'" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>
+  </div>
   </generic-list>
 </div>

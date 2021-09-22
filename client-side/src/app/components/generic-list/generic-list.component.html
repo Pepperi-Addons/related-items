@@ -7,9 +7,7 @@
                 <ng-content select="[left-buttons]"></ng-content>
             </div>
             <div  header-end-content>
-                <pep-button class="menu-button" styleType="weak" styleStateType="system" sizeType="sm" [disabled]="false" iconPosition="end" iconName="system_menu" [visible]="shouldShowMenuButton"(buttonClick)="onImportButtonClicked()"></pep-button>
                 <ng-content select="[right-buttons]"></ng-content>
-                <pep-button class="right-button" sizeType="sm" [value]="addButtonTitle" [styleType]="'strong'" (buttonClick)="addClicked()"></pep-button>
             </div>
             <pep-list-actions [sizeType]="inline ? 'sm' : 'md'" [actions]="menuActions" (actionClick)="onMenuItemClicked($event)"></pep-list-actions>
             <pep-search [sizeType]="inline ? 'sm' : 'md'" *ngIf="showSearch" (search)="onSearchChanged($event)">
@@ -32,7 +30,7 @@
     <ng-template #listTemplate>
         <div class="list-wrapper" #listContainer id="listContainer">
             <pep-list [supportSorting]="false" [supportResizing]="true"
-                [selectionTypeForActions]="allowMultipleSelection ? 'multi' : (allowSelection ? 'single' : 'none')" [noDataFoundMsg]="'No data' | translate" [parentScroll]="listContainer"
+                [selectionTypeForActions]="allowMultipleSelection ? 'multi' : (allowSelection ? 'single' : 'none')" [noDataFoundMsg]="noDataMessage" [parentScroll]="listContainer"
                 (fieldClick)="onCustomizeFieldClick($event)"
                 (selectedItemsChange)="selectedRowsChanged($event)">
             </pep-list>

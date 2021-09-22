@@ -1,18 +1,31 @@
+.dialog {
+  background: rgb(255, 255, 255);
+  border-radius: 4px;
+  width: 310px;
+}
+
 .grid-container {
     display: grid;
-    overflow-y: scroll;
-    gap: 1px 10px;
     grid-template-columns: 1fr;
-    grid-template-areas: "name" "desc" "dueDate";
-    margin-left: 20px;
-    margin-right: 20px;
+    grid-template-areas: "name" "desc";
 
-    .name { grid-area: name; }
+    .name { 
+      grid-area: name;
+     }
 
-    .desc { grid-area: desc; }
-
-    .dueDate { grid-area: dueDate; }
+    .desc { 
+      grid-area: desc;
+      border-radius: 4px;
+      height: 160px;
+      margin-bottom: 17px;
+     }
   } 
-.title {
-    font-weight: bold;
+
+.pepperi-button {
+  margin-left: 5px;
 }
+
+.pepperi-border-bottom {
+  margin-bottom: 5px;
+}
+

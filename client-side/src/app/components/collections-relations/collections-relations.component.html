@@ -1,0 +1,37 @@
+<div>
+  <div  class="header-content">
+    <pep-button iconName="arrow_left_alt" sizeType="sm" (buttonClick)="backClicked()"></pep-button>
+    <p class="subtitle"> {{collectionName}} </p>
+    <pep-button class="edit-button"
+    value="Edit"
+    iconName="system_edit"
+    styleType="weak"
+    styleStateType="system"
+    classNames=""
+    [disabled]="false"
+    iconPosition="end"
+    [sizeType]="'sm'"
+    [visible]="true"
+    (buttonClick)="editClicked()"
+  ></pep-button>
+  </div>
+  <div>
+    <h2 mat-dialog-title class="mat-dialog-title pepperi-border-top">
+      <span >  
+          <p class="description">{{ collection.Description| translate}}</p>
+      </span>
+  </h2>
+  </div>
+
+  <generic-list 
+  [allowMultipleSelection]="true"
+  [inline]="true"
+  [dataSource]="listDataSource"
+  [showSearch]="true"
+  [noDataMessage]="'No Related Collection Assigned' + '\n' + 'Click the `Add Collection` Button to get things going' | translate">
+  <div class="right-buttons"  right-buttons>
+    <pep-button [styleType]="'weak'" [styleStateType]="'system'" [sizeType]="'sm'" [classNames]="'pep-spacing-element'"  [disabled]="false" iconPosition="end" iconName="system_menu"></pep-button>
+    <pep-button [sizeType]="'sm'" [value]="'Add Related Items' | translate" [classNames]="'pep-spacing-element'"  [styleType]="'strong'" (buttonClick)="addRelatedItems()"></pep-button>
+  </div>
+  </generic-list>
+</div>

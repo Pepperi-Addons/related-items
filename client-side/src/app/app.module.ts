@@ -24,9 +24,11 @@ import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
 import { PepDateModule } from '@pepperi-addons/ngx-lib/date';
 import { CollectionsListComponent } from './components/collections/collections-list.component';
 import { CollectionForm } from './components/collection-form/collection-form.component';
-import { RelatedCollections } from './components/related-collections/related-collections.component';
+import { RelatedCollections } from './components/collections-relations/collections-relations.component';
 import { RelatedCollectionFormComponent } from './components/related-collection-form/related-collection-form.component';
 import { ItemSelectionComponent } from './components/item-selection/item-selection.component';
+import { MessageDialogComponent } from './components/message-dialog/message-dialog.component';
+import { PepTextareaModule } from '@pepperi-addons/ngx-lib/textarea';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -59,7 +61,8 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         CollectionForm,
         RelatedCollections,
         RelatedCollectionFormComponent,
-        ItemSelectionComponent
+        ItemSelectionComponent,
+        MessageDialogComponent
         ],
     imports: [
         BrowserModule,
@@ -77,6 +80,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         PepListModule,
         PepSearchModule,
         PepTextboxModule,
+        PepTextareaModule,
         MatDialogModule,
         PepDateModule,
         PepImageModule,

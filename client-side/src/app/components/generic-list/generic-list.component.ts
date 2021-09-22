@@ -37,11 +37,11 @@ import {
   IPepFooterStateChangeEvent,
 } from '@pepperi-addons/ngx-lib/top-bar';
 
-import { DataView, GridDataViewField, DataViewFieldType, DataViewFieldTypes } from '@pepperi-addons/papi-sdk/dist/entities/data-view';
+import { DataView, GridDataViewField, DataViewFieldType, DataViewFieldTypes, GridDataView } from '@pepperi-addons/papi-sdk/dist/entities/data-view';
 
 export interface GenericListDataSource {
     getList(state: { searchString: string }): Promise<any[]>;
-    getDataView(): Promise<DataView>;
+    getDataView(): Promise<GridDataView>;
     getActions(objs: any[]): Promise<{
         title: string;
         handler: (obj: any) => Promise<void>;
@@ -65,9 +65,6 @@ export class GenericListComponent implements OnInit, AfterViewInit {
 
   @Input()
   title: string = ''
-  
-  @Input()
-  addButtonTitle: string = '+';
 
   @Input()
   shouldShowMenuButton: boolean = true;
@@ -80,6 +77,9 @@ export class GenericListComponent implements OnInit, AfterViewInit {
 
   @Input()
   allowSelection: boolean = true;
+
+  @Input()
+  noDataMessage: string = "No data";
 
   @Input()
   allowMultipleSelection: boolean = false;
@@ -176,23 +176,24 @@ export class GenericListComponent implements OnInit, AfterViewInit {
       }
   }
 
-  convertToPepRowData(object: any, dataView: DataView) {
+  convertToPepRowData(object: any, dataView: GridDataView) {
       const row = new PepRowData();
       row.Fields = [];
-
-      for (const field of dataView.Fields as GridDataViewField[]) {
-          row.Fields.push({
-            ApiName: field.FieldID,
-            Title: this.translate.instant(field.Title),
-            XAlignment: 1,
-            FormattedValue: (object[field.FieldID] || '').toString(),
-            Value: (object[field.FieldID] || '').toString(),
-            ColumnWidth: 10,
-            AdditionalValue: '',
-            OptionalValues: [],
-            FieldType: DataViewFieldTypes[field.Type],
-            ReadOnly: field.ReadOnly,
-            Enabled: !field.ReadOnly
+      let index = 0;
+      for(let index=0; index< dataView.Fields.length; index++) {
+        let field = dataView.Fields[index] as GridDataViewField
+        row.Fields.push({
+          ApiName: field.FieldID,
+          Title: this.translate.instant(field.Title),
+          XAlignment: 1,
+          FormattedValue: (object[field.FieldID] || '').toString(),
+          Value: (object[field.FieldID] || '').toString(),
+          ColumnWidth:   dataView.Columns[index].Width,
+          AdditionalValue: '',
+          OptionalValues: [],
+          FieldType: DataViewFieldTypes[field.Type],
+          ReadOnly: field.ReadOnly,
+          Enabled: !field.ReadOnly
         })
       }
       return row;

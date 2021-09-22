@@ -44,8 +44,8 @@ export async function relation(client: Client, request: Request) {
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
-        }
-};
+    }
+}
 
 export async function delete_relations(client: Client, request: Request) {
     const service = new RelatedItemsService(client)
@@ -56,7 +56,6 @@ export async function delete_relations(client: Client, request: Request) {
     else {
         throw new Error(`Method ${request.method} not supported`);
         }
-
 }
 
 export async function add_items_to_relation_with_externalid(client: Client, request: Request) {
@@ -75,6 +74,19 @@ export async function remove_items_from_relation_with_externalid(client: Client,
 
     if (request.method === 'POST') {
         return service.removeItemsFromRelationWithExternalID(request.body);
+    }
+    else {
+        throw new Error(`Method ${request.method} not supported`);
+    }
+}
+
+//Items endpoints
+
+export async function get_items(client: Client, request: Request) {
+    const service = new RelatedItemsService(client)
+
+    if (request.method === 'GET') {
+        return service.getItems(request.query);
     }
     else {
         throw new Error(`Method ${request.method} not supported`);

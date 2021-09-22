@@ -6,6 +6,7 @@ import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
 import { AddonService, PepperiTableComponent } from './index';
 import { Observable } from 'rxjs';
 import { InstalledAddon } from '@pepperi-addons/papi-sdk';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -29,9 +30,10 @@ export class AddonComponent implements OnInit {
         public addonService: AddonService,
         public layoutService: PepLayoutService,
         public dialog: PepDialogService,
-        public translate: TranslateService
+        public translate: TranslateService,
+        public route: ActivatedRoute
     ) {
-
+        this.addonService.addonUUID = this.route.snapshot.params.addon_uuid; 
         this.layoutService.onResize$.subscribe(size => {
             this.screenSize = size;
         });

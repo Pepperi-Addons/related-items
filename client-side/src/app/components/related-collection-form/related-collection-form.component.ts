@@ -1,10 +1,14 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { GenericListComponent, GenericListDataSource } from '../generic-list/generic-list.component';
+import { ItemSelectionComponent } from '../item-selection/item-selection.component'
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router'
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
-import { PepDialogActionsType, PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
+import { DialogService } from '../../services/dialog.service';
+import { AddonService } from "../addon";
+import { Item } from '@pepperi-addons/papi-sdk';
+import { ItemWithImageURL } from '../../../../../server-side/entities';
+import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 
 @Component({
   selector: 'addon-related-collection-form',
@@ -14,25 +18,49 @@ import { PepDialogActionsType, PepDialogData, PepDialogService } from '@pepperi-
 export class RelatedCollectionFormComponent implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
-  constructor(public translate: TranslateService,
-              public router: Router,
-              public route: ActivatedRoute,
-              public relatedItemsService: RelatedItemsService,
-              public loaderService: PepLoaderService,
-              public activatedRoute: ActivatedRoute,
-              private dialogService: PepDialogService) { 
-                this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
-              }
+  constructor(
+    public translate: TranslateService,
+    public router: Router,
+    public route: ActivatedRoute,
+    public relatedItemsService: RelatedItemsService,
+    private dialogService: DialogService,
+    private addonService: AddonService,
+    public activatedRoute: ActivatedRoute
+  ) {
+    this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
+    this.initializeData();
+  }
 
   collectionName: string;
+  externalID: string;
+  currentItem: { 'PresentedItem': Item, 'RelatedItems': ItemWithImageURL[] };
+  imageSource: string;
+  itemTitle: string;
+  itemDescription: string;
 
   ngOnInit() {
   }
 
+  async initializeData() {
+    this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
+    this.externalID = this.activatedRoute.snapshot.params["external_id"];
+    this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
+    this.imageSource = this.currentItem.PresentedItem.Image.URL;
+    this.itemTitle = this.currentItem.PresentedItem.ExternalID;
+    this.itemDescription = this.currentItem.PresentedItem.LongDescription;
+  }
+
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
+      this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
+      if (!this.currentItem.RelatedItems) {
+        this.currentItem.RelatedItems = [];
+      }
+      if (state.searchString != "") {
+        this.currentItem.RelatedItems = this.currentItem.RelatedItems.filter(item => item.ExternalID.toLowerCase().includes(state.searchString.toLowerCase()))
+      }
 
-      return [];
+      return this.currentItem.RelatedItems;
     },
 
     getDataView: async () => {
@@ -46,28 +74,36 @@ export class RelatedCollectionFormComponent implements OnInit {
         Title: 'Related Collections',
         Fields: [
           {
-            FieldID: 'ItemExternalID',
-            Type: 'TextBox',
-            Title: this.translate.instant('Item'),
+            FieldID: 'ImageURL',
+            Type: 'ImageURL',
+            Title: this.translate.instant('Image'),
             Mandatory: false,
             ReadOnly: true
           },
           {
-            FieldID: 'ItemsExternalIDList',
+            FieldID: 'ExternalID',
             Type: 'TextBox',
-            Title: this.translate.instant('Related Items'),
+            Title: this.translate.instant('External Id'),
+            Mandatory: false,
+            ReadOnly: true
+          },
+          {
+            FieldID: 'LongDescription',
+            Type: 'TextBox',
+            Title: this.translate.instant('Description'),
             Mandatory: false,
             ReadOnly: true
           }
         ],
         Columns: [
           {
-            Width: 25
+            Width: 15
           },
           {
-            Width: 25
-          }, {
-            Width: 25
+            Width: 15
+          },
+          {
+            Width: 70
           }
         ],
 
@@ -83,8 +119,12 @@ export class RelatedCollectionFormComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-            this.relatedItemsService.deleteRelations(objs).then(() => {
-                this.genericList.reload();
+            let itemsToRemove = objs.map(obj => { 
+              return obj.ExternalID
+            });
+            let itemToUpdate = {'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'itemsToRemove': itemsToRemove}
+            this.relatedItemsService.deleteRelatedItems(itemToUpdate).then(() => {
+              this.genericList.reload();
             });
           }
         });
@@ -94,17 +134,45 @@ export class RelatedCollectionFormComponent implements OnInit {
     },
 
     getAddHandler: async () => {
-      return this.router.navigate(["./addRelation"], {
-        relativeTo: this.route,
-        queryParamsHandling: 'merge'
-      });
+
     }
   }
 
-  fileChange() {}
+  addRelatedItem() {
+    let callback = async (data) => {
+      let itemsToAdd = data.ItemExternalID.split(";");
+      let failedItemsList = [];
+
+      for (const item of itemsToAdd) {
+        //Check if the item exists in the user's items list
+        let items = (await this.relatedItemsService.getItemsWithExternalId(item))
+        if (items.length == 0) {
+          failedItemsList.push(item);
+        }
+      }
+
+      await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': itemsToAdd })
+
+      let numberOfItemsToAdd = itemsToAdd.length;
+      let numberOfFailures = failedItemsList.length;
+      let numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
+
+      let message = `${numberOfItemsToAdd} items were added`
+
+      if (numberOfSuccess == 0) {
+        message = `Failed to add items Please verify the ids and that the items are not deleted`
+      }
+      else if (numberOfFailures) {
+        message = `${numberOfSuccess} items were added. The following items failed: ${failedItemsList}. Please verify the ids and that the items are not deleted`
+      }
+
+      return this.dialogService.openDialog("", MessageDialogComponent, [], { data: message }, async () => this.genericList.reload());
+    }
+    let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
+    return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
+  }
 
   goBack() {
-    this.loaderService.show;
     this.router.navigate(['..'], {
       relativeTo: this.activatedRoute,
       queryParamsHandling: 'preserve'
@@ -114,5 +182,4 @@ export class RelatedCollectionFormComponent implements OnInit {
   backClicked() {
     this.goBack();
   }
-
 }

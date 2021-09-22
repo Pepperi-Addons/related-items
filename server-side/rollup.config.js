@@ -23,7 +23,7 @@ export default config.Endpoints.map(endpoint => {
                      declaration: false
                  },
              },
-             include: ['**/*.ts', '../shared/**/*.ts']
+             include: ['**/*.ts' ]
           }),
           resolve(),
           commonjs(),

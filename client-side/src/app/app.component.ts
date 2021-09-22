@@ -1,7 +1,7 @@
 import { ActivatedRoute } from '@angular/router';
 import { from, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AddonService } from './components/addon/addon.service';
+import { AddonService } from './services/addon.service';
 import { Component, OnInit } from '@angular/core';
 import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
 import { IPepMenuItemClickEvent, PepMenuItem } from '@pepperi-addons/ngx-lib/menu';

@@ -1,8 +1,6 @@
-import { PapiClient, InstalledAddon } from '@pepperi-addons/papi-sdk'
+import { PapiClient, InstalledAddon, Item } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
-import { Collection, RelationItem, RelationItemWithExternalID, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from '../shared/entities'
-import { Fields } from '@pepperi-addons/papi-sdk/dist/endpoints';
-import { relation } from './api';
+import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from './entities'
 
 class RelatedItemsService {
 
@@ -39,8 +37,8 @@ class RelatedItemsService {
         for (const object of body.Message.ModifiedObjects) {
             let relation = await this.getRelationWithExternalIDByKey({'Key': object.ObjectKey})
             if (relation != undefined ) {
-                let itemUUID = await this.getItemsUUIDs([relation.ItemExternalID]).then(objs => objs[0].UUID);
-                let relatedItemsUUIDs: any = await this.getItemsUUIDs(relation.RelatedItems);
+                let itemUUID = await this.getItemsFilteredByFields([relation.ItemExternalID], ['UUID']).then(objs => objs[0].UUID);
+                let relatedItemsUUIDs: any = await this.getItemsFilteredByFields(relation.RelatedItems, ['UUID']);
                 if(relatedItemsUUIDs) {
                     relatedItemsUUIDs = relatedItemsUUIDs.map(item => item.UUID);
                 }
@@ -51,15 +49,16 @@ class RelatedItemsService {
         }
     }
 
-    async getItemsUUIDs(itemsExternalIDs) {
-        let externelIDsList = '(' + itemsExternalIDs.map(date => `'${date}'`).join(',') + ')';
-        let query = {fields: ['UUID'], where: `ExternalID IN ${externelIDsList}`}
-        return await this.papiClient.items.find(query)
-    }
-
     //Collection table functions
     async getCollections(query) {
-        let collectionArray = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).find(query)
+        let collectionArray;
+        if (query.Name) {
+            collectionArray = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).find({ where: `Name='${query.Name}'` })
+        }
+        else {
+            collectionArray = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).find({})
+        }
+         
 
         if (query.fields && !query.fields.includes('Count')) {
             return collectionArray;
@@ -165,8 +164,8 @@ class RelatedItemsService {
         }
     }
 
-    async removeItemsFromRelationWithExternalID(body: RelationItemWithExternalID) {
-        let itemsToRemove = body.RelatedItems;
+    async removeItemsFromRelationWithExternalID(body: {'CollectionName': string, 'ItemExternalID': string, 'itemsToRemove': string[]}) {
+        let itemsToRemove = body.itemsToRemove;
         if (itemsToRemove) {
             if (body.CollectionName && body.ItemExternalID) {
                 let item = await this.getRelationWithExternalIDByKey(body);
@@ -195,6 +194,33 @@ class RelatedItemsService {
             }
         }
         return array;
+    }
+
+    // Items functions
+
+    async getItemsFilteredByFields(itemsExternalIDs, fields) {
+        let externelIDsList = '(' + itemsExternalIDs.map(date => `'${date}'`).join(',') + ')';
+        let query = {fields: fields, where: `ExternalID IN ${externelIDsList}`}
+        return await this.papiClient.items.find(query)
+    }
+
+    async getItems(query) {
+        let item : { 
+            'PresentedItem': Item,
+            'RelatedItems': ItemWithImageURL[]
+        } = {} as { 
+            'PresentedItem': Item,
+            'RelatedItems': ItemWithImageURL[]
+        };
+
+        item.PresentedItem = await this.getItemsFilteredByFields([query.ExternalID], ['Name', 'LongDescription','Image','ExternalID']).then(objs => objs[0]);
+        let relation = await this.getRelationWithExternalIDByKey({'Key': `${query.CollectionName}_${query.ExternalID}`})
+        
+        if(relation && relation.RelatedItems && relation.RelatedItems.length > 0) {
+            item.RelatedItems = await this.getItemsFilteredByFields(relation.RelatedItems, ['Name', 'LongDescription','Image','ExternalID']);
+            item.RelatedItems.map(item => item.ImageURL = item.Image?.URL)
+        }
+        return item;
     }
 }
 
