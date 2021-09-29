@@ -10,7 +10,7 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk'
-import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME} from './entities'
+import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, Relation} from './entities'
 import RelatedItemsService from './related-items.service'
 
 export async function install(client: Client, request: Request): Promise<any> {
@@ -24,10 +24,13 @@ export async function install(client: Client, request: Request): Promise<any> {
         actionUUID: client["ActionUUID"]
     }); 
 
-    await createADALSchemes(papiClient);
-    await service.createPNSSubscription();
+    let retVal = await createADALSchemes(papiClient);
+    if (retVal.success) {
+        await service.createPNSSubscription();
+        retVal = await createRelations(papiClient);
+    }
 
-    return {success:true,resultObject:{}}
+    return retVal;
 }
 
 export async function uninstall(client: Client, request: Request): Promise<any> {
@@ -40,6 +43,33 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
 
 export async function downgrade(client: Client, request: Request): Promise<any> {
     return {success:true,resultObject:{}}
+}
+
+async function createRelations(papiClient: PapiClient) {
+    let relation = {
+        RelationName: "TransactionTypeListMenu",
+        AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+        Name:"RelatedItemsRelation",
+        Description:"Relation from Related Items addon to ATD Tab Editor addon",
+        Type:"NgComponent",
+        AddonRelativeURL:"atd_editor",
+        SubType: "NG11",
+        ModuleName: 'AtdEditorModule',
+        ComponentName: 'AtdEditorComponent'
+    }
+    try {
+        await papiClient.post('/addons/data/relations', relation);
+        return {
+            success: true,
+            errorMessage: ""
+        }
+    }
+    catch (err) {
+        return {
+            success: false,
+            errorMessage: ('message' in err) ? err.message : 'Unknown Error Occured',
+        }
+    }
 }
 
 async function createADALSchemes(papiClient: PapiClient) {
@@ -73,7 +103,20 @@ async function createADALSchemes(papiClient: PapiClient) {
             }
         }
     };
-    await papiClient.addons.data.schemes.post(collectionsScheme);
-    await papiClient.addons.data.schemes.post(relationsScheme);
-    await papiClient.addons.data.schemes.post(relatedItemsMetaDataScheme);
+    try {
+        await papiClient.addons.data.schemes.post(collectionsScheme);
+        await papiClient.addons.data.schemes.post(relationsScheme);
+        await papiClient.addons.data.schemes.post(relatedItemsMetaDataScheme);
+
+        return {
+            success: true,
+            errorMessage: ""
+        }
+    }
+    catch (err) {
+        return {
+            success: false,
+            errorMessage: ('message' in err) ? err.message : 'Unknown Error Occured',
+        }
+    }
 }

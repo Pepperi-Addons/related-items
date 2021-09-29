@@ -62,7 +62,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         RelatedCollections,
         RelatedCollectionFormComponent,
         ItemSelectionComponent,
-        MessageDialogComponent
+        MessageDialogComponent,
         ],
     imports: [
         BrowserModule,
@@ -93,10 +93,10 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         })
 
     ],
-    exports:[CollectionsListComponent],
+    exports:[CollectionsListComponent, GenericListComponent],
 
     providers: [],
-    bootstrap: [AppComponent]
+    bootstrap: [AppComponent]                                             
 })
 export class AppModule {
     constructor(

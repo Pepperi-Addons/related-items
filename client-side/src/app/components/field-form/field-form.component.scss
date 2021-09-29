@@ -1,0 +1,32 @@
+.dialog {
+    width: 310px;
+
+    .mat-dialog-title {
+      margin-bottom: 1rem;
+  }
+
+  .subtitle {
+    margin-bottom: 1rem;
+  }
+
+  .instructions {
+    font-size: 12px;
+    font-weight: normal;
+    margin-bottom: 10px;
+  }
+
+  .mat-radio-button {
+     margin-bottom: 5px;
+     font-weight: normal;
+
+    .mat-radio-label-content {
+      font-size: 14px;
+      font-weight: normal;
+      padding-left: 5px;
+    }
+  }
+}
+
+  .mat-button {
+    margin-left: 5px;
+}

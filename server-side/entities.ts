@@ -31,3 +31,12 @@ export interface RelationItemWithExternalID {
 export type ItemWithImageURL = Item & {
     ImageURL?: string;
 }
+
+export interface Relation {
+    RelationName: string;
+    AddonUUID: string;
+    Name: string;
+    Description: string;
+    Type: "AddonAPI" | "NgComponent" | "Navigation";
+    [key:string]:string;
+}

@@ -8,6 +8,7 @@
     display: grid;
     grid-template-columns: 1fr;
     grid-template-areas: "name" "desc";
+    margin-top: 0px;
 
     .name { 
       grid-area: name;
@@ -26,6 +27,7 @@
 }
 
 .pepperi-border-bottom {
+  margin-top: 0px;
   margin-bottom: 5px;
 }
 

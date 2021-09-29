@@ -18,7 +18,6 @@ import { MessageDialogComponent } from '../message-dialog/message-dialog.compone
 export class RelatedCollections implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
-  showLoading = true;
   itemsInCollection = [];
 
   constructor(

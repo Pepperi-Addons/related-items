@@ -1,0 +1,65 @@
+<div class="dialog">
+  <div mat-dialog-title class="mat-dialog-title pepperi-border-bottom top-ui-widget-header">
+    <h3>
+      Add Field
+    </h3>
+  </div>
+  <div>
+    <div class="name">
+      <pep-textbox [label]="'Name' | translate" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('ExternalID', $event)"</pep-textbox>
+    </div>
+    <div class="api-name">
+      <pep-textbox [label]="'API Name' | translate" [(value)]="dialogData.ItemExternalID" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('ExternalID', $event)"</pep-textbox>
+    </div>
+  </div>
+  <div>
+    <div class="subtitle top-ui-widget-header pepperi-border-bottom">
+      <h4 >
+        List source
+      </h4>
+    </div>
+    <p class="instructions">
+      choose the field that will use as a query for the list of items. This field's value must return a string with the item UUID's seperated by the internal delimeter
+    </p>
+    <mat-radio-group class="radio-group">
+      <div class="run-at-radio-button">
+        <mat-radio-button class="pep-radio-button sm mat-radio-button" checked value="1">
+          <span class="mat-radio-label-content">
+            {{ 'Related collections' | translate}}
+          </span>
+        </mat-radio-button>
+      </div>
+      <div class="run-at-radio-button">
+        <mat-radio-button class="pep-radio-button sm mat-radio-button"  value="2">
+          <span class="mat-radio-label-content">
+            {{ 'Field' | translate}}
+          </span>
+        </mat-radio-button>
+        <pep-select [showTitle]="false" [emptyOption]="false" 
+           [options]="" (valueChange)="onValueChanged">
+        </pep-select>
+      </div>
+  </mat-radio-group> 
+  </div>
+  <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
+      style="justify-content: flex-end;">
+      <div class="spacing-element-negative">
+          <button class="spacing-element pepperi-button md weak mat-button" mat-button [mat-dialog-close]>
+              <span class="mat-button-wrapper">
+                  {{ 'Cancel' | translate }}
+              </span>
+              <div class="mat-button-ripple mat-ripple" matripple></div>
+              <div class="mat-button-focus-overlay"></div>
+          </button>
+          <button class="spacing-element pepperi-button md strong mat-button" mat-button
+           (click)="onSaveButtonClicked()">
+              <span class="mat-button-wrapper">
+                  {{ ('Save') | translate }}
+              </span>
+              <div class="mat-button-ripple mat-ripple" matripple></div>
+              <div class="mat-button-focus-overlay"></div>
+          </button>
+      </div>
+  </div>
+</div>
+

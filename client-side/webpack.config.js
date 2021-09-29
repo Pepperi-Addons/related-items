@@ -18,7 +18,7 @@ module.exports = (config, options, env) => {
     else {
         const mfConfig = {
             output: {
-              uniqueName: "addon",
+              uniqueName: "atd_editor",
               publicPath: "auto"
             },
             optimization: {
@@ -28,11 +28,11 @@ module.exports = (config, options, env) => {
             plugins: [
               new ModuleFederationPlugin({
                 // remotes: {},
-                name: "addon",
-                filename: "addon.js",
+                name: "atd_editor",
+                filename: "atd_editor.js",
                 exposes: {
-                  './AddonComponent': './src/app/components/addon/index.ts',
-                  './AddonModule': './src/app/components/addon/index.ts'
+                  './AtdEditorComponent': './src/app/components/atd-editor/index.ts',
+                  './AtdEditorModule': './src/app/components/atd-editor/index.ts'
 
                 },
                 shared: {

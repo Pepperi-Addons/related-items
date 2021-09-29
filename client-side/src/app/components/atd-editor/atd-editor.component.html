@@ -1,0 +1,12 @@
+<div class="addon-page-container">
+  <generic-list 
+    [title] = "title"
+    [allowMultipleSelection]="true" 
+    [inline]="true" 
+    [dataSource]="listDataSource" 
+    [showSearch]="true">
+    <div right-buttons>
+      <pep-button [sizeType]="'sm'" [value]="'Add Field'" [styleType]="'strong'" (buttonClick)="addField()"></pep-button>
+    </div>
+  </generic-list>
+</div>

@@ -16,8 +16,6 @@ import { AddonService } from '../../services/addon.service';
 export class CollectionsListComponent implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
-  showLoading = true;
-
   constructor(
       public addonService: AddonService,
       public translate: TranslateService,
