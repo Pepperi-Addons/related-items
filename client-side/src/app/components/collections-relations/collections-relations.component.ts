@@ -5,10 +5,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component'
 import { DialogService } from '../../services/dialog.service';
-import { AddonService } from "../addon";
 import { CollectionForm } from '../collection-form/collection-form.component';
 import { Collection } from '../../../../../server-side/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { AddonService } from 'src/app/services/addon.service';
 
 @Component({
   selector: 'addon-collections-relations',
@@ -132,9 +132,6 @@ export class RelatedCollections implements OnInit {
       }
 
       return actions;
-    },
-
-    getAddHandler: async () => {
     }
   }
 

@@ -10,7 +10,7 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk'
-import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, Relation} from './entities'
+import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME} from './entities'
 import RelatedItemsService from './related-items.service'
 
 export async function install(client: Client, request: Request): Promise<any> {
@@ -47,10 +47,10 @@ export async function downgrade(client: Client, request: Request): Promise<any> 
 
 async function createRelations(papiClient: PapiClient) {
     let relation = {
-        RelationName: "TransactionTypeListMenu",
+        RelationName: "TransactionTypeListTabs",
         AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
         Name:"RelatedItemsRelation",
-        Description:"Relation from Related Items addon to ATD Tab Editor addon",
+        Description:"Related Items",
         Type:"NgComponent",
         AddonRelativeURL:"atd_editor",
         SubType: "NG11",
@@ -103,10 +103,15 @@ async function createADALSchemes(papiClient: PapiClient) {
             }
         }
     };
+    var relatedItemsAtdFieldsScheme: AddonDataScheme = {
+        Name: RELATED_ITEM_ATD_FIELDS_TABLE_NAME,
+        Type: 'cpi_meta_data'
+    };
     try {
         await papiClient.addons.data.schemes.post(collectionsScheme);
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsMetaDataScheme);
+        await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
 
         return {
             success: true,

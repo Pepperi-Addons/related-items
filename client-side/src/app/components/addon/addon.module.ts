@@ -2,7 +2,6 @@ import { MatCardModule } from '@angular/material/card';
 import { PepListModule } from '@pepperi-addons/ngx-lib/list';
 import { AddonService } from '../../services/addon.service';
 import { PepTopBarModule } from '@pepperi-addons/ngx-lib/top-bar';
-// import { RouterModule, Routes } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -11,10 +10,10 @@ import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
 import { PepHttpService, PepFileService, PepNgxLibModule, PepAddonService, PepCustomizationService } from '@pepperi-addons/ngx-lib';
-import { AddonComponent } from './index';
 import {PepperiTableComponent} from './pepperi-table.component'
 import { MatDialogModule } from '@angular/material/dialog';
 import { PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
+import { AddonComponent } from '.';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();

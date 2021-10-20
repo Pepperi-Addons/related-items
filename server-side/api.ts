@@ -13,8 +13,8 @@ export async function collections(client: Client, request: Request) {
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
-        }
-};
+    }
+}
 
 export async function delete_collections(client: Client, request: Request) {
     const service = new RelatedItemsService(client)
@@ -24,8 +24,7 @@ export async function delete_collections(client: Client, request: Request) {
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
-        }
-
+    }
 }
 
 export async function triggered_by_pns(client: Client, request: Request) {
@@ -55,7 +54,7 @@ export async function delete_relations(client: Client, request: Request) {
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
-        }
+    }
 }
 
 export async function add_items_to_relation_with_externalid(client: Client, request: Request) {
@@ -90,5 +89,43 @@ export async function get_items(client: Client, request: Request) {
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
+    }
+}
+
+// ATD functions
+
+export async function atd_fields(client: Client, request: Request) {
+    const service = new RelatedItemsService(client)
+
+    if (request.method === 'GET') {
+        return service.getItemsFromFieldsTable(request.query);
+    }
+    else if (request.method === 'POST') {
+        return service.upsertItemsInFieldsTable(request.body)
+    }
+    else {
+        throw new Error(`Method ${request.method} not supported`);
+    }
+}
+
+export async function delete_atd_fields(client: Client, request: Request) {
+    const service = new RelatedItemsService(client)
+
+    if (request.method === 'POST') {
+        return service.deleteAtdFields(request.body);
+    }
+    else {
+        throw new Error(`Method ${request.method} not supported`);
+    }
+}
+
+export async function create_tsa_field(client: Client, request:Request) {
+    const service = new RelatedItemsService(client)
+
+    if (request.method == 'POST') {
+        return service.createAtdTransactionLinesFields(request.body);
+    }
+    else if (request.method == 'GET') {
+        throw new Error(`Method ${request.method} not supported`);       
     }
 }

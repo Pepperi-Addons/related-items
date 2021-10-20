@@ -2,11 +2,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Component, OnInit, Inject, OnDestroy } from "@angular/core";
 import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
 import { PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
-import { Router } from '@angular/router';
 import { Collection } from '../../../../../server-side/entities';
 import { BehaviorSubject } from 'rxjs';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { AddonService } from '../../services/addon.service';
 
 export class CollectionFormDialogService {
 
@@ -34,10 +32,8 @@ export class CollectionForm implements OnInit, OnDestroy {
 
   constructor(
       public layoutService: PepLayoutService,
-      public addonService: AddonService,
       public translate: TranslateService,
       public dialogService: PepDialogService,
-      public router: Router,
       public dialogRef: MatDialogRef<CollectionForm>,
       @Inject(MAT_DIALOG_DATA) public incoming: any
   ) {

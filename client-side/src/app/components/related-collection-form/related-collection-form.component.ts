@@ -5,10 +5,10 @@ import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router'
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DialogService } from '../../services/dialog.service';
-import { AddonService } from "../addon";
 import { Item } from '@pepperi-addons/papi-sdk';
 import { ItemWithImageURL } from '../../../../../server-side/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { AddonService } from 'src/app/services/addon.service';
 
 @Component({
   selector: 'addon-related-collection-form',
@@ -131,10 +131,6 @@ export class RelatedCollectionFormComponent implements OnInit {
       }
 
       return actions;
-    },
-
-    getAddHandler: async () => {
-
     }
   }
 

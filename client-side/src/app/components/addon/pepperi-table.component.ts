@@ -7,7 +7,7 @@ import { PepListComponent } from '@pepperi-addons/ngx-lib/list';
   selector: 'pep-table',
   template: `<div class="list-container" #listContainer>
   <pep-list
-
+        viewType="table"
       [firstFieldAsLink]="false"
       [isReport]="true"
       [supportSorting]="false"
@@ -59,7 +59,7 @@ export class PepperiTableComponent implements OnInit, OnChanges {
             dataSource.forEach((row: any) => tableData.push(this.convertObjectToPepRowData(row, displayedColumns, customizeFn)));
             const uiControl = this.dataConvertorService.getUiControl(tableData[0]);
             const rows = this.dataConvertorService.convertListData(tableData);
-            this.customList.initListData(uiControl, rows.length, rows, 'table', '', true);
+            this.customList.initListData(uiControl, rows.length, rows);
         }
     }
 

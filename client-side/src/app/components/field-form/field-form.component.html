@@ -6,10 +6,11 @@
   </div>
   <div>
     <div class="name">
-      <pep-textbox [label]="'Name' | translate" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('ExternalID', $event)"</pep-textbox>
+      <pep-textbox id="nametextbox" [label]="'Name' | translate" [(value)]="this.dialogData.fieldData.Name" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Name', $event)"> </pep-textbox>
     </div>
     <div class="api-name">
-      <pep-textbox [label]="'API Name' | translate" [(value)]="dialogData.ItemExternalID" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('ExternalID', $event)"</pep-textbox>
+      <pep-textbox [label]="'API Name' | translate" [(value)]="this.dialogData.fieldData.APIName" [disabled]="formMode===0" [readonly]="false" (keydown)="eventHandler($event)" (valueChange)="onValueChanged('APIName', $event)"> 
+      </pep-textbox>
     </div>
   </div>
   <div>
@@ -23,23 +24,23 @@
     </p>
     <mat-radio-group class="radio-group">
       <div class="run-at-radio-button">
-        <mat-radio-button class="pep-radio-button sm mat-radio-button" checked value="1">
+        <mat-radio-button class="pep-radio-button sm mat-radio-button" [checked]="isFirstRadioButtonChecked"  value="1" (change)="onRadioButtonSelect($event)">
           <span class="mat-radio-label-content">
             {{ 'Related collections' | translate}}
           </span>
         </mat-radio-button>
       </div>
       <div class="run-at-radio-button">
-        <mat-radio-button class="pep-radio-button sm mat-radio-button"  value="2">
+        <mat-radio-button class="pep-radio-button sm mat-radio-button"  [checked]="!isFirstRadioButtonChecked"  value="2" (change)="onRadioButtonSelect($event)">
           <span class="mat-radio-label-content">
             {{ 'Field' | translate}}
           </span>
         </mat-radio-button>
-        <pep-select [showTitle]="false" [emptyOption]="false" 
-           [options]="" (valueChange)="onValueChanged">
+        <pep-select [showTitle]="false" [emptyOption]="false" [(value)]=this.dialogData.fieldData.ListSource
+           [options]="options" (valueChange)="onValueChanged('ListSource', $event)">
         </pep-select>
       </div>
-  </mat-radio-group> 
+    </mat-radio-group> 
   </div>
   <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
       style="justify-content: flex-end;">

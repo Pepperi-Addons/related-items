@@ -6,8 +6,6 @@ import { Component, OnInit } from '@angular/core';
 import { PepCustomizationService, PepLoaderService, PepStyleType } from '@pepperi-addons/ngx-lib';
 import { IPepMenuItemClickEvent, PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
 
-declare var CLIENT_MODE: any;
-
 @Component({
     selector: 'addon-root',
     templateUrl: './app.component.html',
@@ -17,7 +15,6 @@ export class AppComponent implements OnInit {
 
     footerHeight: number;
     showLoading = false;
-    clientMode: string;
     addon$: Observable<any>;
     menuItems: Array<PepMenuItem> = null;
 
@@ -31,7 +28,6 @@ export class AppComponent implements OnInit {
             .subscribe((show) => {
                 this.showLoading = show;
             });
-            this.clientMode = CLIENT_MODE;
     }
 
     ngOnInit() {

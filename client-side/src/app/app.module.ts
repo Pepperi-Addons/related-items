@@ -1,7 +1,4 @@
-import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
 import { PepTopBarModule } from '@pepperi-addons/ngx-lib/top-bar';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app.routes';
 import { AppComponent } from './app.component';
@@ -16,12 +13,9 @@ import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
 import { PepImageModule } from '@pepperi-addons/ngx-lib/image';
 import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 import { PepDialogModule } from '@pepperi-addons/ngx-lib/dialog';
-import { GenericListComponent } from '../app/components/generic-list/generic-list.component'
-import { PepListModule } from '@pepperi-addons/ngx-lib/list';
-import { PepSearchModule } from '@pepperi-addons/ngx-lib/search';
+import { GenericListComponent } from '../app/components/generic-list/generic-list.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
-import { PepDateModule } from '@pepperi-addons/ngx-lib/date';
 import { CollectionsListComponent } from './components/collections/collections-list.component';
 import { CollectionForm } from './components/collection-form/collection-form.component';
 import { RelatedCollections } from './components/collections-relations/collections-relations.component';
@@ -29,6 +23,10 @@ import { RelatedCollectionFormComponent } from './components/related-collection-
 import { ItemSelectionComponent } from './components/item-selection/item-selection.component';
 import { MessageDialogComponent } from './components/message-dialog/message-dialog.component';
 import { PepTextareaModule } from '@pepperi-addons/ngx-lib/textarea';
+import { CommonModule } from '@angular/common';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { FeatureModule } from './modules/shared.module';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -57,7 +55,6 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
     declarations: [
         AppComponent,
         CollectionsListComponent,
-        GenericListComponent,
         CollectionForm,
         RelatedCollections,
         RelatedCollectionFormComponent,
@@ -67,22 +64,20 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
     imports: [
         BrowserModule,
         BrowserAnimationsModule,
+        CommonModule,
         HttpClientModule,
         AppRoutingModule,
+        FeatureModule,
         PepSizeDetectorModule,
         MatIconModule,
         PepIconModule,
         PepTopBarModule,
-        PepMenuModule,
         PepPageLayoutModule,
         PepButtonModule,
         PepDialogModule,
-        PepListModule,
-        PepSearchModule,
         PepTextboxModule,
         PepTextareaModule,
         MatDialogModule,
-        PepDateModule,
         PepImageModule,
         TranslateModule.forRoot({
             loader: {

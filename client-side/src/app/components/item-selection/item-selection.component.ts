@@ -1,7 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DialogService } from 'src/app/services/dialog.service';
-import { RelatedItemsService } from '../../services/related-items.service';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 
 @Component({
@@ -18,7 +17,6 @@ export class ItemSelectionComponent implements OnInit {
   dialogTitle: string = `Add Item`;
 
   constructor(
-      public relatedItemsService: RelatedItemsService,
       private dialogService: DialogService,
       public dialogRef: MatDialogRef<ItemSelectionComponent>,
       @Inject(MAT_DIALOG_DATA) public incoming: any

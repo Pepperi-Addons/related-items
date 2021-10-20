@@ -4,6 +4,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PepDialogData } from '@pepperi-addons/ngx-lib/dialog';
 import { FieldFormComponent } from '../field-form/field-form.component';
 import { DialogService } from 'src/app/services/dialog.service';
+import { AddonService } from 'src/app/services/addon.service';
+import { RelatedItemsService } from 'src/app/services/related-items.service';
+import {fieldFormMode} from 'src/app/components/field-form/field-form.component'
 
 @Component({
   selector: 'addon-atd-editor',
@@ -11,24 +14,40 @@ import { DialogService } from 'src/app/services/dialog.service';
   styleUrls: ['./atd-editor.component.scss']
 })
 export class AtdEditorComponent implements OnInit {
-  @ViewChild(GenericListComponent) genericList: GenericListComponent;
+   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
   @Input() hostObject: any;
   @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
-  title = "Related Items";
-
-  constructor(public translate: TranslateService,
-    private dialogService: DialogService) { }
-
-  ngOnInit() {
+  atdID: number;
+  
+  constructor(
+    private relatedItemsService: RelatedItemsService,
+    private translate: TranslateService,
+    private dialogService: DialogService,
+    private addonService: AddonService) {
   }
 
+  ngOnInit() {
+    let configID = this.hostObject.objectList[0];
+    this.relatedItemsService.getTypeInternalID(configID).then((atdId) => {
+      this.atdID = atdId; 
+    });
+    this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
+  }
+  
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
-      let res = [];
-
-      return res;
+      let fieldsList = await this.relatedItemsService.getFieldsFromADAL();
+      fieldsList.map(item => {
+        if (item.ListSource.value) {
+          item.ListName = item.ListSource.value;
+        }
+        else {
+          item.ListName = item.ListSource
+        }
+      });
+      return fieldsList;
     },
 
     getDataView: async () => {
@@ -42,23 +61,23 @@ export class AtdEditorComponent implements OnInit {
         Title: 'Related Items',
         Fields: [
           {
-            FieldID: 'Name',
+            FieldID:'Name',
             Type: 'TextBox',
             Title: this.translate.instant('Name'),
             Mandatory: false,
             ReadOnly: true
           },
           {
-            FieldID: 'API Name',
+            FieldID: 'APIName',
             Type: 'TextBox',
-            Title: this.translate.instant('Description'),
+            Title: this.translate.instant('API Name'),
             Mandatory: false,
             ReadOnly: true
           },
           {
-            FieldID: 'List Source',
-            Type: 'NumberInteger',
-            Title: this.translate.instant('Count'),
+            FieldID: 'ListName',
+            Type: 'TextBox',
+            Title: this.translate.instant('List Source'),
             Mandatory: false,
             ReadOnly: true
           }
@@ -85,6 +104,7 @@ export class AtdEditorComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Edit"),
           handler: async (objs) => {
+            this.openFieldForm(fieldFormMode.EditMode,objs[0]);
           }
         });
       }
@@ -92,26 +112,45 @@ export class AtdEditorComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-
+            this.relatedItemsService.deleteFields(objs, this.atdID).then(() => {
+              this.genericList.reload();
+            });
           }
         });
       }
 
       return actions;
-    },
-
-    getAddHandler: async () => {}
+    }
   }
 
-  addField() {
+  async openFieldForm(fieldFormMode, fieldData?) {
     let callback = async (data) => {
       if (data) {
-
-
+        if (await this.relatedItemsService.createTSAField({atdID: this.atdID, apiName: data.fieldData.APIName})) {
+          this.relatedItemsService.updateFieldsTable({"Name": data.fieldData.Name, "APIName": data.fieldData.APIName, "ListSource": data.fieldData.ListSource, "ListType": data.fieldData.ListType, "Hidden": false}).then(() => {
+            this.genericList.reload();
+          });
+        }
       }
-    } 
-    const data = new PepDialogData({title: this.translate.instant("Add Field"), content: {"Name": " ", "API Name": " " }, actionsType: 'close'});
-    return this.dialogService.openDialog(this.translate.instant("Add Field"), FieldFormComponent, [], { data: data }, callback);
-  }
+    }
+    // if the user arrives from the 'add button', the fieldData is undefined
+    if (fieldData === undefined) {
+      fieldData = {
+        "Name": "",
+        "APIName": "TSA"
+      }
+    }
+    // Get list source's sources
+    let collections = await this.relatedItemsService.getCollections();
+    let collectionsName = collections.map(collection => {
+      return {
+        key: collection.Name,
+        value: collection.Name
+      }
+   });
+    let fields = await this.relatedItemsService.getFieldsOfItemsAndTransactionLine(this.atdID);
 
+    const data = new PepDialogData({ title: this.translate.instant("Add Field"), content: { "fieldData": fieldData, "CollectionsList": collectionsName, "FieldsList": fields, "fieldFormMode": fieldFormMode}, actionsType: 'close' });
+    this.dialogService.openDialog(this.translate.instant("Add Field"), FieldFormComponent, [], { data: data }, callback);
+  }
 }

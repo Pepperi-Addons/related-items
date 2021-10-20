@@ -108,9 +108,7 @@ export class CollectionsListComponent implements OnInit {
       }
 
       return actions;
-    },
-
-    getAddHandler: async () => {}
+    }
   }
 
   addCollecton() {

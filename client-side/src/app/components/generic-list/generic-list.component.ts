@@ -3,39 +3,26 @@ import {
   OnInit,
   AfterViewInit,
   ViewChild,
-  Optional,
   Input,
   Output,
   EventEmitter,
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  PepHttpService,
   PepDataConvertorService,
   PepLayoutService,
   PepRowData,
-  PepFieldData,
-  FIELD_TYPE,
   PepScreenSizeType,
   PepGuid,
 } from '@pepperi-addons/ngx-lib';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 import {
-  IPepListChooserOptionChangeEvent,
-  IPepListSortingOptionChangeEvent,
-  PepListComponent,
-  IPepListSortingOption,
-  IPepListView,
-  IListViewChangeEvent,
+  PepListComponent
 } from '@pepperi-addons/ngx-lib/list';
 import {
   PepMenuItem,
   IPepMenuItemClickEvent,
 } from '@pepperi-addons/ngx-lib/menu';
-import {
-  PepFooterStateType,
-  IPepFooterStateChangeEvent,
-} from '@pepperi-addons/ngx-lib/top-bar';
 
 import { DataView, GridDataViewField, DataViewFieldType, DataViewFieldTypes, GridDataView } from '@pepperi-addons/papi-sdk/dist/entities/data-view';
 
@@ -46,7 +33,6 @@ export interface GenericListDataSource {
         title: string;
         handler: (obj: any) => Promise<void>;
     }[]>;
-    getAddHandler(): Promise<any>;
 }
 
 @Component({
@@ -65,9 +51,6 @@ export class GenericListComponent implements OnInit, AfterViewInit {
 
   @Input()
   title: string = ''
-
-  @Input()
-  shouldShowMenuButton: boolean = true;
 
   @Input()
   inline: boolean = false;
@@ -92,7 +75,6 @@ export class GenericListComponent implements OnInit, AfterViewInit {
   constructor(
       private dataConvertorService: PepDataConvertorService,
       private layoutService: PepLayoutService,
-      // private httpService: PepHttpService,
       private translate: TranslateService
   ) {
       this.layoutService.onResize$.pipe().subscribe((size) => {
@@ -154,10 +136,6 @@ export class GenericListComponent implements OnInit, AfterViewInit {
     this.reload();
   }
 
-  addClicked(){
-     this.dataSource.getAddHandler();
-  }
-
   async reload() {
       if (this.customList && this.dataSource) {
           this.dataObjects = await this.dataSource.getList({
@@ -170,7 +148,7 @@ export class GenericListComponent implements OnInit, AfterViewInit {
             this.dataObjects[i].UID = obj.UID;
           })
           const uiControl = this.dataConvertorService.getUiControl(tableData[0]);
-          this.customList.initListData(uiControl, data.length, data, 'table');
+          this.customList.initListData(uiControl, data.length, data);
         
           this.loadMenuItems();
       }
@@ -179,7 +157,6 @@ export class GenericListComponent implements OnInit, AfterViewInit {
   convertToPepRowData(object: any, dataView: GridDataView) {
       const row = new PepRowData();
       row.Fields = [];
-      let index = 0;
       for(let index=0; index< dataView.Fields.length; index++) {
         let field = dataView.Fields[index] as GridDataViewField
         row.Fields.push({

@@ -3,10 +3,11 @@ import {  map } from 'rxjs/operators';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
 import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
-import { AddonService, PepperiTableComponent } from './index';
 import { Observable } from 'rxjs';
 import { InstalledAddon } from '@pepperi-addons/papi-sdk';
 import { ActivatedRoute } from '@angular/router';
+import { AddonService } from 'src/app/services/addon.service';
+import { PepperiTableComponent } from '.';
 
 
 @Component({
