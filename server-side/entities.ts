@@ -1,4 +1,5 @@
 import { Item } from '@pepperi-addons/papi-sdk'
+import { ImageObject } from '@pepperi-addons/papi-sdk/dist/entities/base';
 
 export const COLLECTION_TABLE_NAME = 'Collection';
 export const RELATED_ITEM_CPI_META_DATA_TABLE_NAME = 'CPIRelation';
@@ -30,6 +31,10 @@ export interface RelationItemWithExternalID {
     Hidden?: boolean
 }
 export type ItemWithImageURL = Item & {
+    Name?:string;
+    LongDescription?: string;
+    ExternalID: string;
+    Image?: ImageObject;
     ImageURL?: string;
 }
 

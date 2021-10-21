@@ -16,10 +16,10 @@ export class RelatedItemsService {
           
     }
 
-    getCollections(collectionName?: string) {
+    getCollections(query?: string) {
         let url = `/addons/api/${this.addonService.addonUUID}/api/collections`
-        if (collectionName) {
-            url = url + `?Name=${collectionName}`;
+        if (query) {
+            url = url + query;
         }
         return this.addonService.pepGet(encodeURI(url)).toPromise();
     }

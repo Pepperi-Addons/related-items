@@ -1,4 +1,4 @@
-import { PapiClient, InstalledAddon, Item, ApiFieldObject, } from '@pepperi-addons/papi-sdk'
+import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME } from './entities'
 
@@ -33,7 +33,9 @@ class RelatedItemsService {
         });
     }
 
+    //Updates RELATED_ITEM_CPI_META_DATA_TABLE_NAME Table to be identical to RELATED_ITEM_META_DATA_TABLE_NAME Table
     async trigeredByPNS(body) {
+        let items: AddonData[] = [];
         for (const object of body.Message.ModifiedObjects) {
             let relation = await this.getRelationWithExternalIDByKey({ 'Key': object.ObjectKey })
             if (relation != undefined) {
@@ -44,32 +46,36 @@ class RelatedItemsService {
                 }
                 let key = `${relation.CollectionName}_${itemUUID}`;
                 let cpiRelationItem = { 'Key': key, 'Hidden': relation.Hidden, RelatedItems: relatedItemsUUIDs }
-                return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem);
+                items.push(await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem));
             }
         }
+        return items;
     }
 
     //Collection table functions
     async getCollections(query) {
+        const { Name, ...options } = query;
         let collectionArray;
         if (query.Name) {
-            collectionArray = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).find({ where: `Name='${query.Name}'` })
+            try {
+                collectionArray = [await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).key(Name).get()];
+            }
+            catch {
+                collectionArray = [];
+            }
         }
         else {
-            collectionArray = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).find({})
+            collectionArray = await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).find(options)
         }
-
 
         if (query.fields && !query.fields.includes('Count')) {
             return collectionArray;
         }
         else {
-            for (const collection of collectionArray) {
-                const relationsArray = await this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name });
-                if (relationsArray) {
-                    collection.Count = relationsArray.length;
-                }
-            }
+            const array = collectionArray.map(collection => {
+                return this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name }).then(relationsArray => collection.Count = relationsArray?.length);
+            })
+            await Promise.all(array);
             return collectionArray;
         }
     }
@@ -127,7 +133,7 @@ class RelatedItemsService {
         }
     }
 
-    async deleteRelations(body: [RelationItem]) {
+    async deleteRelations(body: RelationItem[]) {
         let relations = body.map(relationToDelete => {
             relationToDelete.Hidden = true;
             return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(relationToDelete);
@@ -136,8 +142,22 @@ class RelatedItemsService {
         return p
     }
 
+    async checkIfItemsExist(items: string[]) {
+        let notExistItems: string[] = [];
+        for (const item of items) {
+            //Check if the item exists in the user's items list
+            let items = await this.getItemsFilteredByFields([item], ['UUID']);
+            if (items.length == 0) {
+                notExistItems.push(item);
+            }
+        }
+        return notExistItems;
+    }
 
     async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
+        let itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
+        let numberOfItemsToAdd = itemsToAdd.length;
+        let failedItemsList: string[] = await this.checkIfItemsExist(itemsToAdd);
         //validate that the required fields exist
         if (body.CollectionName && body.ItemExternalID) {
             let collection = await this.getCollectionByKey(body.CollectionName);
@@ -151,11 +171,14 @@ class RelatedItemsService {
                     else {
                         item.RelatedItems = body.RelatedItems;
                     }
-                    return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item)
+                    await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item)
                 }
                 else {
-                    return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(body)
+                    await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(body)
                 }
+                let numberOfFailures = failedItemsList.length;
+                let numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
+                return { numberOfItemsToAdd: numberOfItemsToAdd, numberOfFailures: numberOfFailures, numberOfSuccess: numberOfSuccess, failedItemsList: failedItemsList }
             }
             throw new Error(`Collection does not exist`);
         }
@@ -199,21 +222,24 @@ class RelatedItemsService {
     // Items functions
 
     async getItemsFilteredByFields(itemsExternalIDs, fields) {
-        let externelIDsList = '(' + itemsExternalIDs.map(date => `'${date}'`).join(',') + ')';
+        let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
         let query = { fields: fields, where: `ExternalID IN ${externelIDsList}` }
         return await this.papiClient.items.find(query)
     }
 
     async getItems(query) {
-        let item: {
-            'PresentedItem': Item,
-            'RelatedItems': ItemWithImageURL[]
-        } = {} as {
-            'PresentedItem': Item,
-            'RelatedItems': ItemWithImageURL[]
-        };
+        let item:
+
+            {
+                'PresentedItem': ItemWithImageURL,
+                'RelatedItems': ItemWithImageURL[]
+            } = {} as {
+                'PresentedItem': ItemWithImageURL,
+                'RelatedItems': ItemWithImageURL[]
+            };
 
         item.PresentedItem = await this.getItemsFilteredByFields([query.ExternalID], ['Name', 'LongDescription', 'Image', 'ExternalID']).then(objs => objs[0]);
+        item.PresentedItem.ImageURL = item.PresentedItem.Image?.URL;
         let relation = await this.getRelationWithExternalIDByKey({ 'Key': `${query.CollectionName}_${query.ExternalID}` })
 
         if (relation && relation.RelatedItems && relation.RelatedItems.length > 0) {
@@ -233,7 +259,7 @@ class RelatedItemsService {
         obj.Key = obj.APIName;
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_ATD_FIELDS_TABLE_NAME).upsert(obj);
     }
-    
+
     async deleteAtdFields(body) {
         const atdID = body.atdID ? Number(body.atdID) : -1;
         const url = `/meta_data/transaction_lines/types/${atdID}/fields`;
@@ -242,7 +268,7 @@ class RelatedItemsService {
             const fieldID = field.APIName ? field.APIName : "";
             const apiField = await this.papiClient.get(`/meta_data/transaction_lines/types/${atdID}/fields/${fieldID}`)
             apiField.Hidden = true;
-            if(await this.papiClient.post(url, apiField)) {
+            if (await this.papiClient.post(url, apiField)) {
                 field.Hidden = true;
                 let ans = await this.upsertItemsInFieldsTable(field);
                 fields.push(ans);
@@ -271,7 +297,7 @@ class RelatedItemsService {
             UserDefinedTableSource: null,
             CalculatedRuleEngine: null,
             TypeSpecificFields: null,
-            Hidden:false
+            Hidden: false
         }
 
         const url = `/meta_data/transaction_lines/types/${atdID}/fields`;

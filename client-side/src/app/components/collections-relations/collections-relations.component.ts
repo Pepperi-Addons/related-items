@@ -46,7 +46,7 @@ export class RelatedCollections implements OnInit {
   }
 
   async initializeData() {
-    this.collection = await this.relatedItemsService.getCollections(this.collectionName).then(objs => objs[0]);
+    this.collection = await this.relatedItemsService.getCollections(`?Name=${this.collectionName}`).then(objs => objs[0]);
   }
 
   listDataSource: GenericListDataSource = {

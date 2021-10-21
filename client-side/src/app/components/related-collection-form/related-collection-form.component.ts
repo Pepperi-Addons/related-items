@@ -33,7 +33,7 @@ export class RelatedCollectionFormComponent implements OnInit {
 
   collectionName: string;
   externalID: string;
-  currentItem: { 'PresentedItem': Item, 'RelatedItems': ItemWithImageURL[] };
+  currentItem: { 'PresentedItem': ItemWithImageURL, 'RelatedItems': ItemWithImageURL[] };
   imageSource: string;
   itemTitle: string;
   itemDescription: string;
@@ -45,7 +45,7 @@ export class RelatedCollectionFormComponent implements OnInit {
     this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
     this.externalID = this.activatedRoute.snapshot.params["external_id"];
     this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
-    this.imageSource = this.currentItem.PresentedItem.Image.URL;
+    this.imageSource = this.currentItem.PresentedItem.ImageURL;
     this.itemTitle = this.currentItem.PresentedItem.ExternalID;
     this.itemDescription = this.currentItem.PresentedItem.LongDescription;
   }
@@ -134,39 +134,24 @@ export class RelatedCollectionFormComponent implements OnInit {
     }
   }
 
-  addRelatedItem() {
-    let callback = async (data) => {
-      let itemsToAdd = data.ItemExternalID.split(";");
-      let failedItemsList = [];
+addRelatedItem() {
+  let callback = async (data) => {
+    debugger
+    let ans = await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': data.ItemExternalID.split(";")})
+      let message = `${ans.numberOfItemsToAdd} items were added`
 
-      for (const item of itemsToAdd) {
-        //Check if the item exists in the user's items list
-        let items = (await this.relatedItemsService.getItemsWithExternalId(item))
-        if (items.length == 0) {
-          failedItemsList.push(item);
-        }
-      }
-
-      await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': itemsToAdd })
-
-      let numberOfItemsToAdd = itemsToAdd.length;
-      let numberOfFailures = failedItemsList.length;
-      let numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
-
-      let message = `${numberOfItemsToAdd} items were added`
-
-      if (numberOfSuccess == 0) {
+      if (ans.numberOfSuccess == 0) {
         message = `Failed to add items Please verify the ids and that the items are not deleted`
       }
-      else if (numberOfFailures) {
-        message = `${numberOfSuccess} items were added. The following items failed: ${failedItemsList}. Please verify the ids and that the items are not deleted`
+      else if (ans.numberOfFailures) {
+        message = `${ans.numberOfSuccess} items were added. The following items failed: ${ans.failedItemsList}. Please verify the ids and that the items are not deleted`
       }
 
       return this.dialogService.openDialog("", MessageDialogComponent, [], { data: message }, async () => this.genericList.reload());
-    }
-    let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
+  };
+      let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
     return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
-  }
+}
 
   goBack() {
     this.router.navigate(['..'], {

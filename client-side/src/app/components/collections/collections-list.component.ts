@@ -114,7 +114,7 @@ export class CollectionsListComponent implements OnInit {
   addCollecton() {
     let callback = async (data) => {
       if (data) {
-        let collection = await this.relatedItemsService.getCollections(data.Name);
+        let collection = await this.relatedItemsService.getCollections(`?Name=${data.Name}`);
         if(collection.length === 0) { 
           await this.relatedItemsService.saveCollection({'Name':data.Name, 'Description':data.Description});
           this.goToRelatedCollection(data.Name)

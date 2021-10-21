@@ -1,11 +1,15 @@
-<div>
-  <generic-list 
-    [allowMultipleSelection]="true" 
-    [inline]="true" 
-    [dataSource]="listDataSource" 
-    [showSearch]="true">
-    <div right-buttons>
-      <pep-button [sizeType]="'sm'" [value]="'Add Collection'" [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
-    </div>
-  </generic-list>
+<div class="container">
+  <div class="addon-page-container">
+    <generic-list 
+      [title] = "'Related_Items_Title' | translate"
+      [allowMultipleSelection]="true"  
+      [dataSource]="listDataSource" 
+      [inline]="true"
+      [noDataMessage]= "'No_Related_Items_Error' | translate"
+      [showSearch]="false">
+      <div right-buttons>
+        <pep-button [sizeType]="'sm'" [value]= "'Add_Collection_Button'| translate" [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
+      </div>
+    </generic-list>
+  </div>
 </div>
