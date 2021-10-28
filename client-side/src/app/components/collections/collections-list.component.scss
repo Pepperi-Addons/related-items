@@ -1,7 +1,18 @@
-.container{
+.container {
     height: 100%;
     scroll-behavior: auto;
-    width: 80%;
     margin-left: 0px;
     margin-top: 10px;
 }
+
+.addon-page-container {
+    height: inherit;
+    //width: 80%;
+}
+
+// .pep-page-layout {
+//     height: inherit;
+//     scroll-behavior: auto;
+//     margin-left: 0px;
+//     margin-top: 10px;
+// }

@@ -1,6 +1,7 @@
-import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, } from '@pepperi-addons/papi-sdk'
+import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, FindOptions, } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME } from './entities'
+import { promises } from 'dns';
 
 class RelatedItemsService {
 
@@ -251,22 +252,22 @@ class RelatedItemsService {
 
     // ATD functions
 
-    async getItemsFromFieldsTable(options: any = {}): Promise<any> {
+    async getItemsFromFieldsTable(options: FindOptions = {}): Promise<any> {
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_ATD_FIELDS_TABLE_NAME).find(options);
     }
 
     async upsertItemsInFieldsTable(obj: any): Promise<any> {
-        obj.Key = obj.APIName;
+        obj.Key = obj.FieldID;
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_ATD_FIELDS_TABLE_NAME).upsert(obj);
     }
 
     async deleteAtdFields(body) {
-        const atdID = body.atdID ? Number(body.atdID) : -1;
-        const url = `/meta_data/transaction_lines/types/${atdID}/fields`;
+        const typeID = body.typeID ? Number(body.typeID) : -1;
+        const url = `/meta_data/transaction_lines/types/${typeID}/fields`;
         let fields: any[] = [];
         for (let field of body.fields) {
-            const fieldID = field.APIName ? field.APIName : "";
-            const apiField = await this.papiClient.get(`/meta_data/transaction_lines/types/${atdID}/fields/${fieldID}`)
+            const fieldID = field.FieldID ? field.FieldID : "";
+            const apiField = await this.papiClient.get(`/meta_data/transaction_lines/types/${typeID}/fields/${fieldID}`)
             apiField.Hidden = true;
             if (await this.papiClient.post(url, apiField)) {
                 field.Hidden = true;
@@ -277,14 +278,14 @@ class RelatedItemsService {
         return fields
     }
 
-    async createAtdTransactionLinesFields(body): Promise<boolean> {
-        const atdID = body.atdID ? Number(body.atdID) : -1;
-        const apiName = body.apiName ? body.apiName : "";
-        const name = body.name ? body.name : "";
+    async createAtdTransactionLinesFields(body) {
+        const typeID = body.TypeID ? Number(body.TypeID) : -1;
+        const fieldID = body.FieldID ? body.FieldID : "";
+        const name = body.Name ? body.Name : "";
 
         let field: ApiFieldObject =
         {
-            FieldID: apiName,
+            FieldID: fieldID,
             Label: name,
             Description: name,
             IsUserDefinedField: true,
@@ -300,8 +301,10 @@ class RelatedItemsService {
             Hidden: false
         }
 
-        const url = `/meta_data/transaction_lines/types/${atdID}/fields`;
-        return await this.papiClient.post(url, field);
+        const url = `/meta_data/transaction_lines/types/${typeID}/fields`;
+        if(await this.papiClient.post(url, field))  {
+          return  this.upsertItemsInFieldsTable(body)
+        }
     }
 }
 

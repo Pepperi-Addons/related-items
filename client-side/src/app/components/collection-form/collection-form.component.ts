@@ -1,7 +1,6 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Component, OnInit, Inject, OnDestroy } from "@angular/core";
 import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
-import { PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { Collection } from '../../../../../server-side/entities';
 import { BehaviorSubject } from 'rxjs';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -28,12 +27,13 @@ export class CollectionForm implements OnInit, OnDestroy {
 
   screenSize: PepScreenSizeType;
   dialogData: any;
-  shouldShowNameField: boolean = true;
+  isAddMode: boolean = true;
+  title: string = 'Add collection';
+  rightButtonTitle = 'Save';
 
   constructor(
       public layoutService: PepLayoutService,
       public translate: TranslateService,
-      public dialogService: PepDialogService,
       public dialogRef: MatDialogRef<CollectionForm>,
       @Inject(MAT_DIALOG_DATA) public incoming: any
   ) {
@@ -42,7 +42,7 @@ export class CollectionForm implements OnInit, OnDestroy {
       this.screenSize = size;
     });
     this.dialogData = incoming.data;
-    this.shouldShowNameField = this.dialogData.shouldShowNameField;
+    this.isAddMode = this.dialogData.shouldShowNameField;
     if (incoming.data.collectionObj) {
       let current: Collection = incoming.data.collectionObj;
       this.dialogData.Name = current.Name;
@@ -51,6 +51,10 @@ export class CollectionForm implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (!this.isAddMode) {
+      this.title = 'Edit collection';
+      this.rightButtonTitle = "Update";
+    }
   }
 
   ngOnDestroy() {

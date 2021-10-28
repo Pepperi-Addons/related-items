@@ -120,8 +120,8 @@ export class CollectionsListComponent implements OnInit {
           this.goToRelatedCollection(data.Name)
         }
         else {
-          let errorMessage = this.translate.instant('A collection with this name already exists, please choose a different name');
-          return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage });
+          let errorMessage = this.translate.instant('A collection with this name already exist,')  + '\n' + this.translate.instant('please choose a different name') ;
+          return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, ()=>{});
         }
       }
     }

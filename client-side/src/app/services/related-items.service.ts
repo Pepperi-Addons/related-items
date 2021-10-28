@@ -69,29 +69,26 @@ export class RelatedItemsService {
         });
     }
 
-    async getFieldsFromADAL(query?: string) {
+    async getFieldsFromADAL(uuid:string,query?: string) {
+        let typeID = await this.getTypeInternalID(uuid)
         let url = `/addons/api/${this.addonService.addonUUID}/api/atd_fields`
         if (query) {
             url = url + query;
         }
-        return this.addonService.pepGet(encodeURI(url)).toPromise();
+        let fields: any[] = await this.addonService.pepGet(encodeURI(url)).toPromise();
+        fields = fields.filter(field => field.TypeID === typeID);
+        return fields;
     }
 
-    deleteFields(fields, atdID) {
+    deleteFields(fields, typeID) {
         let obj = {
-            atdID: atdID,
+            typeID: typeID,
             fields: fields
         }
         return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/delete_atd_fields`, obj).toPromise();
     }
-
-    async updateFieldsTable(data) {
-        return await this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/atd_fields`, data).toPromise();
-    }
-
-    async createTSAField(obj: {atdID:number, apiName:string}) {
-        let res= await this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/create_tsa_field`, obj).toPromise();
-        return res
+    async createTSAField(obj: {TypeID:number, Name:string, FieldID:string, ListSource:string[], ListType:string, Hidden: boolean}) {
+        return await this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/create_tsa_field`, obj).toPromise();
     }
 
     async getTSASpecificField(fieldID){
@@ -100,13 +97,15 @@ export class RelatedItemsService {
         try{
             fields = await this.addonService.pepGet(encodeURI(url)).toPromise();
         }
+        catch(e) {
+        }
         finally {
             return fields;
         }
     }
 
-    async getFieldsOfItemsAndTransactionLine(atdID): Promise<{key:number, value:string}[]> {
-        let fieldsForTransactonLines = await this.addonService.papiClient.get(`/meta_data/transaction_lines/types/${atdID}/fields`);
+    async getFieldsOfItemsAndTransactionLine(typeID): Promise<{key:number, value:string}[]> {
+        let fieldsForTransactonLines = await this.addonService.papiClient.get(`/meta_data/transaction_lines/types/${typeID}/fields`);
 
         fieldsForTransactonLines = fieldsForTransactonLines.filter(field => field.Type === "String")
         let fieldsForItems = await this.addonService.papiClient.get(`/meta_data/items/fields`).then(objs => objs.filter(obj => obj.Type === "String"));

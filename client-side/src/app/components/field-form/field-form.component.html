@@ -1,7 +1,7 @@
 <div class="dialog">
   <div mat-dialog-title class="mat-dialog-title pepperi-border-bottom top-ui-widget-header">
     <h3>
-      Add Field
+      {{title}}
     </h3>
   </div>
   <div>
@@ -9,18 +9,18 @@
       <pep-textbox id="nametextbox" [label]="'Name' | translate" [(value)]="this.dialogData.fieldData.Name" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Name', $event)"> </pep-textbox>
     </div>
     <div class="api-name">
-      <pep-textbox [label]="'API Name' | translate" [(value)]="this.dialogData.fieldData.APIName" [disabled]="formMode===0" [readonly]="false" (keydown)="eventHandler($event)" (valueChange)="onValueChanged('APIName', $event)"> 
+      <pep-textbox [label]="'API Name' | translate" [(value)]="this.dialogData.fieldData.FieldID" [disabled]="formMode===0" [readonly]="false" (keydown)="eventHandler($event)" (valueChange)="onValueChanged('FieldID', $event)"> 
       </pep-textbox>
     </div>
   </div>
   <div>
     <div class="subtitle top-ui-widget-header pepperi-border-bottom">
       <h4 >
-        List source
+       {{'List source' | translate}} 
       </h4>
     </div>
     <p class="instructions">
-      choose the field that will use as a query for the list of items. This field's value must return a string with the item UUID's seperated by the internal delimeter
+      {{"Choose the field that will use as a query for the list of items. This field's value must return a string with the item UUID's seperated by the internal delimeter" | translate}}
     </p>
     <mat-radio-group class="radio-group">
       <div class="run-at-radio-button">

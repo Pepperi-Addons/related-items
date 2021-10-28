@@ -27,6 +27,7 @@ import { CommonModule } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FeatureModule } from './modules/shared.module';
+import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -76,6 +77,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         PepButtonModule,
         PepDialogModule,
         PepTextboxModule,
+        PepMenuModule,
         PepTextareaModule,
         MatDialogModule,
         PepImageModule,

@@ -24,13 +24,11 @@ export async function install(client: Client, request: Request): Promise<any> {
         actionUUID: client["ActionUUID"]
     }); 
 
-    let retVal = await createADALSchemes(papiClient);
-    if (retVal.success) {
-        await service.createPNSSubscription();
-        retVal = await createRelations(papiClient);
-    }
+    await createADALSchemes(papiClient);
+    await service.createPNSSubscription();
+    await createRelations(papiClient);
 
-    return retVal;
+    return {success:true,resultObject:{}}
 }
 
 export async function uninstall(client: Client, request: Request): Promise<any> {

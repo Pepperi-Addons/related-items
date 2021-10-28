@@ -5,7 +5,6 @@ import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router'
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DialogService } from '../../services/dialog.service';
-import { Item } from '@pepperi-addons/papi-sdk';
 import { ItemWithImageURL } from '../../../../../server-side/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
@@ -136,7 +135,6 @@ export class RelatedCollectionFormComponent implements OnInit {
 
 addRelatedItem() {
   let callback = async (data) => {
-    debugger
     let ans = await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': data.ItemExternalID.split(";")})
       let message = `${ans.numberOfItemsToAdd} items were added`
 

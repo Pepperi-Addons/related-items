@@ -19,7 +19,8 @@ export class AtdEditorComponent implements OnInit {
   @Input() hostObject: any;
   @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
-  atdID: number;
+  typeID: number;
+  configID: string;
   
   constructor(
     private relatedItemsService: RelatedItemsService,
@@ -29,19 +30,19 @@ export class AtdEditorComponent implements OnInit {
   }
 
   ngOnInit() {
-    let configID = this.hostObject.objectList[0];
-    this.relatedItemsService.getTypeInternalID(configID).then((atdId) => {
-      this.atdID = atdId; 
+    this.configID = this.hostObject.objectList[0];
+    this.relatedItemsService.getTypeInternalID(this.configID).then((typeID) => {
+      this.typeID = typeID; 
     });
-    this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
+    this.addonService.addonUUID = this.hostObject.options.addonId;
   }
-  
+
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
-      let fieldsList = await this.relatedItemsService.getFieldsFromADAL();
+      let fieldsList = await this.relatedItemsService.getFieldsFromADAL(this.configID);
       fieldsList.map(item => {
-        if (item.ListSource.value) {
-          item.ListName = item.ListSource.value;
+        if (item.ListSource) {
+          item.ListName = item.ListSource;
         }
         else {
           item.ListName = item.ListSource
@@ -68,7 +69,7 @@ export class AtdEditorComponent implements OnInit {
             ReadOnly: true
           },
           {
-            FieldID: 'APIName',
+            FieldID: 'FieldID',
             Type: 'TextBox',
             Title: this.translate.instant('API Name'),
             Mandatory: false,
@@ -112,7 +113,7 @@ export class AtdEditorComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-            this.relatedItemsService.deleteFields(objs, this.atdID).then(() => {
+            this.relatedItemsService.deleteFields(objs, this.typeID).then(() => {
               this.genericList.reload();
             });
           }
@@ -126,31 +127,21 @@ export class AtdEditorComponent implements OnInit {
   async openFieldForm(fieldFormMode, fieldData?) {
     let callback = async (data) => {
       if (data) {
-        if (await this.relatedItemsService.createTSAField({atdID: this.atdID, apiName: data.fieldData.APIName})) {
-          this.relatedItemsService.updateFieldsTable({"Name": data.fieldData.Name, "APIName": data.fieldData.APIName, "ListSource": data.fieldData.ListSource, "ListType": data.fieldData.ListType, "Hidden": false}).then(() => {
-            this.genericList.reload();
-          });
-        }
+        let field = { TypeID: this.typeID, Name: data.fieldData.Name, FieldID: data.fieldData.FieldID, ListSource: data.fieldData.ListSource, ListType: data.fieldData.ListType, Hidden: false};
+        this.relatedItemsService.createTSAField(field).then(() =>
+        this.genericList.reload()
+        );
       }
     }
     // if the user arrives from the 'add button', the fieldData is undefined
     if (fieldData === undefined) {
       fieldData = {
         "Name": "",
-        "APIName": "TSA"
+        "FieldID": "TSA"
       }
     }
-    // Get list source's sources
-    let collections = await this.relatedItemsService.getCollections();
-    let collectionsName = collections.map(collection => {
-      return {
-        key: collection.Name,
-        value: collection.Name
-      }
-   });
-    let fields = await this.relatedItemsService.getFieldsOfItemsAndTransactionLine(this.atdID);
 
-    const data = new PepDialogData({ title: this.translate.instant("Add Field"), content: { "fieldData": fieldData, "CollectionsList": collectionsName, "FieldsList": fields, "fieldFormMode": fieldFormMode}, actionsType: 'close' });
+    const data = new PepDialogData({ title: this.translate.instant("Add Field"), content: { "fieldData": fieldData, "fieldFormMode": fieldFormMode, "hostObject": this.hostObject}, actionsType: 'close' });
     this.dialogService.openDialog(this.translate.instant("Add Field"), FieldFormComponent, [], { data: data }, callback);
   }
 }
