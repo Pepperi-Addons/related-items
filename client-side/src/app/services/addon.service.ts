@@ -12,7 +12,7 @@ export class AddonService {
     accessToken = '';
     parsedToken: any
     papiBaseURL = ''
-    addonUUID;
+    addonUUID: string;
 
     get papiClient(): PapiClient {
         return new PapiClient({

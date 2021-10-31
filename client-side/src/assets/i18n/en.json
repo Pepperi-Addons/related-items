@@ -1,11 +1,21 @@
 {
 
     "Ok": "Ok",
+    "Save": "save",
     "Select_Label": "Select Label",
-    "Title_Addon": "Hello Addon",
+    "Title_Addon": "Related Collections",
     "Title_Sub_Addon": "Hello Sub Addon",
     "Open_Dialog": "Open Dialog",
     "Dialog_Body": "Dialog from sub addon",
-    "Dialog_Title": "Dialog"
-
+    "Dialog_Title": "Dialog",
+    "Related_Items_Title": "Related Items",
+    "Add_Field_Button": "Add Field",
+    "No_Related_Items_Error": "No Related Items Assigned Click the `Add field` Button to get things going",
+    "Add_Collection_Button": "Add Collecton",
+    "No_Related_Collection_Error": "No Related Collection Assigned Click the `Add Collection` Button to get things going",
+    "Add_Related_Items_Button": "Add Related Items",
+    "Add_A_Related_Items_Button": "Add a Related Items",
+    "List_Source_Title": "List source",
+    "Field_Form_Instructions": "Choose the field that will use as a query for the list of items.\n This field's value must return a string with the item UUID's seperated by the internal delimeter",
+    "No_Related_Items_In_Item_Error": "No Related Item Assigned Click the `Add Related Items` Button to get things going"
 }

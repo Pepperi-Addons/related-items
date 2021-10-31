@@ -1,0 +1,32 @@
+.dialog {
+  background: rgb(255, 255, 255);
+  border-radius: 4px;
+  width: 310px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas: "name" "desc";
+    margin-top: 5px;
+
+    .name { 
+      grid-area: name;
+     }
+
+    .desc { 
+      grid-area: desc;
+      border-radius: 4px;
+      margin-bottom: 0px;
+     }
+  } 
+
+.pepperi-button {
+  margin-left: 5px;
+}
+
+.pepperi-border-bottom {
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+

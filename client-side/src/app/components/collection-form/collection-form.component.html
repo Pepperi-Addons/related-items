@@ -1,0 +1,34 @@
+
+<div class="dialog">
+    <h2 mat-dialog-title class="mat-dialog-title pepperi-border-bottom">
+        {{ title | translate}}
+    </h2>
+    <div class="grid-container">
+        <div class="name" *ngIf="isAddMode">
+            <pep-textbox [label]="'Name' | translate" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('Name', $event)" onsubmit=</pep-textbox>
+        </div>
+        <div class="desc">
+            <pep-textarea [label]="'Description' | translate" [(value)]="dialogData.Description" [disabled]="false" [readonly]="false" [rowSpan]="2" (valueChange)="onValueChanged('Description', $event)"></pep-textarea>
+        </div>
+    </div>
+    <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
+        style="justify-content: flex-end;">
+        <div class="spacing-element-negative">
+            <button class="spacing-element pepperi-button md weak mat-button" mat-button [mat-dialog-close]>
+                <span class="mat-button-wrapper">
+                    {{ 'Cancel' | translate }}
+                </span>
+                <div class="mat-button-ripple mat-ripple" matripple></div>
+                <div class="mat-button-focus-overlay"></div>
+            </button>
+            <button class="spacing-element pepperi-button md strong mat-button" mat-button
+             (click)="onSaveButtonClicked()">
+                <span class="mat-button-wrapper">
+                    {{ rightButtonTitle| translate }}
+                </span>
+                <div class="mat-button-ripple mat-ripple" matripple></div>
+                <div class="mat-button-focus-overlay"></div>
+            </button>
+        </div>
+    </div>
+</div>

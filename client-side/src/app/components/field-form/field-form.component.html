@@ -1,0 +1,66 @@
+<div class="dialog">
+  <div mat-dialog-title class="mat-dialog-title pepperi-border-bottom top-ui-widget-header">
+    <h3>
+      {{title}}
+    </h3>
+  </div>
+  <div>
+    <div class="name">
+      <pep-textbox id="nametextbox" [label]="'Name' | translate" [(value)]="this.dialogData.fieldData.Name" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Name', $event)"> </pep-textbox>
+    </div>
+    <div class="api-name">
+      <pep-textbox [label]="'API Name' | translate" [(value)]="this.dialogData.fieldData.FieldID" [disabled]="formMode===0" [readonly]="false" (keydown)="eventHandler($event)" (valueChange)="onValueChanged('FieldID', $event)"> 
+      </pep-textbox>
+    </div>
+  </div>
+  <div>
+    <div class="subtitle top-ui-widget-header pepperi-border-bottom">
+      <h4 >
+       {{'List source' | translate}} 
+      </h4>
+    </div>
+    <p class="instructions">
+      {{"Choose the field that will use as a query for the list of items. This field's value must return a string with the item UUID's seperated by the internal delimeter" | translate}}
+    </p>
+    <mat-radio-group class="radio-group">
+      <div class="run-at-radio-button">
+        <mat-radio-button class="pep-radio-button sm mat-radio-button" [checked]="isFirstRadioButtonChecked"  value="1" (change)="onRadioButtonSelect($event)">
+          <span class="mat-radio-label-content">
+            {{ 'Related collections' | translate}}
+          </span>
+        </mat-radio-button>
+      </div>
+      <div class="run-at-radio-button">
+        <mat-radio-button class="pep-radio-button sm mat-radio-button"  [checked]="!isFirstRadioButtonChecked"  value="2" (change)="onRadioButtonSelect($event)">
+          <span class="mat-radio-label-content">
+            {{ 'Field' | translate}}
+          </span>
+        </mat-radio-button>
+        <pep-select [showTitle]="false" [emptyOption]="false" [(value)]=this.dialogData.fieldData.ListSource
+           [options]="options" (valueChange)="onValueChanged('ListSource', $event)">
+        </pep-select>
+      </div>
+    </mat-radio-group> 
+  </div>
+  <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
+      style="justify-content: flex-end;">
+      <div class="spacing-element-negative">
+          <button class="spacing-element pepperi-button md weak mat-button" mat-button [mat-dialog-close]>
+              <span class="mat-button-wrapper">
+                  {{ 'Cancel' | translate }}
+              </span>
+              <div class="mat-button-ripple mat-ripple" matripple></div>
+              <div class="mat-button-focus-overlay"></div>
+          </button>
+          <button class="spacing-element pepperi-button md strong mat-button" mat-button
+           (click)="onSaveButtonClicked()">
+              <span class="mat-button-wrapper">
+                  {{ ('Save') | translate }}
+              </span>
+              <div class="mat-button-ripple mat-ripple" matripple></div>
+              <div class="mat-button-focus-overlay"></div>
+          </button>
+      </div>
+  </div>
+</div>
+

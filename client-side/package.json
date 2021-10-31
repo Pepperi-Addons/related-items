@@ -17,6 +17,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular-architects/module-federation": "^12.4.0",
     "@angular/animations": "12.0.2",
     "@angular/cdk": "12.0.2",
     "@angular/common": "12.0.2",
@@ -36,7 +37,7 @@
     "@ngx-gallery/core": "^5.0.0-beta.0",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@pepperi-addons/ngx-lib": "^0.1.260",
+    "@pepperi-addons/ngx-lib": "^0.2.32",
     "@pepperi-addons/papi-sdk": "^1.24.0",
     "@tweenjs/tween.js": "^17.1.1",
     "again": "0.0.1",
@@ -62,6 +63,7 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
+    "process": "^0.11.10",
     "@angular-builders/custom-webpack": "^12.1.0",
     "@angular-devkit/build-angular": "12.0.2",
     "@angular/cli": "12.0.2",
@@ -89,5 +91,9 @@
   },
   "browserslist": [
     "supports es6-module"
-  ]
+  ],
+  "description": "This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.0.",
+  "main": "webpack.config.js",
+  "author": "",
+  "license": "ISC"
 }

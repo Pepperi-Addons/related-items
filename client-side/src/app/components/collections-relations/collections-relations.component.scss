@@ -1,0 +1,51 @@
+.header-content {
+    display: flex;
+    position: relative;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    margin-left: 0px;
+}
+
+.subtitle {
+    margin-top: 5px;
+    margin-left: 10px;
+    font-weight:bold;
+}
+
+.pepperi-border-top {
+    margin-left: 0px;
+    margin-top: 0px;
+}
+
+.description {
+    margin-left: 5px;
+    font-size: 16px;
+    font-weight: normal;
+    width: 544px;
+    margin-top: 15px;
+}
+
+.edit-button {
+    float: right;
+    margin-top: 5px;
+    margin-left: auto;
+}
+
+.right-buttons {
+    display: flex;
+}
+
+.container{
+    height: 100%;
+    scroll-behavior: auto;
+    margin-left: 0px;
+}
+
+.generic-list {
+    margin-left: 0px;
+}
+
+.addon-page-container {
+    height: 100%;
+    //width: 80%;
+}

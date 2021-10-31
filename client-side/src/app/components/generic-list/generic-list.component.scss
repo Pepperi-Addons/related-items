@@ -1,0 +1,20 @@
+@import 'ngx-lib/src/core/style/abstracts/mixins';
+@import 'ngx-lib/src/core/style/abstracts/variables';
+
+
+.generic-list-main {
+    height: 100%;
+}
+
+.pep-top-bar {
+    display: block;
+    margin-top: 1rem;
+}
+
+.list-container, main-content {
+    height: inherit;
+}
+
+.inline-top-bar-container {
+    margin-top: 1rem;
+}

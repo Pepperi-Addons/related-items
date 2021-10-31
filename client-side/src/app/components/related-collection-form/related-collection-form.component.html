@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="addon-page-container">
+    <div  class="header-content pepperi-border-bottom">
+      <pep-button [sizeType]="'sm'" iconName="arrow_left_alt"(buttonClick)="backClicked()"></pep-button>
+      <p class="subtitle"> {{externalID}} </p>
+    </div>
+    <div class="image-section">
+      <div class="item-image">
+        <pep-image [src]="imageSource" label=""[mandatory]="false" 
+        [disabled]="true" xAlignment="left" [rowSpan]="4"[showTitle]="false"> </pep-image>
+      </div>
+      <div class="image-text">
+        <h2 class="image-title">
+          {{itemTitle}}
+        </h2>
+        <p class="image-description">
+          {{itemDescription}}
+        </p>
+      </div>
+    </div>
+    <generic-list 
+    [allowMultipleSelection]="true"
+    [inline]="true"
+    [noDataMessage]="'No_Related_Items_In_Item_Error' | translate"
+    [dataSource]="listDataSource"
+    [showSearch]="true">
+    <div right-buttons>
+      <pep-button [sizeType]="'sm'" [value]= "'Add_A_Related_Items_Button'|translate" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>
+    </div>
+    </generic-list>
+  </div>
+</div>
