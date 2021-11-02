@@ -41,12 +41,7 @@ export class AtdEditorComponent implements OnInit {
     getList: async (state) => {
       let fieldsList = await this.relatedItemsService.getFieldsFromADAL(this.configID);
       fieldsList.map(item => {
-        if (item.ListSource) {
-          item.ListName = item.ListSource;
-        }
-        else {
-          item.ListName = item.ListSource
-        }
+        item.ListName = item.ListSource;
       });
       return fieldsList;
     },
