@@ -6,85 +6,112 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.load = void 0;
 require("@pepperi-addons/cpi-node");
 const addon_config_json_1 = __importDefault(require("../addon.config.json"));
-async function load() {
-    console.log('Related Items cpi side works!!!');
-    // pepperi.events.intercept("RecalculateUIObject", {
-    //     UIObject: {
-    //         context: {
-    //             Name: "UserHomePage"
-    //         }
-    //     }
-    // }, async(data)=>{
-    //     data.UIObject?.fields.forEach(field => field.visible = Math.random()<0.5);
-    //     console.log("user homepage")
-    // });
-    // const list = await pepperi.api.adal.getList({
-    //     addon: config.AddonUUID,
-    //     table: 'AtdFields'
-    // });
-    pepperi.events.intercept("RecalculateUIObject", {
-        UIObject: {
-            context: {
-                Name: "OrderCenterItemDetails"
-            }
-        }
-    }, async (data) => {
-        if (data.UIObject) {
-            await getListOfRelatedItems(data.UIObject);
-        }
-    });
-}
-exports.load = load;
-async function getListOfRelatedItems(data) {
-    var _a;
-    let fieldsFromADAL = await pepperi.api.adal.getList({
-        addon: addon_config_json_1.default.AddonUUID,
-        table: 'AtdFields'
-    });
-    let fields = data.fields;
-    let transactionLine = data.dataObject;
-    let internalID = (_a = transactionLine.typeDefinition) === null || _a === void 0 ? void 0 : _a.internalID;
-    let currentItemID = transactionLine.item.uuid;
-    let transaction = transactionLine.transaction;
-    let transactionScope = await pepperi.TransactionScope.Get(transaction);
-    for (const field of fields) {
-        if (field.type == 'RelatedObjectsCards') {
-            const fieldFromADAL = fieldsFromADAL.objects.find(innerField => innerField.FieldID == field.fieldID && innerField.TypeID == internalID);
-            if (fieldFromADAL) {
-                const itemsUUIDs = await getListOfItemsUUIDs(data, fieldFromADAL, currentItemID);
-                const items = await (await Promise.all(itemsUUIDs.map(item => pepperi.DataObject.Get("items", item)))).filter(item => !!item);
-                console.log("ITEMS", items);
-            }
-        }
-    }
-    //step 2: find related item fields(inside interseptor) - V
-    //step3: UIObject.dataobject.typeDefinition.internalID , fieldID - V 
-    //step4: get list of items uuid for this item (TSA or collection managment)getFieldValue
-    //step5: convert to list of items(pepperi.dataObject.get("items", itemUUID))
-    //step6: create generic-list
-}
-async function getListOfItemsUUIDs(data, fieldFromADAL, currentItemID) {
-    var _a, _b, _c;
-    let listType = fieldFromADAL === null || fieldFromADAL === void 0 ? void 0 : fieldFromADAL.ListType;
-    let listSource = fieldFromADAL === null || fieldFromADAL === void 0 ? void 0 : fieldFromADAL.ListSource;
-    let relatedItems;
-    if (listType == listSourceType.RelatedCollectionType) {
-        let key = `${listSource}_${currentItemID}`;
-        let relations = await pepperi.api.adal.getList({
-            addon: addon_config_json_1.default.AddonUUID,
-            table: 'CPIRelation'
-        });
-        relatedItems = (_a = relations.objects.find(item => item.Key == key)) === null || _a === void 0 ? void 0 : _a.RelatedItems;
-    }
-    else {
-        let fieldValue = await ((_b = data.dataObject) === null || _b === void 0 ? void 0 : _b.getFieldValue(listSource));
-        relatedItems = (_c = fieldValue.find(item => item.ExternalID == currentItemID)) === null || _c === void 0 ? void 0 : _c.RelatedItems;
-    }
-    return relatedItems ? relatedItems : [];
-}
 var listSourceType;
 (function (listSourceType) {
     listSourceType[listSourceType["RelatedCollectionType"] = 1] = "RelatedCollectionType";
     listSourceType[listSourceType["FieldType"] = 2] = "FieldType";
 })(listSourceType || (listSourceType = {}));
+async function load() {
+    let fieldsFromADAL = await pepperi.api.adal.getList({
+        addon: addon_config_json_1.default.AddonUUID,
+        table: 'AtdFields'
+    });
+    let relationsTable = await pepperi.api.adal.getList({
+        addon: addon_config_json_1.default.AddonUUID,
+        table: 'CPIRelation'
+    });
+    const manager = new RelatedItemsCPIManager(fieldsFromADAL, relationsTable);
+    manager.load();
+}
+exports.load = load;
+class RelatedItemsCPIManager {
+    constructor(fieldsFromADAL, relationsTable) {
+        this.fieldsFromADAL = fieldsFromADAL;
+        this.relationsTable = relationsTable;
+        this.fieldsFromADAL = fieldsFromADAL;
+        this.relationsTable = relationsTable;
+    }
+    load() {
+        this.subscribe();
+    }
+    subscribe() {
+        // subscribe to Order center items details
+        pepperi.events.intercept("RecalculateUIObject", {
+            UIObject: {
+                context: {
+                    Name: "OrderCenterItemDetails"
+                }
+            }
+        }, async (data) => {
+            if (data.UIObject) {
+                await this.createRelatedObjectField(data.UIObject, this.fieldsFromADAL, this.relationsTable);
+            }
+        });
+    }
+    async createRelatedObjectField(data, fieldsFromADAL, relationsTable) {
+        var _a;
+        let fields = data.fields;
+        let transactionLine = data.dataObject;
+        let typeID = (_a = transactionLine.typeDefinition) === null || _a === void 0 ? void 0 : _a.internalID;
+        let currentItemID = transactionLine.item.uuid;
+        let transaction = transactionLine.transaction;
+        let transactionScope = await pepperi.TransactionScope.Get(transaction);
+        for (const field of fields) {
+            if (field.type == 'RelatedObjectsCards') {
+                const fieldFromADAL = fieldsFromADAL.objects.find(innerField => innerField.FieldID == field.fieldID && innerField.TypeID == typeID);
+                if (fieldFromADAL) {
+                    const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID, relationsTable);
+                    const tsItems = (await Promise.all(items.map(item => transactionScope.getItem(item)))).filter(Boolean);
+                    this.createGenericList(tsItems, field, typeID);
+                }
+            }
+        }
+    }
+    async getListOfRelatedItems(data, fieldFromADAL, currentItemID, relationsTable) {
+        var _a, _b;
+        let listType = fieldFromADAL === null || fieldFromADAL === void 0 ? void 0 : fieldFromADAL.ListType;
+        let listSource = fieldFromADAL === null || fieldFromADAL === void 0 ? void 0 : fieldFromADAL.ListSource;
+        let relatedItems;
+        if (listType == listSourceType.RelatedCollectionType) {
+            let key = `${listSource}_${currentItemID}`;
+            relatedItems = (_a = relationsTable.objects.find(item => item.Key == key)) === null || _a === void 0 ? void 0 : _a.RelatedItems;
+        }
+        else {
+            try {
+                let fieldValue = await ((_b = data.dataObject) === null || _b === void 0 ? void 0 : _b.getFieldValue(listSource));
+                relatedItems = JSON.parse(fieldValue);
+            }
+            catch (err) {
+                console.log('GetListOfItems failed with error:', err);
+            }
+        }
+        relatedItems = relatedItems ? relatedItems : [];
+        return await (await Promise.all(relatedItems.map(item => pepperi.DataObject.Get("items", item)))).filter(item => !!item);
+    }
+    async createGenericList(tsItems, field, typeID) {
+        pepperi.UIPage.CreateGenericListPage({
+            Name: 'OrderCenterView2',
+            Object: {
+                Resource: 'transactions',
+                InternalID: typeID,
+            },
+            Profile: {
+                InternalID: 0
+            },
+            ScreenSize: 'Tablet'
+        }, tsItems).then((uiPage) => {
+            // uiPage?.rebuild().then(() => {
+            const uiPageKey = (uiPage === null || uiPage === void 0 ? void 0 : uiPage.key) || '';
+            console.log(uiPageKey);
+            field.value = uiPageKey;
+            field.formattedValue = uiPageKey;
+            // })
+        });
+        // await 
+        // const uiPageKey = uiPage?.key || '';
+        // console.log(uiPageKey);
+        // field.value = uiPageKey;
+        // field.formattedValue = uiPageKey;
+    }
+}
 //# sourceMappingURL=addon-cpi.js.map
