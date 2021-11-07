@@ -44,13 +44,13 @@ class RelatedItemsCPIManager {
         },
             async (data) => {
                 if (data.UIObject) {
-                    await this.createRelatedObjectField(data.UIObject, this.fieldsFromADAL, this.relationsTable);
+                    await this.createRelatedObjectField(data.UIObject);
                 }
 
             })
     }
 
-    async createRelatedObjectField(data: UIObject, fieldsFromADAL, relationsTable) {
+    async createRelatedObjectField(data: UIObject) {
         let fields = data.fields
         let transactionLine = data.dataObject as TransactionLine
         let typeID = transactionLine.typeDefinition?.internalID;
@@ -59,9 +59,9 @@ class RelatedItemsCPIManager {
         let transactionScope = await pepperi.TransactionScope.Get(transaction);
         for (const field of fields) {
             if (field.type == 'RelatedObjectsCards') {
-                const fieldFromADAL = fieldsFromADAL.objects.find(innerField => innerField.FieldID == field.fieldID && innerField.TypeID == typeID);
+                const fieldFromADAL = this.fieldsFromADAL.objects.find(innerField => innerField.FieldID == field.fieldID && innerField.TypeID == typeID);
                 if (fieldFromADAL) {
-                    const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID, relationsTable);
+                    const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID);
                     const tsItems = (await Promise.all(items.map(item => transactionScope.getItem(item)))).filter(Boolean) as TransactionLine[];
                     this.createGenericList(tsItems, field, typeID)
                 }
@@ -69,14 +69,14 @@ class RelatedItemsCPIManager {
         }
     }
 
-    async getListOfRelatedItems(data, fieldFromADAL, currentItemID, relationsTable) {
+    async getListOfRelatedItems(data, fieldFromADAL, currentItemID) {
         let listType = fieldFromADAL?.ListType;
         let listSource = fieldFromADAL?.ListSource;
         let relatedItems: string[] | undefined
 
         if (listType == listSourceType.RelatedCollectionType) {
             let key = `${listSource}_${currentItemID}`
-            relatedItems = relationsTable.objects.find(item => item.Key == key)?.RelatedItems;
+            relatedItems = this.relationsTable.objects.find(item => item.Key == key)?.RelatedItems;
         }
         else {
             try {
@@ -100,7 +100,7 @@ class RelatedItemsCPIManager {
                 InternalID: typeID,
             },
             Profile: {
-                InternalID: 0
+                InternalID: 0            
             },
             ScreenSize: 'Tablet'
         }, tsItems).then((uiPage) => {

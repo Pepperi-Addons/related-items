@@ -4,6 +4,7 @@ import { AddonService } from 'src/app/services/addon.service';
 import { DialogService } from 'src/app/services/dialog.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import config from '../../../../../addon.config.json';
 
 @Component({
   selector: 'addon-field-form',
@@ -47,7 +48,8 @@ export class FieldFormComponent implements OnInit {
     this.relatedItemsService.getTypeInternalID(configID).then((typeID) => {
       this.typeID = typeID;
     });
-    this.addonService.addonUUID = this.hostObject.options.addonId;
+    //this.addonService.addonUUID = config.AddonUUID;
+    this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
 
     this.initSourcesList();
   }
