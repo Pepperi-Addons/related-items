@@ -111,5 +111,4 @@ class RelatedItemsCPIManager {
         field.value = uiPageKey;
         field.formattedValue = uiPageKey;
     }
-
 }
