@@ -93,7 +93,7 @@ class RelatedItemsCPIManager {
     }
 
     async createGenericList(tsItems, field, typeID) {
-        pepperi.UIPage.CreateGenericListPage({
+        let uiPage = await pepperi.UIPage.CreateGenericListPage({
             Name: 'OrderCenterView2',
             Object: {
                 Resource: 'transactions',
@@ -103,19 +103,13 @@ class RelatedItemsCPIManager {
                 InternalID: 0            
             },
             ScreenSize: 'Tablet'
-        }, tsItems).then((uiPage) => {
-            // uiPage?.rebuild().then(() => {
-            const uiPageKey = uiPage?.key || '';
-            console.log(uiPageKey);
-            field.value = uiPageKey;
-            field.formattedValue = uiPageKey;
-            // })
-        });
-        // await 
-        // const uiPageKey = uiPage?.key || '';
-        // console.log(uiPageKey);
-        // field.value = uiPageKey;
-        // field.formattedValue = uiPageKey;
+         }, tsItems)
+        
+        await uiPage?.rebuild();
+        const uiPageKey = uiPage?.key || '';
+        console.log(uiPageKey);
+        field.value = uiPageKey;
+        field.formattedValue = uiPageKey;
     }
 
 }
