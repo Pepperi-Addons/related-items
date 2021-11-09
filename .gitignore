@@ -4,3 +4,4 @@ node_modules
 server-side/node_modules
 client-side/node_modules
 cpi-side/node_modules
+cpi-side/build/*
