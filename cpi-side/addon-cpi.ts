@@ -1,11 +1,7 @@
 import '@pepperi-addons/cpi-node'
 import { Item, TransactionLine, UIObject } from '@pepperi-addons/cpi-node/build/cpi-side/app/entities';
+import { ListSourceType } from '../shared/entities';
 import config from "../addon.config.json"
-
-enum listSourceType {
-    RelatedCollectionType = 1,
-    FieldType = 2
-}
 
 export async function load() {
     let fieldsFromADAL = await pepperi.api.adal.getList({
@@ -13,20 +9,13 @@ export async function load() {
         table: 'AtdFields'
     });
 
-    let relationsTable = await pepperi.api.adal.getList({
-        addon: config.AddonUUID,
-        table: 'CPIRelation'
-    });
-
-    const manager = new RelatedItemsCPIManager(fieldsFromADAL, relationsTable);
+    const manager = new RelatedItemsCPIManager(fieldsFromADAL);
     manager.load();
 }
 
 class RelatedItemsCPIManager {
 
-    constructor(private fieldsFromADAL, private relationsTable) {
-        this.fieldsFromADAL = fieldsFromADAL;
-        this.relationsTable = relationsTable;
+    constructor(private fieldsFromADAL) {
     }
 
     load() {
@@ -44,15 +33,14 @@ class RelatedItemsCPIManager {
         },
             async (data) => {
                 if (data.UIObject) {
-                    await this.createRelatedObjectField(data.UIObject);
+                    await this.handleRelatedObjectFields(data.UIObject);
                 }
-
-            })
+            });
     }
 
-    async createRelatedObjectField(data: UIObject) {
-        let fields = data.fields
-        let transactionLine = data.dataObject as TransactionLine
+    async handleRelatedObjectFields(data: UIObject) {
+        let fields = data.fields;
+        let transactionLine = data.dataObject as TransactionLine;
         let typeID = transactionLine.typeDefinition?.internalID;
         let currentItemID = transactionLine.item.uuid;
         let transaction = transactionLine.transaction;
@@ -63,7 +51,7 @@ class RelatedItemsCPIManager {
                 if (fieldFromADAL) {
                     const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID);
                     const tsItems = (await Promise.all(items.map(item => transactionScope.getItem(item)))).filter(Boolean) as TransactionLine[];
-                    this.createGenericList(tsItems, field, typeID)
+                    await this.createGenericList(tsItems, field, typeID)
                 }
             }
         }
@@ -74,9 +62,14 @@ class RelatedItemsCPIManager {
         let listSource = fieldFromADAL?.ListSource;
         let relatedItems: string[] | undefined
 
-        if (listType == listSourceType.RelatedCollectionType) {
+        if (listType == ListSourceType.RelatedCollectionType) {
             let key = `${listSource}_${currentItemID}`
-            relatedItems = this.relationsTable.objects.find(item => item.Key == key)?.RelatedItems;
+            let item = await pepperi.api.adal.get({
+                addon: config.AddonUUID,
+                table: 'CPIRelation',
+                key: key
+            });
+            relatedItems = item.object.RelatedItems;
         }
         else {
             try {
@@ -107,8 +100,6 @@ class RelatedItemsCPIManager {
         
         await uiPage?.rebuild();
         const uiPageKey = uiPage?.key || '';
-        console.log(uiPageKey);
         field.value = uiPageKey;
-        field.formattedValue = uiPageKey;
     }
 }

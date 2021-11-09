@@ -1,7 +1,7 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Component, OnInit, Inject, OnDestroy } from "@angular/core";
 import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
-import { Collection } from '../../../../../server-side/entities';
+import { Collection } from '../../../../../shared/entities';
 import { BehaviorSubject } from 'rxjs';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 

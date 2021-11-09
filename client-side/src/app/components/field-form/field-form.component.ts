@@ -4,6 +4,7 @@ import { AddonService } from 'src/app/services/addon.service';
 import { DialogService } from 'src/app/services/dialog.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { ListSourceType } from '../../../../../shared/entities'
 import config from '../../../../../addon.config.json';
 
 @Component({
@@ -38,7 +39,7 @@ export class FieldFormComponent implements OnInit {
     this.dialogData = incoming.data.content;
     this.hostObject = this.dialogData.hostObject;
     this.formMode = this.dialogData.fieldFormMode;
-    this.radioButtonsValue = this.dialogData.fieldData.ListType ? this.dialogData.fieldData.ListType : listSourceType.RelatedCollectionType;
+    this.radioButtonsValue = this.dialogData.fieldData.ListType ? this.dialogData.fieldData.ListType : ListSourceType.RelatedCollectionType;
     this.title = (this.formMode === fieldFormMode.EditMode) ? "Edit Field" : "Add Field";
   }
 
@@ -148,9 +149,4 @@ export class FieldFormComponent implements OnInit {
 export enum fieldFormMode {
   EditMode = 0,
   AddMode = 1
-}
-
-export enum listSourceType {
-  RelatedCollectionType = 1,
-  FieldType = 2
 }

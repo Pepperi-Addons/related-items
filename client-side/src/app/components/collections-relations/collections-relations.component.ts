@@ -6,7 +6,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component'
 import { DialogService } from '../../services/dialog.service';
 import { CollectionForm } from '../collection-form/collection-form.component';
-import { Collection } from '../../../../../server-side/entities';
+import { Collection } from '../../../../../shared/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
 

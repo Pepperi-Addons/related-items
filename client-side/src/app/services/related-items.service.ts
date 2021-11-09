@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FileSelectDirective } from 'ng2-file-upload';
-import { Collection, RelationItem } from '../../../../server-side/entities';
+import { Collection, RelationItem } from '../../../../shared/entities';
 import { fieldFormMode } from '../components/field-form/field-form.component';
 import { AddonService } from './addon.service';
 

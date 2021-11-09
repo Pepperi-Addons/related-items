@@ -6,6 +6,11 @@ export const RELATED_ITEM_CPI_META_DATA_TABLE_NAME = 'CPIRelation';
 export const RELATED_ITEM_META_DATA_TABLE_NAME = 'RelationsWithExternalID';
 export const RELATED_ITEM_ATD_FIELDS_TABLE_NAME = 'AtdFields';
 
+export enum ListSourceType {
+    RelatedCollectionType = 1,
+    FieldType = 2
+}
+
 export interface Collection {
     Name: string,
     Description?: string,
