@@ -1,6 +1,6 @@
 import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, FindOptions, } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
-import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME } from '../shared/entities'
+import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
 import { promises } from 'dns';
 
 class RelatedItemsService {
@@ -257,7 +257,7 @@ class RelatedItemsService {
     }
 
     async upsertItemsInFieldsTable(obj: any): Promise<any> {
-        obj.Key = obj.FieldID;
+        obj.Key = `${obj.FieldID}_${obj.TypeID}`;
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_ATD_FIELDS_TABLE_NAME).upsert(obj);
     }
 
@@ -302,8 +302,64 @@ class RelatedItemsService {
         }
 
         const url = `/meta_data/transaction_lines/types/${typeID}/fields`;
-        if(await this.papiClient.post(url, field))  {
-          return  this.upsertItemsInFieldsTable(body)
+        if (await this.papiClient.post(url, field)) {
+            return this.upsertItemsInFieldsTable(body)
+        }
+    }
+
+    // Import-Export ATD
+    async importATDFields(body) {
+        try {
+            console.log('importATDFields is called, data got from call:', body);
+            if (body && body.Resource == 'transactions') {
+                let objectToimport = body.DataFromExport;
+                objectToimport.forEach(async obj => {
+                    obj.TypeID = body.InternalID;
+                    await this.upsertItemsInFieldsTable(obj);
+                    await this.createAtdTransactionLinesFields(obj);
+                });
+            }
+            return {
+                success: true
+            }
+        }
+        catch (err) {
+            console.log('importATDFields Failed with error:', err);
+            return {
+                success: false,
+                errorMessage: 'message' in err ? err.message : 'unknown error occured'
+            }
+        }
+    }
+
+    async exportATDFields(query) {
+        let objectToReturn: exportAnswer = new exportAnswer(true, {});
+        try {
+            let fields;
+            console.log('exportRelatedItems is called, data got from call:', query);
+            if (query && query.resource  == 'transactions') {
+                fields = await this.getItemsFromFieldsTable()
+                fields = fields.filter(field => field.TypeID == query.internal_id && field.Hidden == false);
+                
+                if(fields && fields.length > 0) {
+                    objectToReturn.DataForImport = fields.map(field => {
+                        return {
+                            "FieldID":field.FieldID,
+                            "Name": field.Name,
+                            "ListSource": field.ListSource,
+                            "ListType": field.ListType
+                        }
+                    });
+                }
+            }
+            return objectToReturn;
+        }
+        catch(err) {
+            console.log('exportRelatedItems Failed with error:', err);
+            return {
+                success: false,
+                errorMessage: 'message' in err ? err.message : 'unknown error occured'
+            }
         }
     }
 }

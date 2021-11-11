@@ -6,6 +6,7 @@ import { RelatedItemsService } from 'src/app/services/related-items.service';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { ListSourceType } from '../../../../../shared/entities'
 import config from '../../../../../addon.config.json';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'addon-field-form',
@@ -27,6 +28,7 @@ export class FieldFormComponent implements OnInit {
   isFirstRadioButtonChecked: boolean = true;
   formMode: fieldFormMode = fieldFormMode.EditMode;
   title: string = "";
+  configID = "";
 
 
   constructor(
@@ -44,9 +46,9 @@ export class FieldFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    let configID = this.hostObject.objectList[0];
+    this.configID = this.hostObject.objectList[0];
 
-    this.relatedItemsService.getTypeInternalID(configID).then((typeID) => {
+    this.relatedItemsService.getTypeInternalID(this.configID).then((typeID) => {
       this.typeID = typeID;
     });
     //this.addonService.addonUUID = config.AddonUUID;
@@ -130,8 +132,9 @@ export class FieldFormComponent implements OnInit {
   }
 
   async fieldValidation() {
-    let field = await this.relatedItemsService.getTSASpecificField(this.dialogData.fieldData.FieldID)
-    if (field === undefined) {
+    let fields = await this.relatedItemsService.getFieldsFromADAL(this.configID)
+     let field = await fields.filter(field => field.Key == `?Key=${this.dialogData.fieldData.FieldID}_${this.typeID}`);
+    if (field.length === 0) {
       this.upsertField();
     }
     else {

@@ -52,3 +52,13 @@ export interface Relation {
     [key: string]: string;
 }
 
+export class exportAnswer {
+    success: boolean;
+    DataForImport: {};
+    
+    constructor(success : boolean, obj: {}){
+        this.success = success;
+        this.DataForImport = obj;
+    }
+}
+

@@ -47,6 +47,7 @@ class RelatedItemsCPIManager {
         let transactionScope = await pepperi.TransactionScope.Get(transaction);
         for (const field of fields) {
             if (field.type == 'RelatedObjectsCards') {
+                //get the specific field of the current transaction type if exists
                 const fieldFromADAL = this.fieldsFromADAL.objects.find(innerField => innerField.FieldID == field.fieldID && innerField.TypeID == typeID);
                 if (fieldFromADAL) {
                     const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID);
