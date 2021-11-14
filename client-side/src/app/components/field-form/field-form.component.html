@@ -6,7 +6,7 @@
   </div>
   <div>
     <div class="name">
-      <pep-textbox id="nametextbox" [label]="'Name' | translate" [(value)]="this.dialogData.fieldData.Name" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Name', $event)"> </pep-textbox>
+      <pep-textbox id="nametextbox" [label]="'Name' | translate" [(value)]="this.dialogData.fieldData.Name" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Name', $event)"></pep-textbox>
     </div>
     <div class="api-name">
       <pep-textbox [label]="'API Name' | translate" [(value)]="this.dialogData.fieldData.FieldID" [disabled]="formMode===0" [readonly]="false" (keydown)="eventHandler($event)" (valueChange)="onValueChanged('FieldID', $event)"> 

@@ -1,6 +1,6 @@
 {
-    "AddonUUID": "",
-    "AddonVersion": "0.0.0",
+    "AddonUUID": "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+    "AddonVersion": "0.0.100",
     "DebugPort": 4500,
     "WebappBaseUrl": "https://app.sandbox.pepperi.com",
     "DefaultEditor": "main",
@@ -20,8 +20,8 @@
         "Editors": [
             {
                 "ParentPackageName": "Related_Items",
-                "PackageName": "Collection_Management",
-                "Description": "CHANGE_TO_ADDON_DESCRIPTION"
+                "PackageName": "collections",
+                "Description": "Collection Managment"
             }
         ],
         "Dependencies": {},

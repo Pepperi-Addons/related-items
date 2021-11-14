@@ -5,7 +5,7 @@
     </h2>
     <div class="grid-container">
         <div class="name" *ngIf="isAddMode">
-            <pep-textbox [label]="'Name' | translate" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('Name', $event)" onsubmit=</pep-textbox>
+            <pep-textbox [label]="'Name' | translate" [(value)]="dialogData.Name" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('Name', $event)"></pep-textbox>
         </div>
         <div class="desc">
             <pep-textarea [label]="'Description' | translate" [(value)]="dialogData.Description" [disabled]="false" [readonly]="false" [rowSpan]="2" (valueChange)="onValueChanged('Description', $event)"></pep-textarea>

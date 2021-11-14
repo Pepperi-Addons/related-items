@@ -1,9 +1,11 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Component, OnInit, Inject, OnDestroy } from "@angular/core";
 import { PepLayoutService, PepScreenSizeType } from '@pepperi-addons/ngx-lib';
-import { Collection } from '../../../../../server-side/entities';
+import { Collection } from '../../../../../shared/entities';
 import { BehaviorSubject } from 'rxjs';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { DialogService } from '../../services/dialog.service';
 
 export class CollectionFormDialogService {
 
@@ -35,6 +37,7 @@ export class CollectionForm implements OnInit, OnDestroy {
       public layoutService: PepLayoutService,
       public translate: TranslateService,
       public dialogRef: MatDialogRef<CollectionForm>,
+      private dialogService: DialogService,
       @Inject(MAT_DIALOG_DATA) public incoming: any
   ) {
 
@@ -77,6 +80,10 @@ export class CollectionForm implements OnInit, OnDestroy {
   onSaveButtonClicked() {
     if (this.dialogData.Name && this.dialogData.Description) {
       this.dialogRef.close(this.dialogData);
+    }
+    else {
+      let errorMessage = `Please fill in all mandatory fields.`;
+      this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, ()=>{});
     }
   }
 }

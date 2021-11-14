@@ -129,3 +129,25 @@ export async function create_tsa_field(client: Client, request:Request) {
         throw new Error(`Method ${request.method} not supported`);       
     }
 }
+
+// Import-Export ATD
+
+export async function import_atd_fields(client: Client, request:Request) {
+    const service = new RelatedItemsService(client)
+    if (request.method == 'POST') {
+        return service.importATDFields(request.body);
+    }
+    else if (request.method == 'GET') {
+        throw new Error(`Method ${request.method} not supported`);       
+    }
+}
+
+export async function export_atd_fields(client: Client, request:Request) {
+    const service = new RelatedItemsService(client)
+    if (request.method == 'GET') {
+        return service.exportATDFields(request.query);
+    }
+    else if (request.method == 'POST') {
+        throw new Error(`Method ${request.method} not supported`);       
+    }
+}

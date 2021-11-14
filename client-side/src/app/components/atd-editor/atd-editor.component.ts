@@ -7,6 +7,7 @@ import { DialogService } from 'src/app/services/dialog.service';
 import { AddonService } from 'src/app/services/addon.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import {fieldFormMode} from 'src/app/components/field-form/field-form.component'
+import config from '../../../../../addon.config.json';
 
 @Component({
   selector: 'addon-atd-editor',
@@ -29,24 +30,20 @@ export class AtdEditorComponent implements OnInit {
     private addonService: AddonService) {
   }
 
-  ngOnInit() {
+   ngOnInit() {
     this.configID = this.hostObject.objectList[0];
-    this.relatedItemsService.getTypeInternalID(this.configID).then((typeID) => {
-      this.typeID = typeID; 
+    this.relatedItemsService.getTypeInternalID(this.configID).then(typeID => {
+      this.typeID = typeID;
     });
-    this.addonService.addonUUID = this.hostObject.options.addonId;
+    //this.addonService.addonUUID = config.AddonUUID;
+    this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
   }
 
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
       let fieldsList = await this.relatedItemsService.getFieldsFromADAL(this.configID);
       fieldsList.map(item => {
-        if (item.ListSource) {
-          item.ListName = item.ListSource;
-        }
-        else {
-          item.ListName = item.ListSource
-        }
+        item.ListName = item.ListSource;
       });
       return fieldsList;
     },

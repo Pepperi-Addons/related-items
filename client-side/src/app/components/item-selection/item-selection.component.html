@@ -4,7 +4,7 @@
         {{ dialogTitle | translate}}
     </h2>
     <div class="item-id">
-        <pep-textbox [label]="'Item ID' | translate" [(value)]="dialogData.ItemExternalID" [disabled]="false" [readonly]="false"> (valueChange)="onValueChanged('ExternalID', $event)"</pep-textbox>
+        <pep-textbox [label]="'Item ID' | translate" [(value)]="dialogData.ItemExternalID" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('ExternalID', $event)"></pep-textbox>
     </div>
   <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
       style="justify-content: flex-end;">
