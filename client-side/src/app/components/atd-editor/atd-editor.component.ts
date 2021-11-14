@@ -30,9 +30,11 @@ export class AtdEditorComponent implements OnInit {
     private addonService: AddonService) {
   }
 
-  async ngOnInit() {
+   ngOnInit() {
     this.configID = this.hostObject.objectList[0];
-    this.typeID = await this.relatedItemsService.getTypeInternalID(this.configID) 
+    this.relatedItemsService.getTypeInternalID(this.configID).then(typeID => {
+      this.typeID = typeID;
+    });
     //this.addonService.addonUUID = config.AddonUUID;
     this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
   }
