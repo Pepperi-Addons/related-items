@@ -4,6 +4,8 @@ import { AddonService } from 'src/app/services/addon.service';
 import { DialogService } from 'src/app/services/dialog.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
+import { ListSourceType } from '../../../../../shared/entities'
+import config from '../../../../../addon.config.json';
 
 @Component({
   selector: 'addon-field-form',
@@ -37,7 +39,7 @@ export class FieldFormComponent implements OnInit {
     this.dialogData = incoming.data.content;
     this.hostObject = this.dialogData.hostObject;
     this.formMode = this.dialogData.fieldFormMode;
-    this.radioButtonsValue = this.dialogData.fieldData.ListType ? this.dialogData.fieldData.ListType : listSourceType.RelatedCollectionType;
+    this.radioButtonsValue = this.dialogData.fieldData.ListType ? this.dialogData.fieldData.ListType : ListSourceType.RelatedCollectionType;
     this.title = (this.formMode === fieldFormMode.EditMode) ? "Edit Field" : "Add Field";
   }
 
@@ -47,7 +49,8 @@ export class FieldFormComponent implements OnInit {
     this.relatedItemsService.getTypeInternalID(configID).then((typeID) => {
       this.typeID = typeID;
     });
-    this.addonService.addonUUID = this.hostObject.options.addonId;
+    //this.addonService.addonUUID = config.AddonUUID;
+    this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
 
     this.initSourcesList();
   }
@@ -146,9 +149,4 @@ export class FieldFormComponent implements OnInit {
 export enum fieldFormMode {
   EditMode = 0,
   AddMode = 1
-}
-
-export enum listSourceType {
-  RelatedCollectionType = 1,
-  FieldType = 2
 }
