@@ -1,5 +1,4 @@
 import { Component, Input, Output, OnInit, ViewChild, EventEmitter } from '@angular/core';
-import { GenericListComponent, GenericListDataSource } from '../generic-list/generic-list.component';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PepDialogData } from '@pepperi-addons/ngx-lib/dialog';
 import { FieldFormComponent } from '../field-form/field-form.component';
@@ -8,6 +7,7 @@ import { AddonService } from 'src/app/services/addon.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import {fieldFormMode} from 'src/app/components/field-form/field-form.component'
 import config from '../../../../../addon.config.json';
+import { GenericListComponent, GenericListDataSource} from '@pepperi-addons/ngx-composite-lib/generic-list';
 
 @Component({
   selector: 'addon-atd-editor',

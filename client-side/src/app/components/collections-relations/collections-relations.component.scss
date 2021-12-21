@@ -35,17 +35,12 @@
     display: flex;
 }
 
-.container{
+.collection-relation-container{
     height: 100%;
-    scroll-behavior: auto;
-    margin-left: 0px;
-}
-
-.generic-list {
-    margin-left: 0px;
 }
 
 .addon-page-container {
     height: 100%;
-    //width: 80%;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
 }

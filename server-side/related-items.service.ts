@@ -136,6 +136,7 @@ class RelatedItemsService {
 
     async deleteRelations(body: RelationItem[]) {
         let relations = body.map(relationToDelete => {
+            relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true;
             return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(relationToDelete);
         })
@@ -166,6 +167,7 @@ class RelatedItemsService {
                 let item = await this.getRelationWithExternalIDByKey(body);
                 // if the RealationItem exists - adds new Relateditems to the item's relatedItems array, else creates new RealationItem
                 if (item) {
+                    item.Hidden = false;
                     if (item.RelatedItems) {
                         item.RelatedItems = item.RelatedItems.concat(body.RelatedItems ?? []);
                     }

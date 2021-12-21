@@ -1,4 +1,4 @@
-  <div class="container">
+  <div class="collection-relation-container">
     <div class="addon-page-container">
     <div class="header-content">
       <pep-button iconName="arrow_left_alt" sizeType="sm" (buttonClick)="backClicked()"></pep-button>
@@ -23,7 +23,7 @@
         </span>
     </h2>
     </div>
-    <generic-list 
+    <pep-generic-list 
     [allowMultipleSelection]="true"
     [inline]="true"
     [dataSource]="listDataSource"
@@ -33,6 +33,6 @@
       <pep-button [styleType]="'weak'" [styleStateType]="'system'" [sizeType]="'sm'" [classNames]="'pep-spacing-element'"  [disabled]="false" iconPosition="end" iconName="system_menu"></pep-button>
       <pep-button [sizeType]="'sm'" [value]= "'Add_Related_Items_Button' | translate" [classNames]="'pep-spacing-element'"  [styleType]="'strong'" (buttonClick)="addRelatedItems()"></pep-button>
     </div>
-    </generic-list>
+    </pep-generic-list>
   </div>
   </div>

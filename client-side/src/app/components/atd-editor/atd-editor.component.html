@@ -1,15 +1,15 @@
-<pep-page-layout>
+<pep-page-layout [addPadding]="false">
   <ng-container pep-main-area>
-    <generic-list 
+    <pep-generic-list 
     [title] = "'Related_Items_Title' | translate"
     [allowMultipleSelection]="true"  
     [dataSource]="listDataSource" 
     [inline]="true"
     [noDataMessage]= "'No_Related_Items_Error' | translate"
-    [showSearch]="false">
+    >
     <div right-buttons>
-      <pep-button class="spacing-element" [sizeType]="'sm'" [value]= "'Add_Field_Button' | translate" [styleType]="'strong'" (buttonClick)="openFieldForm(1)"></pep-button>
+      <pep-button class="pep-spacing-element" [sizeType]="'sm'" [value]= "'Add_Field_Button' | translate" [styleType]="'strong'" (buttonClick)="openFieldForm(1)"></pep-button>
     </div>
-  </generic-list>
+  </pep-generic-list>
   </ng-container>
 </pep-page-layout>

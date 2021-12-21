@@ -1,6 +1,6 @@
-<!-- <pep-page-layout>
+<pep-page-layout>
   <ng-container pep-main-area>
-    <generic-list 
+    <pep-generic-list 
       [title] = ""
       [allowMultipleSelection]="true"  
       [dataSource]="listDataSource" 
@@ -8,23 +8,8 @@
       [noDataMessage]= "'No_Related_Items_Error' | translate"
       [showSearch]="true">
       <div right-buttons>
-        <pep-button [sizeType]="'sm'" [value]= "'Add_Collection_Button'| translate" [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
+        <pep-button [sizeType]="'sm'" [classNames]="'pep-spacing-element'"[value]= "'Add_Collection_Button'| translate" [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
       </div>
-    </generic-list>
+    </pep-generic-list>
   </ng-container>
-</pep-page-layout> -->
-<div class="container">
-  <div class="addon-page-container" id="collections-list">
-    <generic-list 
-      [title] = "'Related_Items_Title' | translate"
-      [allowMultipleSelection]="true"  
-      [dataSource]="listDataSource" 
-      [inline]="true"
-      [noDataMessage]= "'No_Related_Items_Error' | translate"
-      [showSearch]="true">
-      <div right-buttons>
-        <pep-button [sizeType]="'sm'" [value]= "'Add_Collection_Button'| translate" [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
-      </div>
-    </generic-list>
-  </div>
-</div>
+</pep-page-layout>

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { GenericListComponent, GenericListDataSource } from '../generic-list/generic-list.component';
+import { GenericListComponent, GenericListDataSource} from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component'
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router'

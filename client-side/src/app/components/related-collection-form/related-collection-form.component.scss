@@ -51,16 +51,16 @@
     line-height: 24px;
   }
 
-  .container{
+  .related-collection-form-container{
     height: 100%;
-    scroll-behavior: auto;
-    width: 80%;
-    margin-left: 0px;
 }
 
 .addon-page-container {
   height: 100%;
   margin-left: 0px;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+
 }
 
 .generic-list {

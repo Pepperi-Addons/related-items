@@ -18,6 +18,9 @@ import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
 import { FeatureModule } from 'src/app/modules/shared.module';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
 import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
+import { PepNgxCompositeLibModule } from '@pepperi-addons/ngx-composite-lib';
+import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
+
 
 @NgModule({
   declarations: [
@@ -36,6 +39,8 @@ import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
     PepSelectModule,
     PepTextboxModule,
     MatDialogModule,
+    PepNgxCompositeLibModule,
+    PepGenericListModule,
     TranslateModule.forChild({
 
       loader: {

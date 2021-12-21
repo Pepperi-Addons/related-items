@@ -1,4 +1,4 @@
-<div class="container">
+<div class="related-collection-form-container">
   <div class="addon-page-container">
     <div  class="header-content pepperi-border-bottom">
       <pep-button [sizeType]="'sm'" iconName="arrow_left_alt"(buttonClick)="backClicked()"></pep-button>
@@ -18,15 +18,15 @@
         </p>
       </div>
     </div>
-    <generic-list 
+    <pep-generic-list 
     [allowMultipleSelection]="true"
     [inline]="true"
     [noDataMessage]="'No_Related_Items_In_Item_Error' | translate"
     [dataSource]="listDataSource"
     [showSearch]="true">
     <div right-buttons>
-      <pep-button [sizeType]="'sm'" [value]= "'Add_A_Related_Items_Button'|translate" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>
+      <pep-button [sizeType]="'sm'" [value]= "'Add_A_Related_Items_Button'|translate" [classNames]="'pep-spacing-element'" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>
     </div>
-    </generic-list>
+    </pep-generic-list>
   </div>
 </div>

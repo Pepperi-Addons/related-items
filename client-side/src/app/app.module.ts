@@ -13,7 +13,6 @@ import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
 import { PepImageModule } from '@pepperi-addons/ngx-lib/image';
 import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 import { PepDialogModule } from '@pepperi-addons/ngx-lib/dialog';
-import { GenericListComponent } from '../app/components/generic-list/generic-list.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
 import { CollectionsListComponent } from './components/collections/collections-list.component';
@@ -28,6 +27,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FeatureModule } from './modules/shared.module';
 import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
+import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -81,6 +81,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         PepTextareaModule,
         MatDialogModule,
         PepImageModule,
+        PepGenericListModule,
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
@@ -90,7 +91,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         })
 
     ],
-    exports:[CollectionsListComponent, GenericListComponent],
+    exports:[CollectionsListComponent],
 
     providers: [],
     bootstrap: [AppComponent]                                             
