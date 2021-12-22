@@ -160,6 +160,11 @@ class RelatedItemsService {
         let itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
         let numberOfItemsToAdd = itemsToAdd.length;
         let failedItemsList: string[] = await this.checkIfItemsExist(itemsToAdd);
+        //remove items that not exist in the user's items list
+        if (body.RelatedItems && failedItemsList) {
+            body.RelatedItems = body.RelatedItems.filter(item => !failedItemsList.includes(item))
+        }
+        
         //validate that the required fields exist
         if (body.CollectionName && body.ItemExternalID) {
             let collection = await this.getCollectionByKey(body.CollectionName);
@@ -329,7 +334,7 @@ class RelatedItemsService {
             console.log('importATDFields Failed with error:', err);
             return {
                 success: false,
-                errorMessage: 'message' in err ? err.message : 'unknown error occured'
+                errorMessage: err ? err : 'unknown error occured'
             }
         }
     }
@@ -360,7 +365,7 @@ class RelatedItemsService {
             console.log('exportRelatedItems Failed with error:', err);
             return {
                 success: false,
-                errorMessage: 'message' in err ? err.message : 'unknown error occured'
+                errorMessage: err ? err : 'unknown error occured'
             }
         }
     }

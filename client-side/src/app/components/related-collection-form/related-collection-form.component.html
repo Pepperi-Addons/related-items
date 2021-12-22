@@ -21,11 +21,11 @@
     <pep-generic-list 
     [allowMultipleSelection]="true"
     [inline]="true"
-    [noDataMessage]="'No_Related_Items_In_Item_Error' | translate"
+    [noDataMessage]=noDataMessage
     [dataSource]="listDataSource"
     [showSearch]="true">
-    <div right-buttons>
-      <pep-button [sizeType]="'sm'" [value]= "'Add_A_Related_Items_Button'|translate" [classNames]="'pep-spacing-element'" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>
+    <div class="right-buttons"  right-buttons >
+      <pep-button [sizeType]="'sm'" [value]= "'Add_Button' |translate" [classNames]="'pep-spacing-element'" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>
     </div>
     </pep-generic-list>
   </div>

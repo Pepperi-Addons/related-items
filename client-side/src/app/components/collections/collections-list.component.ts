@@ -29,11 +29,15 @@ export class CollectionsListComponent implements OnInit {
 
   ngOnInit() { }
 
+  noDataMessage:string;
+
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
       let res = await this.relatedItemsService.getCollections();
+      this.noDataMessage = this.noDataMessage =  this.translate.instant("No_Related_Items_Error")
       if (state.searchString != "") {
         res = res.filter(collection => collection.Name.toLowerCase().includes(state.searchString.toLowerCase()))
+        this.noDataMessage = this.noDataMessage =  this.translate.instant("No_Results_Error")
       }
       return res;
     },
@@ -72,12 +76,12 @@ export class CollectionsListComponent implements OnInit {
         ],
         Columns: [
           {
-            Width: 40
+            Width: 35
           },
           {
-            Width: 40
+            Width: 35
           }, {
-            Width: 20
+            Width: 30
           }
         ],
 
@@ -120,7 +124,7 @@ export class CollectionsListComponent implements OnInit {
           this.goToRelatedCollection(data.Name)
         }
         else {
-          let errorMessage = this.translate.instant('A collection with this name already exist,')  + '\n' + this.translate.instant('please choose a different name') ;
+          let errorMessage = this.translate.instant('A collection with this name already exists,')  + '\n' + this.translate.instant('please choose a different name') ;
           return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, ()=>{});
         }
       }

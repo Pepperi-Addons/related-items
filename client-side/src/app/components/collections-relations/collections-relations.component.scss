@@ -33,6 +33,7 @@
 
 .right-buttons {
     display: flex;
+    margin-right: 5px;
 }
 
 .collection-relation-container{
@@ -43,4 +44,5 @@
     height: 100%;
     display: grid;
     grid-template-rows: auto auto 1fr;
+    width: 80%;
 }

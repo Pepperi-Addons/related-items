@@ -39,9 +39,12 @@ export class AtdEditorComponent implements OnInit {
     this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
   }
 
+  noDataMessage:string;
+
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
       let fieldsList = await this.relatedItemsService.getFieldsFromADAL(this.configID);
+      this.noDataMessage =  this.translate.instant("No_Related_Items_Error")
       fieldsList.map(item => {
         item.ListName = item.ListSource;
       });
