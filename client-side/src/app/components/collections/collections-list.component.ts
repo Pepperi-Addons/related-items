@@ -119,7 +119,7 @@ export class CollectionsListComponent implements OnInit {
     let callback = async (data) => {
       if (data) {
         let collection = await this.relatedItemsService.getCollections(`?Name=${data.Name}`);
-        if(collection.length === 0) { 
+        if(collection.length === 0 || collection[0].Hidden == true) { 
           await this.relatedItemsService.saveCollection({'Name':data.Name, 'Description':data.Description});
           this.goToRelatedCollection(data.Name)
         }
