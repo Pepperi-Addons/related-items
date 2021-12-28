@@ -7,6 +7,7 @@ class RelatedItemsService {
 
     papiClient: PapiClient
     addonUUID: string;
+    maximumNumberOfRelatedItems = 25;
 
     constructor(private client: Client) {
         this.papiClient = new PapiClient({
@@ -42,9 +43,8 @@ class RelatedItemsService {
             if (relation != undefined) {
                 let itemUUID = await this.getItemsFilteredByFields([relation.ItemExternalID], ['UUID']).then(objs => objs[0].UUID);
                 let relatedItemsUUIDs: any = await this.getItemsFilteredByFields(relation.RelatedItems, ['UUID']);
-                if (relatedItemsUUIDs) {
-                    relatedItemsUUIDs = relatedItemsUUIDs.map(item => item.UUID);
-                }
+                relatedItemsUUIDs = relatedItemsUUIDs.map(item => item.UUID);
+ 
                 let key = `${relation.CollectionName}_${itemUUID}`;
                 let cpiRelationItem = { 'Key': key, 'Hidden': relation.Hidden, RelatedItems: relatedItemsUUIDs }
                 items.push(await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem));
@@ -54,7 +54,7 @@ class RelatedItemsService {
     }
 
     //Collection table functions
-    async getCollections(query) {
+    async getCollections(query): Promise<any> {
         const { Name, ...options } = query;
         let collectionArray;
         if (query.Name) {
@@ -159,7 +159,8 @@ class RelatedItemsService {
     async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
         let itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
         let numberOfItemsToAdd = itemsToAdd.length;
-        let failedItemsList: string[] = await this.checkIfItemsExist(itemsToAdd);
+        let notExistItems = await this.checkIfItemsExist(itemsToAdd);
+        let failedItemsList: string[] = notExistItems? notExistItems : [];
         //remove items that not exist in the user's items list
         if (body.RelatedItems && failedItemsList) {
             body.RelatedItems = body.RelatedItems.filter(item => !failedItemsList.includes(item))
@@ -175,8 +176,22 @@ class RelatedItemsService {
                     item.Hidden = false;
                     if (item.RelatedItems) {
                         item.RelatedItems = item.RelatedItems.concat(body.RelatedItems ?? []);
+                         //limit the number of related items for each item to maximumNumberOfRelatedItems
+                        let numberOfRelatedItems = item.RelatedItems.length 
+                        if (numberOfRelatedItems > this.maximumNumberOfRelatedItems) {
+                            //Save failed items for user message
+                            let exceededItems = item.RelatedItems.slice(this.maximumNumberOfRelatedItems, numberOfRelatedItems)
+                            failedItemsList = failedItemsList.concat(exceededItems);
+                            item.RelatedItems = item.RelatedItems.slice(0,this.maximumNumberOfRelatedItems);
+                        }
                     }
                     else {
+                        if (body.RelatedItems && body.RelatedItems?.length > this.maximumNumberOfRelatedItems) {
+                            let exceededItems = body.RelatedItems .slice(this.maximumNumberOfRelatedItems, body.RelatedItems?.length)
+                            //Save failed items for user message
+                            failedItemsList.concat(exceededItems);
+                            body.RelatedItems.slice(0,this.maximumNumberOfRelatedItems)
+                        }
                         item.RelatedItems = body.RelatedItems;
                     }
                     await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item)
@@ -230,9 +245,12 @@ class RelatedItemsService {
     // Items functions
 
     async getItemsFilteredByFields(itemsExternalIDs, fields) {
-        let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
-        let query = { fields: fields, where: `ExternalID IN ${externelIDsList}` }
-        return await this.papiClient.items.find(query)
+        if(itemsExternalIDs && itemsExternalIDs.length > 0) {
+            let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
+            let query = { fields: fields, where: `ExternalID IN ${externelIDsList}` }
+            return await this.papiClient.items.find(query)
+        }
+        return [];
     }
 
     async getItems(query) {

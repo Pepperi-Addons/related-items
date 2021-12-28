@@ -70,6 +70,7 @@ class RelatedItemsCPIManager {
                 table: 'CPIRelation',
                 key: key
             });
+
             relatedItems = item.object.RelatedItems;
         }
         else {
