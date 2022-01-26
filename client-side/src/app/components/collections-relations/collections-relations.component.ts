@@ -9,6 +9,7 @@ import { CollectionForm } from '../collection-form/collection-form.component';
 import { Collection } from '../../../../../shared/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
+import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 
 @Component({
   selector: 'addon-collections-relations',
@@ -126,15 +127,24 @@ export class RelatedCollections implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-            this.relatedItemsService.deleteRelations(objs).then(() => {
-              this.genericList.reload();
-            });
+            this.deleteRelation(objs);
           }
         });
       }
 
       return actions;
     }
+  }
+
+  async deleteRelation(objs) {
+    const message = this.translate.instant("Delete_Relation_Validate");
+    const actionButtons = [
+      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteRelations(objs).then(() => {
+        this.genericList.reload();
+      })),
+      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+    ];
+    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
   }
 
   addRelatedItems() {
