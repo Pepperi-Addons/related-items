@@ -94,7 +94,7 @@ async function createRelations(papiClient: PapiClient) {
     catch (err) {
         return {
             success: false,
-            errorMessage: ('message' in err) ? err.message : 'Unknown Error Occured',
+            errorMessage:  err ? err : 'Unknown Error Occured',
         }
     }
 }
@@ -148,7 +148,7 @@ async function createADALSchemes(papiClient: PapiClient) {
     catch (err) {
         return {
             success: false,
-            errorMessage: ('message' in err) ? err.message : 'Unknown Error Occured',
+            errorMessage: err ? err : 'Unknown Error Occured',
         }
     }
 }

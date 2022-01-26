@@ -5,7 +5,7 @@
     [allowMultipleSelection]="true"  
     [dataSource]="listDataSource" 
     [inline]="true"
-    [noDataMessage]= "'No_Related_Items_Error' | translate"
+    [noDataMessage]= noDataMessage
     >
     <div right-buttons>
       <pep-button class="pep-spacing-element" [sizeType]="'sm'" [value]= "'Add_Field_Button' | translate" [styleType]="'strong'" (buttonClick)="openFieldForm(1)"></pep-button>

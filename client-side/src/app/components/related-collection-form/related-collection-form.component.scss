@@ -55,14 +55,16 @@
     height: 100%;
 }
 
-.addon-page-container {
+.right-buttons {
+  display:block;
+  margin-right: 5px;
+}
+
+.form-addon-page-container {
   height: 100%;
+  width: 80%;
   margin-left: 0px;
   display: grid;
   grid-template-rows: auto auto 1fr;
 
-}
-
-.generic-list {
-  margin-left: 0px;
 }

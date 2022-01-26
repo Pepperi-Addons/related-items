@@ -5,7 +5,7 @@
       [allowMultipleSelection]="true"  
       [dataSource]="listDataSource" 
       [inline]="true"
-      [noDataMessage]= "'No_Related_Items_Error' | translate"
+      [noDataMessage]= noDataMessage
       [showSearch]="true">
       <div right-buttons>
         <pep-button [sizeType]="'sm'" [classNames]="'pep-spacing-element'"[value]= "'Add_Collection_Button'| translate" [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>

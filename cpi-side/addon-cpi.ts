@@ -44,14 +44,14 @@ class RelatedItemsCPIManager {
         let typeID = transactionLine.typeDefinition?.internalID;
         let currentItemID = transactionLine.item.uuid;
         let transaction = transactionLine.transaction;
-        let transactionScope = await pepperi.TransactionScope.Get(transaction);
+        let transactionScope = transaction.transactionScope
         for (const field of fields) {
             if (field.type == 'RelatedObjectsCards') {
                 //get the specific field of the current transaction type if exists
                 const fieldFromADAL = this.fieldsFromADAL.objects.find(innerField => innerField.FieldID == field.fieldID && innerField.TypeID == typeID);
                 if (fieldFromADAL) {
                     const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID);
-                    const tsItems = (await Promise.all(items.map(item => transactionScope.getItem(item)))).filter(Boolean) as TransactionLine[];
+                    const tsItems = (await Promise.all(items.map(item => transactionScope?.getLine(item)))).filter(Boolean) as TransactionLine[];
                     await this.createGenericList(tsItems, field, typeID)
                 }
             }
@@ -70,6 +70,7 @@ class RelatedItemsCPIManager {
                 table: 'CPIRelation',
                 key: key
             });
+
             relatedItems = item.object.RelatedItems;
         }
         else {

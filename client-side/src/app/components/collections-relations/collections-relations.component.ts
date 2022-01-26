@@ -45,6 +45,8 @@ export class RelatedCollections implements OnInit {
   ngOnInit() {
   }
 
+  noDataMessage:string;
+
   async initializeData() {
     this.collection = await this.relatedItemsService.getCollections(`?Name=${this.collectionName}`).then(objs => objs[0]);
   }
@@ -52,9 +54,11 @@ export class RelatedCollections implements OnInit {
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
       this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
+      this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
       for (const item of this.itemsInCollection) {
         if (item.RelatedItems) {
           item.ItemsExternalIDList = item.RelatedItems.join(", ");
+          this.noDataMessage = this.translate.instant("No_Results_Error");
         }
       }
 
@@ -78,26 +82,24 @@ export class RelatedCollections implements OnInit {
           {
             FieldID: 'ItemExternalID',
             Type: 'TextBox',
-            Title: this.translate.instant('Item'),
+            Title: this.translate.instant('Item External Id'),
             Mandatory: false,
             ReadOnly: true
           },
           {
             FieldID: 'ItemsExternalIDList',
             Type: 'TextBox',
-            Title: this.translate.instant('Related Items'),
+            Title: this.translate.instant('Recommendations'),
             Mandatory: false,
             ReadOnly: true
           }
         ],
         Columns: [
           {
-            Width: 25
+            Width: 30
           },
           {
-            Width: 25
-          }, {
-            Width: 25
+            Width: 70
           }
         ],
 

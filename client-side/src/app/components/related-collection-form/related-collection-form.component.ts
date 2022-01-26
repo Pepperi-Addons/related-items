@@ -40,6 +40,8 @@ export class RelatedCollectionFormComponent implements OnInit {
   ngOnInit() {
   }
 
+  noDataMessage:string;
+
   async initializeData() {
     this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
     this.externalID = this.activatedRoute.snapshot.params["external_id"];
@@ -52,11 +54,13 @@ export class RelatedCollectionFormComponent implements OnInit {
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
       this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
+      this.noDataMessage = this.translate.instant("No_Related_Items_In_Item_Error")
       if (!this.currentItem.RelatedItems) {
         this.currentItem.RelatedItems = [];
       }
       if (state.searchString != "") {
         this.currentItem.RelatedItems = this.currentItem.RelatedItems.filter(item => item.ExternalID.toLowerCase().includes(state.searchString.toLowerCase()))
+        this.noDataMessage = this.translate.instant("No_Results_Error")
       }
 
       return this.currentItem.RelatedItems;
@@ -135,6 +139,7 @@ export class RelatedCollectionFormComponent implements OnInit {
 
 addRelatedItem() {
   let callback = async (data) => {
+    if (data) {
     let ans = await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': data.ItemExternalID.split(";")})
       let message = `${ans.numberOfItemsToAdd} items were added`
 
@@ -146,6 +151,7 @@ addRelatedItem() {
       }
 
       return this.dialogService.openDialog("", MessageDialogComponent, [], { data: message }, async () => this.genericList.reload());
+    }
   };
       let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
     return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
