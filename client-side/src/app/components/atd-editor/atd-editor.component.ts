@@ -8,6 +8,7 @@ import { RelatedItemsService } from 'src/app/services/related-items.service';
 import {fieldFormMode} from 'src/app/components/field-form/field-form.component'
 import config from '../../../../../addon.config.json';
 import { GenericListComponent, GenericListDataSource} from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 
 @Component({
   selector: 'addon-atd-editor',
@@ -113,15 +114,24 @@ export class AtdEditorComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-            this.relatedItemsService.deleteFields(objs, this.typeID).then(() => {
-              this.genericList.reload();
-            });
+            this.deleteFields(objs);
           }
         });
       }
 
       return actions;
     }
+  }
+
+  async deleteFields(objs) {
+    const message = this.translate.instant("Delete_Field_Validate");
+    const actionButtons = [
+      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteFields(objs, this.typeID).then(() => {
+        this.genericList.reload();
+      })),
+      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+    ];
+    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
   }
 
   async openFieldForm(fieldFormMode, fieldData?) {

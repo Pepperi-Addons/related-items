@@ -8,6 +8,7 @@ import { DialogService } from '../../services/dialog.service';
 import { ItemWithImageURL } from '../../../../../shared/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
+import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 
 @Component({
   selector: 'addon-related-collection-form',
@@ -122,19 +123,30 @@ export class RelatedCollectionFormComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-            let itemsToRemove = objs.map(obj => { 
-              return obj.ExternalID
-            });
-            let itemToUpdate = {'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'itemsToRemove': itemsToRemove}
-            this.relatedItemsService.deleteRelatedItems(itemToUpdate).then(() => {
-              this.genericList.reload();
-            });
+            this.deleteItem(objs);
           }
         });
       }
 
       return actions;
     }
+  }
+
+  async deleteItem(objs) {
+    const message = this.translate.instant("Delete_Item_Validate");
+    const actionButtons = [
+      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => {
+        let itemsToRemove = objs.map(obj => { 
+          return obj.ExternalID
+        });
+        let itemToUpdate = {'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'itemsToRemove': itemsToRemove}
+        this.relatedItemsService.deleteRelatedItems(itemToUpdate).then(() => {
+          this.genericList.reload();
+        });
+      }),
+      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+    ];
+    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
   }
 
 addRelatedItem() {

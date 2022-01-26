@@ -26,4 +26,14 @@ export class DialogService {
       });
     }
   }
+
+  openDefaultDialog(title: string, actionButtons: Array<PepDialogActionButton>, input: any, callbackFunc?: (any) => void): void {
+    const dialogData = new PepDialogData({ title, content: input, actionsType: 'custom', actionButtons });
+    this.dialogService.openDefaultDialog(dialogData)
+      .afterClosed().subscribe(res => {
+        if (typeof res === 'function') {
+          res();
+        }
+      });
+  }
 }

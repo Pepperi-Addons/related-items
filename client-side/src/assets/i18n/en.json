@@ -18,5 +18,11 @@
     "Field_Form_Instructions": "Choose the field that will use as a query for the list of items.\n This field's value must return a string with the item UUID's seperated by the internal delimeter",
     "No_Related_Items_In_Item_Error": "No Related Item Assigned Click the `Add Related Items` Button to get things going",
     "No_Results_Error": "No results were found",
-    "Add_Item_Title": "Add Item"
+    "Add_Item_Title": "Add Item",
+    "Delete_Field_Validate": "Are you sure you want to delete this field?",
+    "Delete_Collection_Validate": "Are you sure you want to delete this collection?",
+    "Delete_Relation_Validate": "Are you sure you want to delete this relation?",
+    "Delete_Item_Validate": "Are you sure you want to delete this item?",
+    "Delete": "Delete",
+    "Cancel": "Cancel"
 }

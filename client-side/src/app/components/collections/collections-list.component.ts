@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { GenericListComponent, GenericListDataSource} from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { GenericListComponent, GenericListDataSource } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -7,6 +7,7 @@ import { CollectionForm } from '../collection-form/collection-form.component';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { DialogService } from '../../services/dialog.service';
 import { AddonService } from '../../services/addon.service';
+import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 
 @Component({
   selector: 'addon-collections',
@@ -17,27 +18,27 @@ export class CollectionsListComponent implements OnInit {
   @ViewChild(GenericListComponent) genericList: GenericListComponent;
 
   constructor(
-      public addonService: AddonService,
-      public translate: TranslateService,
-      public router: Router,
-      public route: ActivatedRoute,
-      public relatedItemsService: RelatedItemsService,
-      private dialogService: DialogService
+    public addonService: AddonService,
+    public translate: TranslateService,
+    public router: Router,
+    public route: ActivatedRoute,
+    public relatedItemsService: RelatedItemsService,
+    private dialogService: DialogService
   ) {
-    this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;  
+    this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
   }
 
   ngOnInit() { }
 
-  noDataMessage:string;
+  noDataMessage: string;
 
   listDataSource: GenericListDataSource = {
     getList: async (state) => {
       let res = await this.relatedItemsService.getCollections();
-      this.noDataMessage = this.noDataMessage =  this.translate.instant("No_Related_Items_Error")
+      this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
       if (state.searchString != "") {
         res = res.filter(collection => collection.Name.toLowerCase().includes(state.searchString.toLowerCase()))
-        this.noDataMessage = this.noDataMessage =  this.translate.instant("No_Results_Error")
+        this.noDataMessage = this.noDataMessage = this.translate.instant("No_Results_Error")
       }
       return res;
     },
@@ -104,9 +105,7 @@ export class CollectionsListComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Delete"),
           handler: async (objs) => {
-            this.relatedItemsService.deleteCollections(objs).then(() => {
-              this.genericList.reload();
-            });
+            this.deleteCollections(objs);
           }
         });
       }
@@ -115,21 +114,32 @@ export class CollectionsListComponent implements OnInit {
     }
   }
 
+  async deleteCollections(objs) {
+    const message = this.translate.instant("Delete_Collection_Validate");
+    const actionButtons = [
+      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteCollections(objs).then(() => {
+        this.genericList.reload();
+      })),
+      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+    ];
+    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
+  }
+
   addCollecton() {
     let callback = async (data) => {
       if (data) {
         let collection = await this.relatedItemsService.getCollections(`?Name=${data.Name}`);
-        if(collection.length === 0 || collection[0].Hidden == true) { 
-          await this.relatedItemsService.saveCollection({'Name':data.Name, 'Description':data.Description});
+        if (collection.length === 0 || collection[0].Hidden == true) {
+          await this.relatedItemsService.saveCollection({ 'Name': data.Name, 'Description': data.Description });
           this.goToRelatedCollection(data.Name)
         }
         else {
-          let errorMessage = this.translate.instant('A collection with this name already exists,')  + '\n' + this.translate.instant('please choose a different name') ;
-          return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, ()=>{});
+          let errorMessage = this.translate.instant('A collection with this name already exists,') + '\n' + this.translate.instant('please choose a different name');
+          return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, () => { });
         }
       }
     }
-    return this.dialogService.openDialog(this.translate.instant("Add collection"), CollectionForm, [], { data: {shouldShowNameField: true} }, callback);
+    return this.dialogService.openDialog(this.translate.instant("Add collection"), CollectionForm, [], { data: { shouldShowNameField: true } }, callback);
   }
 
   goToRelatedCollection(collectionName: string) {
