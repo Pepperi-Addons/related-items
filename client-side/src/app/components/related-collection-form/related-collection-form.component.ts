@@ -153,16 +153,9 @@ addRelatedItem() {
   let callback = async (data) => {
     if (data) {
     let ans = await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': data.ItemExternalID.split(";")})
-      let message = `${ans.numberOfItemsToAdd} items were added`
-
-      if (ans.numberOfSuccess == 0) {
-        message = `Failed to add items Please verify the ids and that the items are not deleted`
+      if (ans != "") {
+        return this.dialogService.openDialog("", MessageDialogComponent, [], { data: ans }, async () => this.genericList.reload());
       }
-      else if (ans.numberOfFailures) {
-        message = `${ans.numberOfSuccess} items were added. The following items failed: ${ans.failedItemsList}. Please verify the ids and that the items are not deleted`
-      }
-
-      return this.dialogService.openDialog("", MessageDialogComponent, [], { data: message }, async () => this.genericList.reload());
     }
   };
       let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
