@@ -44,7 +44,7 @@ class RelatedItemsService {
                 let itemUUID = await this.getItemsFilteredByFields([relation.ItemExternalID], ['UUID']).then(objs => objs[0].UUID);
                 let relatedItemsUUIDs: any = await this.getItemsFilteredByFields(relation.RelatedItems, ['UUID']);
                 relatedItemsUUIDs = relatedItemsUUIDs.map(item => item.UUID);
- 
+
                 let key = `${relation.CollectionName}_${itemUUID}`;
                 let cpiRelationItem = { 'Key': key, 'Hidden': relation.Hidden, RelatedItems: relatedItemsUUIDs }
                 items.push(await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem));
@@ -144,70 +144,115 @@ class RelatedItemsService {
         return p
     }
 
-    async checkIfItemsExist(items: string[]) {
-        let notExistItems: string[] = [];
-        for (const item of items) {
-            //Check if the item exists in the user's items list
-            let items = await this.getItemsFilteredByFields([item], ['UUID']);
-            if (items.length == 0) {
-                notExistItems.push(item);
-            }
-        }
-        return notExistItems;
-    }
-
     async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
-        let itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
-        let numberOfItemsToAdd = itemsToAdd.length;
-        let notExistItems = await this.checkIfItemsExist(itemsToAdd);
-        let failedItemsList: string[] = notExistItems? notExistItems : [];
-        //remove items that not exist in the user's items list
-        if (body.RelatedItems && failedItemsList) {
-            body.RelatedItems = body.RelatedItems.filter(item => !failedItemsList.includes(item))
-        }
-        
-        //validate that the required fields exist
         if (body.CollectionName && body.ItemExternalID) {
             let collection = await this.getCollectionByKey(body.CollectionName);
             if (collection) {
                 let item = await this.getRelationWithExternalIDByKey(body);
-                // if the RealationItem exists - adds new Relateditems to the item's relatedItems array, else creates new RealationItem
-                if (item) {
-                    item.Hidden = false;
-                    if (item.RelatedItems) {
-                        item.RelatedItems = item.RelatedItems.concat(body.RelatedItems ?? []);
-                         //limit the number of related items for each item to maximumNumberOfRelatedItems
-                        let numberOfRelatedItems = item.RelatedItems.length 
-                        if (numberOfRelatedItems > this.maximumNumberOfRelatedItems) {
-                            //Save failed items for user message
-                            let exceededItems = item.RelatedItems.slice(this.maximumNumberOfRelatedItems, numberOfRelatedItems)
-                            failedItemsList = failedItemsList.concat(exceededItems);
-                            item.RelatedItems = item.RelatedItems.slice(0,this.maximumNumberOfRelatedItems);
-                        }
+
+                let itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
+                let numberOfItemsToAdd = itemsToAdd.length;
+
+                let notExistItems: string[] = [];
+                let isTryToReferencItself = false;
+                let dupicateItems: string[] = [];
+
+                for (const itemToAdd of itemsToAdd) {
+                    //Check if the related items exist in the user's items list
+                    let items = await this.getItemsFilteredByFields([itemToAdd], ['UUID']);
+                    if (items.length == 0) {
+                        notExistItems.push(itemToAdd);
                     }
-                    else {
-                        if (body.RelatedItems && body.RelatedItems?.length > this.maximumNumberOfRelatedItems) {
-                            let exceededItems = body.RelatedItems .slice(this.maximumNumberOfRelatedItems, body.RelatedItems?.length)
-                            //Save failed items for user message
-                            failedItemsList.concat(exceededItems);
-                            body.RelatedItems.slice(0,this.maximumNumberOfRelatedItems)
-                        }
-                        item.RelatedItems = body.RelatedItems;
+
+                    //Check if the item try to reference itself
+                    if (itemToAdd == body.ItemExternalID) {
+                        isTryToReferencItself = true;
                     }
-                    await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item)
+
+                    //Check if one of the related items is already in the list
+                    if (item?.RelatedItems?.includes(itemToAdd)) {
+                        dupicateItems.push(itemToAdd);
+                    }
                 }
-                else {
-                    await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(body)
+
+                //Delete items that should not be added
+                if (body.RelatedItems) {
+                    body.RelatedItems = body.RelatedItems.filter(item => !notExistItems.includes(item))
+                    body.RelatedItems = body.RelatedItems.filter(item => !dupicateItems.includes(item))
+                    body.RelatedItems = body.RelatedItems.filter(item => !(item == body.ItemExternalID))
+
+                    numberOfItemsToAdd = numberOfItemsToAdd - dupicateItems.length;
                 }
-                let numberOfFailures = failedItemsList.length;
-                let numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
-                return { numberOfItemsToAdd: numberOfItemsToAdd, numberOfFailures: numberOfFailures, numberOfSuccess: numberOfSuccess, failedItemsList: failedItemsList }
+
+                //Check if the list is in full capacity.
+                if (!item) {
+                    item = body;
+                    item.RelatedItems = [];
+                }
+                let exceedingItems = await this.checkIfTheListIsFull(item, body.RelatedItems);
+
+                return this.handleAddAns(dupicateItems, notExistItems, isTryToReferencItself, exceedingItems, numberOfItemsToAdd);
+
             }
-            throw new Error(`Collection does not exist`);
+            else {
+                throw new Error(`Collection does not exist`);
+            }
         }
         else {
             throw new Error(`CollectionName and ItemExternalID are required`);
         }
+    }
+
+    // check if the number related items higher than maximumNumberOfRelatedItems
+    async checkIfTheListIsFull(item, relatedItems) {
+        let exceededItems = [];
+        item.RelatedItems = item.RelatedItems.concat(relatedItems ?? []);
+        //limit the number of related items for each item to maximumNumberOfRelatedItems
+        let numberOfRelatedItems = item.RelatedItems.length;
+        if (numberOfRelatedItems > this.maximumNumberOfRelatedItems) {
+            //Save failed items for user message
+            exceededItems = item.RelatedItems.slice(this.maximumNumberOfRelatedItems, numberOfRelatedItems)
+            item.RelatedItems = item.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
+        }
+        item.Hidden = false;
+        await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item);
+        return exceededItems;
+    }
+
+    handleAddAns(dupicateItems, notExistItems, isTryToReferencItself, exceedingItems, numberOfItemsToAdd) {
+        let returnMessage = "";
+
+        if (exceedingItems.length > 0) {
+            returnMessage = `The list is in full capacity. The following items were not added: ${exceedingItems}`;
+        }
+        else if (notExistItems.length > 0 && isTryToReferencItself) {
+            returnMessage = `The following items were not added: ${notExistItems}`;
+        }
+        else if (isTryToReferencItself) {
+            returnMessage = `An item cannot reference itself`;
+        }
+        else if (notExistItems.length > 0) {
+            let numberOfFailures = notExistItems.length;
+            let numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
+            if (numberOfSuccess > 0) {
+                returnMessage = `${numberOfSuccess} items were added. The following items failed: ${notExistItems}. Please verify the ids and that the items are not deleted”`;
+            }
+            else {
+                if (dupicateItems.length >= 0) {
+                    returnMessage = `Failed to add items Please verify the ids and that the items are not deleted`;
+                }
+                else {
+                    returnMessage = `The following items were not added: ${notExistItems}`;
+                }
+
+            }
+        }
+        else {
+            if (dupicateItems.length <= 0) {
+                returnMessage = `${numberOfItemsToAdd} items were added`;
+            }
+        }
+        return returnMessage;
     }
 
     async removeItemsFromRelationWithExternalID(body: { 'CollectionName': string, 'ItemExternalID': string, 'itemsToRemove': string[] }) {
@@ -245,7 +290,7 @@ class RelatedItemsService {
     // Items functions
 
     async getItemsFilteredByFields(itemsExternalIDs, fields) {
-        if(itemsExternalIDs && itemsExternalIDs.length > 0) {
+        if (itemsExternalIDs && itemsExternalIDs.length > 0) {
             let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
             let query = { fields: fields, where: `ExternalID IN ${externelIDsList}` }
             return await this.papiClient.items.find(query)
@@ -362,14 +407,14 @@ class RelatedItemsService {
         try {
             let fields;
             console.log('exportRelatedItems is called, data got from call:', query);
-            if (query && query.resource  == 'transactions') {
+            if (query && query.resource == 'transactions') {
                 fields = await this.getItemsFromFieldsTable()
                 fields = fields.filter(field => field.TypeID == query.internal_id && field.Hidden == false);
-                
-                if(fields && fields.length > 0) {
+
+                if (fields && fields.length > 0) {
                     objectToReturn.DataForImport = fields.map(field => {
                         return {
-                            "FieldID":field.FieldID,
+                            "FieldID": field.FieldID,
                             "Name": field.Name,
                             "ListSource": field.ListSource,
                             "ListType": field.ListType
@@ -379,7 +424,7 @@ class RelatedItemsService {
             }
             return objectToReturn;
         }
-        catch(err) {
+        catch (err) {
             console.log('exportRelatedItems Failed with error:', err);
             return {
                 success: false,
