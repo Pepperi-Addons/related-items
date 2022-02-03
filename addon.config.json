@@ -24,7 +24,9 @@
         "Description": "Collection Managment"
       }
     ],
-    "Dependencies": {},
+    "Dependencies": {
+      "cpi_node": "0.3.7"
+    },
     "CPISide": [
       "addon-cpi.ts"
     ]
