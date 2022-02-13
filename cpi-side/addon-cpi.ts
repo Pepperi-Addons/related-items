@@ -52,7 +52,9 @@ class RelatedItemsCPIManager {
                 if (fieldFromADAL) {
                     const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID);
                     const tsItems = (await Promise.all(items.map(item => transactionScope?.getLine(item)))).filter(Boolean) as TransactionLine[];
-                    await this.createGenericList(tsItems, field, typeID)
+                    if (tsItems.length > 0) {
+                        await this.createGenericList(tsItems, field, typeID)
+                    }
                 }
             }
         }
@@ -75,6 +77,7 @@ class RelatedItemsCPIManager {
                 relatedItems = item.object.RelatedItems;
             }
             catch {
+                relatedItems = [];
                 console.log('Item not found')
             }
 
@@ -90,6 +93,7 @@ class RelatedItemsCPIManager {
 
         }
         relatedItems = relatedItems ? relatedItems : [];
+        debugger
         return (await (await Promise.all(relatedItems.map(item => pepperi.DataObject.Get("items", item)))).filter(item => !!item) as Item[]);
     }
 
