@@ -65,13 +65,19 @@ class RelatedItemsCPIManager {
 
         if (listType == ListSourceType.RelatedCollectionType) {
             let key = `${listSource}_${currentItemID}`
-            let item = await pepperi.api.adal.get({
-                addon: config.AddonUUID,
-                table: 'CPIRelation',
-                key: key
-            });
+            try {
+                let item = await pepperi.api.adal.get({
+                    addon: config.AddonUUID,
+                    table: 'CPIRelation',
+                    key: key
+                });
+    
+                relatedItems = item.object.RelatedItems;
+            }
+            catch {
+                console.log('Item not found')
+            }
 
-            relatedItems = item.object.RelatedItems;
         }
         else {
             try {
