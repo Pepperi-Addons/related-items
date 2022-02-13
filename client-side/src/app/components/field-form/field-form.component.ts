@@ -30,7 +30,6 @@ export class FieldFormComponent implements OnInit {
   title: string = "";
   configID = "";
 
-
   constructor(
     private relatedItemsService: RelatedItemsService,
     private dialogService: DialogService,
@@ -85,13 +84,20 @@ export class FieldFormComponent implements OnInit {
     switch (element) {
       case 'Name': {
         if (this.formMode === fieldFormMode.AddMode) {
-          this.dialogData.fieldData.FieldID = ('TSA' + $event).replace(/\s/g, "");
+          this.dialogData.fieldData.FieldID = ('TSA' + $event).replace(/[^a-zA-Z 0-9]+/g, '');
         }
         this.dialogData.fieldData.Name = $event;
         break;
       }
       case 'FieldID': {
-        this.dialogData.fieldData.FieldID = 'TSA' + $event;
+        let name = $event.replace(/[^a-zA-Z 0-9]+/g, '')
+        
+        if (name.substring(0,3) != 'TSA'){
+          this.dialogData.fieldData.FieldID = ('TSA' + name);
+        }
+        else {
+          this.dialogData.fieldData.FieldID = name;
+        }
         break;
       }
       case 'ListSource': {
@@ -133,7 +139,7 @@ export class FieldFormComponent implements OnInit {
 
   async fieldValidation() {
     let fields = await this.relatedItemsService.getFieldsFromADAL(this.configID)
-     let field = await fields.filter(field => field.Key == `?Key=${this.dialogData.fieldData.FieldID}_${this.typeID}`);
+    let field = await fields.filter(field => field.Key == `?Key=${this.dialogData.fieldData.FieldID}_${this.typeID}`);
     if (field.length === 0) {
       this.upsertField();
     }
