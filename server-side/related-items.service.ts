@@ -432,6 +432,26 @@ class RelatedItemsService {
             }
         }
     }
+
+    //DIMX
+    // for the AddonRelativeURL of the relation
+    async importDataSource(body) {
+        return body;
+    }
+
+    async exportDataSource(body) {
+        console.log("Export data is working")
+        return body;
+     }
+
+    // //for the user calls
+    // async dimxImportData() {
+    //     return await this.papiClient.post(`/addons/data/import/file/${this.addonUUID}/${RELATED_ITEM_META_DATA_TABLE_NAME}`)
+    // }
+
+    // async dimxExportData() {
+    // return await this.papiClient.post(`/addons/data/export/file/${this.addonUUID}/${RELATED_ITEM_META_DATA_TABLE_NAME}`)
+    // }
 }
 
 export default RelatedItemsService;

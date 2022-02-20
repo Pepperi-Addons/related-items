@@ -6,6 +6,8 @@ export const RELATED_ITEM_CPI_META_DATA_TABLE_NAME = 'CPIRelation';
 export const RELATED_ITEM_META_DATA_TABLE_NAME = 'RelationsWithExternalID';
 export const RELATED_ITEM_ATD_FIELDS_TABLE_NAME = 'AtdFields';
 
+export type fileStatus = 'uploading'|'downloading'|'done'|'failed'|'hidden';
+
 export enum ListSourceType {
     RelatedCollectionType = 1,
     FieldType = 2
@@ -36,7 +38,7 @@ export interface RelationItemWithExternalID {
     Hidden?: boolean
 }
 export type ItemWithImageURL = Item & {
-    Name?:string;
+    Name?: string;
     LongDescription?: string;
     ExternalID: string;
     Image?: ImageObject;
@@ -55,10 +57,16 @@ export interface Relation {
 export class exportAnswer {
     success: boolean;
     DataForImport: {};
-    
-    constructor(success : boolean, obj: {}){
+
+    constructor(success: boolean, obj: {}) {
         this.success = success;
         this.DataForImport = obj;
     }
+}
+
+export class IFile {
+    key: number = 0;
+    name: string = '';
+    status: fileStatus = 'downloading';
 }
 

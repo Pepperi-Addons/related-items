@@ -1,0 +1,17 @@
+<div class="dialog">
+  <div class="mat-dialog-title dialog-header-container ng-star-inserted">
+    <span class="dialog-title ng-star-inserted"> Import </span>
+    <pep-button class="close_button" spacing-element [sizeType]="'sm'" [classNames]="'pep-spacing-element'" iconName="system_close" [styleType]="'weak'" (buttonClick)="onCloseButtonClicked()"></pep-button>
+  </div>
+  <div mat-dialog-content class="mat-dialog-content">
+    <pep-attachment src="" label="" [mandatory]="false" [disabled]="false" xAlignment="left" [rowSpan]="2" [showTitle]="true"
+      (fileChange)="onFileSelect($event)"></pep-attachment>
+  </div>
+  <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
+    style="justify-content: flex-end;">
+    <div class="spacing-element-negative">
+      <pep-button  class="spacing-element md mat-button" [styleType]="'strong'" [value]="'Import' | translate" (buttonClick)="onImportButtonClicked()">
+      </pep-button >
+    </div>
+  </div>
+</div>

@@ -80,6 +80,22 @@ async function createRelations(papiClient: PapiClient) {
             Description: "Relation from Related-Items addon to ATD Export addon",
             Type: "AddonAPI",
             AddonRelativeURL: "/api/export_atd_fields"
+        },
+        {
+            RelationName: "DataExportResource",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: RELATED_ITEM_META_DATA_TABLE_NAME,
+            Description: "Data Export Relation",
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/export_data_source"
+        },
+        {
+            RelationName: " DataImportResource",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: RELATED_ITEM_META_DATA_TABLE_NAME,
+            Description: "Data Import Relation",
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/import_data_source"
         }
     ];
     try {

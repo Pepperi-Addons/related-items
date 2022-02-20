@@ -151,3 +151,48 @@ export async function export_atd_fields(client: Client, request:Request) {
         throw new Error(`Method ${request.method} not supported`);       
     }
 }
+
+    // DIMX
+// endpoints for the AddonRelativeURL of the relation
+export async function import_data_source(client: Client, request:Request) {
+    const service = new RelatedItemsService(client)
+    if (request.method == 'POST') {
+        return service.importDataSource(request.body);
+    }
+    else if (request.method == 'GET') {
+        throw new Error(`Method ${request.method} not supported`);       
+    }
+}
+
+export async function export_data_source(client: Client, request:Request) {
+    const service = new RelatedItemsService(client)
+    if (request.method == 'POST') {
+       return service.exportDataSource(request.body);
+    }
+    else if (request.method == 'GET') {
+        throw new Error(`Method ${request.method} not supported`);       
+    }
+}
+// // endpoints for the user calls
+// export async function dimx_import_data(client: Client, request:Request) {
+//     const service = new RelatedItemsService(client)
+//     if (request.method == 'POST') {
+//         return service.dimxImportData();
+//     }
+//     else if (request.method == 'GET') {
+//         throw new Error(`Method ${request.method} not supported`);       
+//     }
+// }
+
+// export async function dimx_export_data(client: Client, request:Request) {
+//     const service = new RelatedItemsService(client)
+//     if (request.method == 'POST') {
+//        return service.dimxExportData();
+//     }
+//     else if (request.method == 'GET') {
+//         throw new Error(`Method ${request.method} not supported`);       
+//     }
+//}
+
+
+
