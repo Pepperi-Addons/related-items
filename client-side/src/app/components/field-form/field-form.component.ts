@@ -84,14 +84,16 @@ export class FieldFormComponent implements OnInit {
     switch (element) {
       case 'Name': {
         if (this.formMode === fieldFormMode.AddMode) {
-          this.dialogData.fieldData.FieldID = ('TSA' + $event).replace(/[^a-zA-Z 0-9]+/g, '');
+          let fieldID = $event.replace(/\s/g, '');
+          this.dialogData.fieldData.FieldID = ('TSA' + fieldID).replace(/[^a-zA-Z 0-9]+/g, '');
         }
         this.dialogData.fieldData.Name = $event;
         break;
       }
       case 'FieldID': {
-        let name = $event.replace(/[^a-zA-Z 0-9]+/g, '')
-        
+        let fieldID = $event.replace(/\s/g, '');
+        let name = fieldID.replace(/[^a-zA-Z 0-9]+/g, '');
+
         if (name.substring(0,3) != 'TSA'){
           this.dialogData.fieldData.FieldID = ('TSA' + name);
         }

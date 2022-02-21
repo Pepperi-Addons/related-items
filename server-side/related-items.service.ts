@@ -341,6 +341,7 @@ class RelatedItemsService {
             apiField.Hidden = true;
             if (await this.papiClient.post(url, apiField)) {
                 field.Hidden = true;
+                field.TypeID = typeID
                 let ans = await this.upsertItemsInFieldsTable(field);
                 fields.push(ans);
             }

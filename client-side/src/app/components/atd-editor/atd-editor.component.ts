@@ -139,7 +139,7 @@ export class AtdEditorComponent implements OnInit {
       if (data.rows.length === 1 && data?.selectionType !== 0) {
         actions.push({
           title: this.translate.instant("Edit"),
-          handler: async (objs) => {
+          handler: async (data) => {
             this.openFieldForm(fieldFormMode.EditMode, objs[0]);
           }
         });
@@ -147,7 +147,7 @@ export class AtdEditorComponent implements OnInit {
       if (data.rows.length >= 1 || data?.selectionType === 0) {
         actions.push({
           title: this.translate.instant("Delete"),
-          handler: async (objs) => {
+          handler: async (data) => {
             this.deleteFields(objs);
           }
         });
