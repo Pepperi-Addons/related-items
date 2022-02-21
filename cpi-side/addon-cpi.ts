@@ -93,7 +93,6 @@ class RelatedItemsCPIManager {
 
         }
         relatedItems = relatedItems ? relatedItems : [];
-        debugger
         return (await (await Promise.all(relatedItems.map(item => pepperi.DataObject.Get("items", item)))).filter(item => !!item) as Item[]);
     }
 

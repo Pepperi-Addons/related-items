@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { GenericListComponent, GenericListDataSource} from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { GenericListComponent, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component'
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router'
@@ -9,6 +9,8 @@ import { ItemWithImageURL } from '../../../../../shared/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
+import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 
 @Component({
   selector: 'addon-related-collection-form',
@@ -25,7 +27,8 @@ export class RelatedCollectionFormComponent implements OnInit {
     public relatedItemsService: RelatedItemsService,
     private dialogService: DialogService,
     private addonService: AddonService,
-    public activatedRoute: ActivatedRoute
+    public activatedRoute: ActivatedRoute,
+    private genericListService: PepGenericListService
   ) {
     this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
     this.initializeData();
@@ -41,7 +44,12 @@ export class RelatedCollectionFormComponent implements OnInit {
   ngOnInit() {
   }
 
-  noDataMessage:string;
+  noDataMessage: string;
+  dataSource: IPepGenericListDataSource = this.getDataSource();
+
+  pager: IPepGenericListPager = {
+    type: 'scroll',
+  };
 
   async initializeData() {
     this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
@@ -52,82 +60,107 @@ export class RelatedCollectionFormComponent implements OnInit {
     this.itemDescription = this.currentItem.PresentedItem.LongDescription;
   }
 
-  listDataSource: GenericListDataSource = {
-    getList: async (state) => {
-      this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
-      this.noDataMessage = this.translate.instant("No_Related_Items_In_Item_Error")
-      if (!this.currentItem.RelatedItems) {
-        this.currentItem.RelatedItems = [];
-      }
-      if (state.searchString != "") {
-        this.currentItem.RelatedItems = this.currentItem.RelatedItems.filter(item => item.ExternalID.toLowerCase().includes(state.searchString.toLowerCase()))
-        this.noDataMessage = this.translate.instant("No_Results_Error")
-      }
+  getDataSource() {
+    return {
+      init: async (params: any) => {
+        this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
+        this.noDataMessage = this.translate.instant("No_Related_Items_In_Item_Error")
+        if (!this.currentItem.RelatedItems) {
+          this.currentItem.RelatedItems = [];
+        }
+        if (params.searchString != undefined && params.searchString != "") {
+          this.currentItem.RelatedItems = this.currentItem.RelatedItems.filter(item => item.ExternalID.toLowerCase().includes(params.searchString.toLowerCase()))
+          this.noDataMessage = this.translate.instant("No_Results_Error")
+        }
+        return Promise.resolve({
+          dataView: {
+            Context: {
+              Name: '',
+              Profile: { InternalID: 0 },
+              ScreenSize: 'Landscape'
+            },
+            Type: 'Grid',
+            Title: 'Related Collections',
+            Fields: [
+              {
+                FieldID: 'ImageURL',
+                Type: 'ImageURL',
+                Title: this.translate.instant('Image'),
+                Mandatory: false,
+                ReadOnly: true
+              },
+              {
+                FieldID: 'ExternalID',
+                Type: 'TextBox',
+                Title: this.translate.instant('External Id'),
+                Mandatory: false,
+                ReadOnly: true
+              },
+              {
+                FieldID: 'LongDescription',
+                Type: 'TextBox',
+                Title: this.translate.instant('Description'),
+                Mandatory: false,
+                ReadOnly: true
+              }
+            ],
+            Columns: [
+              {
+                Width: 15
+              },
+              {
+                Width: 15
+              },
+              {
+                Width: 70
+              }
+            ],
 
-      return this.currentItem.RelatedItems;
-    },
-
-    getDataView: async () => {
-      return {
-        Context: {
-          Name: '',
-          Profile: { InternalID: 0 },
-          ScreenSize: 'Landscape'
-        },
-        Type: 'Grid',
-        Title: 'Related Collections',
-        Fields: [
-          {
-            FieldID: 'ImageURL',
-            Type: 'ImageURL',
-            Title: this.translate.instant('Image'),
-            Mandatory: false,
-            ReadOnly: true
+            FrozenColumnsCount: 0,
+            MinimumColumnWidth: 0
           },
+          totalCount: this.currentItem.RelatedItems.length,
+          items: this.currentItem.RelatedItems
+        });
+      },
+      inputs: () => {
+        return Promise.resolve(
           {
-            FieldID: 'ExternalID',
-            Type: 'TextBox',
-            Title: this.translate.instant('External Id'),
-            Mandatory: false,
-            ReadOnly: true
-          },
-          {
-            FieldID: 'LongDescription',
-            Type: 'TextBox',
-            Title: this.translate.instant('Description'),
-            Mandatory: false,
-            ReadOnly: true
+            pager: {
+              type: 'scroll'
+            },
+            selectionType: 'multi'
           }
-        ],
-        Columns: [
-          {
-            Width: 15
-          },
-          {
-            Width: 15
-          },
-          {
-            Width: 70
+        );
+      },
+    } as IPepGenericListDataSource
+  }
+  actions: IPepGenericListActions = {
+    get: async (data: PepSelectionData) => {
+      //Convert the data to the objects of the same type of the adal objects
+      let objs = [];
+      if (data && data.rows.length > 0) {
+        for (let i = 0; i < data.rows.length; i++) {
+          let item = this.genericListService.getItemById(data.rows[i]);
+          let object = {
+            "ImageURL": item.Fields[0]?.FormattedValue,
+            "ExternalID": item.Fields[1]?.FormattedValue,
+            "LongDescription": item.Fields[2]?.FormattedValue
           }
-        ],
-
-        FrozenColumnsCount: 0,
-        MinimumColumnWidth: 0
+          objs.push(object);
+        }
       }
-    },
 
-    getActions: async (objs) => {
       const actions = [];
 
-      if (objs.length >= 1) {
+      if (data.rows.length >= 1 || data?.selectionType === 0) {
         actions.push({
           title: this.translate.instant("Delete"),
-          handler: async (objs) => {
+          handler: async (data) => {
             this.deleteItem(objs);
           }
         });
       }
-
       return actions;
     }
   }
@@ -136,31 +169,33 @@ export class RelatedCollectionFormComponent implements OnInit {
     const message = this.translate.instant("Delete_Item_Validate");
     const actionButtons = [
       new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => {
-        let itemsToRemove = objs.map(obj => { 
+        let itemsToRemove = objs.map(obj => {
           return obj.ExternalID
         });
-        let itemToUpdate = {'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'itemsToRemove': itemsToRemove}
+        let itemToUpdate = { 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'itemsToRemove': itemsToRemove }
         this.relatedItemsService.deleteRelatedItems(itemToUpdate).then(() => {
-          this.genericList.reload();
+          this.dataSource = this.getDataSource();
         });
       }),
       new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
+    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons, message);
   }
 
-addRelatedItem() {
-  let callback = async (data) => {
-    if (data) {
-    let ans = await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': data.ItemExternalID.split(";")})
-      if (ans != "") {
-        return this.dialogService.openDialog("", MessageDialogComponent, [], { data: ans }, async () => this.genericList.reload());
+  addRelatedItem() {
+    let callback = async (data) => {
+      if (data) {
+        let ans = await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': this.externalID, 'RelatedItems': data.ItemExternalID.split(";") })
+        if (ans != "") {
+          return this.dialogService.openDialog("", MessageDialogComponent, [], { data: ans }, async () => {
+            this.dataSource = this.getDataSource();
+          });
+        }
       }
-    }
-  };
-      let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
+    };
+    let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
     return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
-}
+  }
 
   goBack() {
     this.router.navigate(['..'], {
