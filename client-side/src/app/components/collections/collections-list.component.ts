@@ -1,5 +1,5 @@
-import { Component, OnInit} from '@angular/core';
-import { GenericListComponent, IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { Component, OnInit, ViewChild} from '@angular/core';
+import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -8,10 +8,8 @@ import { MessageDialogComponent } from '../message-dialog/message-dialog.compone
 import { DialogService } from '../../services/dialog.service';
 import { AddonService } from '../../services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
-import { DimxImportAddAttachmentComponent } from '../dimx-import-add-attachment/dimx-import-add-attachment.component';
-import { async } from 'rxjs';
-import { state } from '@angular/animations';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
+import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 @Component({
   selector: 'addon-collections',
@@ -19,6 +17,7 @@ import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
   styleUrls: ['./collections-list.component.scss']
 })
 export class CollectionsListComponent implements OnInit {
+  @ViewChild('dimx') dimx:DIMXComponent | undefined;
 
   constructor(
     public addonService: AddonService,
@@ -198,23 +197,19 @@ export class CollectionsListComponent implements OnInit {
   menuItemClick($event) {
     switch ($event.source.key) {
       case 'import': {
-        this.openAddAttachmentDialog();
-        // this.relatedItemsService.importCollection()
+        this.dimx?.uploadFile(null, {Delimiter: ","});
         break
       }
       case 'export': {
-        this.relatedItemsService.exportCollection();
+        this.dimx?.DIMXExportRun({
+          DIMXExportFormat: "csv",
+          DIMXExportIncludeDeleted: false,
+          DIMXExportFileName: "export",
+          DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems,Key",
+          DIMXExportDelimiter: ","
+      });
         break
       }
     }
-  }
-
-  openAddAttachmentDialog() {
-    let callback = async (data) => {
-      if (data) {
-        this.relatedItemsService.importCollection(data.fileToImport)
-      }
-    }
-    return this.dialogService.openDialog("", DimxImportAddAttachmentComponent, [], { fileToImport: "" }, callback);
   }
 }

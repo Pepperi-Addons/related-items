@@ -1,17 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Collection, RelationItem, IFile, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../../shared/entities';
 import { AddonService } from './addon.service';
-import { saveAs } from 'file-saver';
-import { DIMXComponent as DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 @Injectable({
     providedIn: 'root'
 })
 
 export class RelatedItemsService {
-    iFileID = 0;
-    iFileArray:IFile[] = [];
-
     constructor(
         private addonService: AddonService
     ) {
@@ -109,84 +104,5 @@ export class RelatedItemsService {
                 key: item.FieldID
             }
         })
-    }
-
-    // DIMX
-
-    async importCollection(fileToImport:string) {
-       let importObject = {
-            'URI': fileToImport,
-            'OverwriteObject': true,
-            'Delimiter': ';'
-        }
-         let url = `/addons/api/${this.addonService.addonUUID}/api/dimx_import_data`
-         debugger
-         let ans = await this.addonService.pepPost(url, importObject).toPromise();
-         return ans;
-}
-
-    async exportCollection() {
-        const bod = {
-          "Format":'csv',
-          "IncludeDeleted":false,
-          "Where":'',
-          "Fields":"CollectionName,ItemExternalID,RelatedItems",
-          "Delimiter":''
-      }
-        const fileName = 'export.csv';
-        const iFile:IFile = {
-          "key":this.iFileID++,
-          "name":fileName,
-          "status":"downloading"
-        };
-        this.iFileArray.push(iFile);
-        try{
-            var res = await this.addonService.papiClient.post(`/addons/data/export/file/${this.addonService.addonUUID}/${RELATED_ITEM_META_DATA_TABLE_NAME}`, bod);
-            const url = await this.pollDIMXExportResult(res['ExecutionUUID'], iFile);
-            let blob = await fetch(url.DownloadURL).then(r => r.blob());
-            saveAs(blob, fileName);
-            iFile.status = "done";
-        }
-        catch(ex){
-            iFile.status= "failed";
-            console.log(`buttonClick: ${ex}`);
-            throw new Error((ex as {message:string}).message);
-        }
-      }
-    
-      async pollDIMXExportResult(pollingURL:string, ifile:IFile){
-        console.log(`polling audit with the executionUUID: ${pollingURL}`);
-        const delay = ms => new Promise(res => setTimeout(res, ms));
-        var seconds = 0;
-        const waitingTime = 1000; //in ms
-        try{
-            while(true){
-                var result = await this.addonService.papiClient.get(`/audit_logs/${pollingURL}`);
-                console.log(`result from auditlog get is: ${result}`);
-                if( !result || result["Status"]["ID"] === 2 || result["Status"]["ID"] === 4){
-                    console.log(`waited for ${seconds++} seconds`);
-                    await delay(waitingTime);
-                }
-                else{
-                    break;
-                }
-            }
-            switch(result["Status"]["ID"]){
-                case 0:
-                    ifile.status = "failed";
-                    throw new Error(result["AuditInfo"]["ErrorMessage"]);
-                case 1:
-                    console.log(`polling result: ${result["AuditInfo"]["ResultObject"]}`);
-                    return JSON.parse(result["AuditInfo"]["ResultObject"]);
-                default:
-                    ifile.status = "failed";
-                    throw new Error(`pollDIMXExportResult: unknown audit log type: ${result["Status"]}`);
-            }
-        }
-        catch(ex){
-            console.log(`pollDIMXExportResult: ${ex}`);
-            ifile.status = "failed";
-            throw new Error((ex as {message:string}).message);
-        }
     }
 }

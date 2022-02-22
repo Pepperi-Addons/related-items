@@ -28,6 +28,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FeatureModule } from './modules/shared.module';
 import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
 import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { PepDIMXModule } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -82,6 +83,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         MatDialogModule,
         PepImageModule,
         PepGenericListModule,
+        PepDIMXModule,
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,

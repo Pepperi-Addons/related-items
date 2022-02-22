@@ -90,7 +90,7 @@ async function createRelations(papiClient: PapiClient) {
             AddonRelativeURL: "/api/export_data_source"
         },
         {
-            RelationName: " DataImportResource",
+            RelationName: "DataImportResource",
             AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
             Name: RELATED_ITEM_META_DATA_TABLE_NAME,
             Description: "Data Import Relation",
