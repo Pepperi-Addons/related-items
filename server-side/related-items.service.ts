@@ -435,7 +435,35 @@ class RelatedItemsService {
 
     //DIMX
     // for the AddonRelativeURL of the relation
-    async importDataSource(body) {  
+    async importDataSource(body) {
+        for(var dimxObj of body.DIMXObjects) {
+            //create collection if it dosn't exist
+            try {
+                await this.getCollectionByKey(dimxObj.Object.CollectionName);
+            }
+            catch {
+                let collection: Collection = {
+                    Name: dimxObj.Object.CollectionName,
+                    Description: "",
+                    Hidden: false
+                }
+                this.upsertRelatedCollection(collection);  
+            }
+            dimxObj.Object.Hidden = false
+            //add a Key
+            dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
+
+            // handeling restriction on related items list
+            ////Check if the item try to reference itself
+            dimxObj.Object.RelatedItems.forEach( (item, index) => {
+                if(item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index,1);
+              });
+             //limit the number of related items for each item to maximumNumberOfRelatedItems
+             if(dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems){
+                dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
+             }
+
+        }
         return body;
     }
 
@@ -443,15 +471,6 @@ class RelatedItemsService {
         console.log("Export data is working")
         return body;
      }
-
-    // //for the user calls
-    // async dimxImportData() {
-    //     return await this.papiClient.post(`/addons/data/import/file/${this.addonUUID}/${RELATED_ITEM_META_DATA_TABLE_NAME}`)
-    // }
-
-    // async dimxExportData() {
-    // return await this.papiClient.post(`/addons/data/export/file/${this.addonUUID}/${RELATED_ITEM_META_DATA_TABLE_NAME}`)
-    // }
 }
 
 export default RelatedItemsService;

@@ -197,7 +197,12 @@ export class CollectionsListComponent implements OnInit {
   menuItemClick($event) {
     switch ($event.source.key) {
       case 'import': {
-        this.dimx?.uploadFile(null, {Delimiter: ","});
+        this.dimx?.uploadFile(null, {
+          OverwriteOBject: true,
+          Delimiter: ",",
+          OwnerID: this.addonService.addonUUID
+        });
+        //this.dataSource = this.getDataSource();
         break
       }
       case 'export': {
@@ -205,7 +210,7 @@ export class CollectionsListComponent implements OnInit {
           DIMXExportFormat: "csv",
           DIMXExportIncludeDeleted: false,
           DIMXExportFileName: "export",
-          DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems,Key",
+          DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems",
           DIMXExportDelimiter: ","
       });
         break
