@@ -30,7 +30,7 @@ export class CollectionForm implements OnInit, OnDestroy {
   screenSize: PepScreenSizeType;
   dialogData: any;
   isAddMode: boolean = true;
-  title: string = 'Add collection';
+  title: string = this.translate.instant("Add_Collection_Button");
   rightButtonTitle = 'Save';
 
   constructor(
@@ -55,7 +55,7 @@ export class CollectionForm implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!this.isAddMode) {
-      this.title = 'Edit collection';
+      this.title = this.translate.instant("Edit_Collection");
       this.rightButtonTitle = "Update";
     }
   }
@@ -82,7 +82,7 @@ export class CollectionForm implements OnInit, OnDestroy {
       this.dialogRef.close(this.dialogData);
     }
     else {
-      let errorMessage = `Please fill in all mandatory fields.`;
+      let errorMessage = this.translate.instant("Missing_Fields_Error");
       this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, ()=>{});
     }
   }

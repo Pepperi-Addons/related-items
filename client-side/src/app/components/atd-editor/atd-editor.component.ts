@@ -70,21 +70,21 @@ export class AtdEditorComponent implements OnInit {
               {
                 FieldID: 'Name',
                 Type: 'TextBox',
-                Title: this.translate.instant('Name'),
+                Title: this.translate.instant("Name"),
                 Mandatory: false,
                 ReadOnly: true
               },
               {
                 FieldID: 'FieldID',
                 Type: 'TextBox',
-                Title: this.translate.instant('API Name'),
+                Title: this.translate.instant("API_Name"),
                 Mandatory: false,
                 ReadOnly: true
               },
               {
                 FieldID: 'ListName',
                 Type: 'TextBox',
-                Title: this.translate.instant('List Source'),
+                Title: this.translate.instant("List_Source_Title"),
                 Mandatory: false,
                 ReadOnly: true
               }
@@ -160,12 +160,12 @@ export class AtdEditorComponent implements OnInit {
   async deleteFields(objs) {
     const message = this.translate.instant("Delete_Field_Validate");
     const actionButtons = [
-      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteFields(objs, this.typeID).then(() => {
+      new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => this.relatedItemsService.deleteFields(objs, this.typeID).then(() => {
         this.dataSource = this.getDataSource();
       })),
-      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+      new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons, message);
+    return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
   }
 
   async openFieldForm(fieldFormMode, fieldData?) {
@@ -185,7 +185,7 @@ export class AtdEditorComponent implements OnInit {
       }
     }
 
-    const data = new PepDialogData({ title: this.translate.instant("Add Field"), content: { "fieldData": fieldData, "fieldFormMode": fieldFormMode, "hostObject": this.hostObject }, actionsType: 'close' });
-    this.dialogService.openDialog(this.translate.instant("Add Field"), FieldFormComponent, [], { data: data }, callback);
+    const data = new PepDialogData({ title: this.translate.instant("Add_Field_Button"), content: { "fieldData": fieldData, "fieldFormMode": fieldFormMode, "hostObject": this.hostObject }, actionsType: 'close' });
+    this.dialogService.openDialog(this.translate.instant("Add_Field_Button"), FieldFormComponent, [], { data: data }, callback);
   }
 }

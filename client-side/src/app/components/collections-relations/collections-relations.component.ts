@@ -171,12 +171,12 @@ export class RelatedCollections implements OnInit {
   async deleteRelation(objs) {
     const message = this.translate.instant("Delete_Relation_Validate");
     const actionButtons = [
-      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteRelations(objs).then(() => {
+      new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => this.relatedItemsService.deleteRelations(objs).then(() => {
         this.dataSource = this.getDataSource();
       })),
-      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+      new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons, message);
+    return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
   }
 
   addRelatedItems() {
@@ -186,7 +186,7 @@ export class RelatedCollections implements OnInit {
         if (this.itemsInCollection.indexOf(data.ItemExternalID) === -1) {
           let items = (await this.relatedItemsService.getItemsWithExternalId(data.ItemExternalID))
           if (items.length === 0) {
-            let errorMessage = `Cannot find an item with external id '${data.ItemExternalID}'`;
+            let errorMessage = this.translate.instant("Item_Not_Found_Error") + `'${data.ItemExternalID}'`;
             return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage });
           }
           else {
@@ -199,7 +199,7 @@ export class RelatedCollections implements OnInit {
         }
       }
     }
-    let data = { ItemsList: this.itemsInCollection, Title: `Add Item` }
+    let data = { ItemsList: this.itemsInCollection, Title: `Add Item`, Note:  `Item ID`}
     return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
   }
 

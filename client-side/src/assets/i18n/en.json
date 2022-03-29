@@ -19,10 +19,22 @@
     "No_Related_Items_In_Item_Error": "No Related Item Assigned Click the `Add Related Items` Button to get things going",
     "No_Results_Error": "No results were found",
     "Add_Item_Title": "Add Item",
+    "Add_Items_Title": "Add Items",
+    "Add_Related_Items_Note": "Insert Items External ID separated by ';'",
     "Delete_Field_Validate": "Are you sure you want to delete this field?",
     "Delete_Collection_Validate": "Are you sure you want to delete this collection?",
     "Delete_Relation_Validate": "Are you sure you want to delete this relation?",
     "Delete_Item_Validate": "Are you sure you want to delete this item?",
     "Delete": "Delete",
-    "Cancel": "Cancel"
+    "Cancel": "Cancel",
+    "API_Name": "API Name",
+    "Name": "Name",
+    "Missing_Fields_Error": "Please fill in all mandatory fields",
+    "Edit_Collection_Title": "Edit collection",
+    "Count": "Count",
+    "Description": "Description",
+    "Existing_Name_Error_1": "A collection with this name already exists,",
+    "Existing_Name_Error_2": "please choose a different name",
+    "Item_Not_Found_Error": "Cannot find an item with external id ",
+    "Ext_Id_Is_Mandatory_Error": "External ID is mandatory"
 }

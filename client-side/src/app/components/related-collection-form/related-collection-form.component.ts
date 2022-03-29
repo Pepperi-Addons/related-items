@@ -168,7 +168,7 @@ export class RelatedCollectionFormComponent implements OnInit {
   async deleteItem(objs) {
     const message = this.translate.instant("Delete_Item_Validate");
     const actionButtons = [
-      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => {
+      new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => {
         let itemsToRemove = objs.map(obj => {
           return obj.ExternalID
         });
@@ -177,9 +177,9 @@ export class RelatedCollectionFormComponent implements OnInit {
           this.dataSource = this.getDataSource();
         });
       }),
-      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+      new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons, message);
+    return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
   }
 
   addRelatedItem() {
@@ -193,8 +193,8 @@ export class RelatedCollectionFormComponent implements OnInit {
         }
       }
     };
-    let data = { ItemsList: this.currentItem.RelatedItems, Title: `Add Items` }
-    return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
+    let data = { ItemsList: this.currentItem.RelatedItems, Title: this.translate.instant("Add_Items_Title"), Note:  this.translate.instant('Add_Related_Items_Note') }
+    return this.dialogService.openDialog(this.translate.instant("Add_Item_Title"), ItemSelectionComponent, [], { data: data }, callback);
   }
 
   goBack() {
