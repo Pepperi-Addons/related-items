@@ -72,21 +72,21 @@ export class CollectionsListComponent implements OnInit {
               {
                 FieldID: 'Name',
                 Type: 'TextBox',
-                Title: this.translate.instant('Name'),
+                Title: this.translate.instant("Name"),
                 Mandatory: false,
                 ReadOnly: true
               },
               {
                 FieldID: 'Description',
                 Type: 'TextBox',
-                Title: this.translate.instant('Description'),
+                Title: this.translate.instant("Description"),
                 Mandatory: false,
                 ReadOnly: true
               },
               {
                 FieldID: 'Count',
                 Type: 'NumberInteger',
-                Title: this.translate.instant('Count'),
+                Title: this.translate.instant("Count"),
                 Mandatory: false,
                 ReadOnly: true
               }
@@ -161,12 +161,12 @@ export class CollectionsListComponent implements OnInit {
   async deleteCollections(objs) {
     const message = this.translate.instant("Delete_Collection_Validate");
     const actionButtons = [
-      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteCollections(objs).then(() => {
+      new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => this.relatedItemsService.deleteCollections(objs).then(() => {
         this.dataSource = this.getDataSource();
       })),
-      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+      new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons, message);
+    return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
   }
 
   addCollecton() {
@@ -178,12 +178,12 @@ export class CollectionsListComponent implements OnInit {
           this.goToRelatedCollection(data.Name)
         }
         else {
-          let errorMessage = this.translate.instant('A collection with this name already exists,') + '\n' + this.translate.instant('please choose a different name');
+          let errorMessage = this.translate.instant("Existing_Name_Error_1") + '\n' + this.translate.instant("Existing_Name_Error_2");
           return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, () => { });
         }
       }
     }
-    return this.dialogService.openDialog(this.translate.instant("Add collection"), CollectionForm, [], { data: { shouldShowNameField: true } }, callback);
+    return this.dialogService.openDialog(this.translate.instant("Add_Collection_Button"), CollectionForm, [], { data: { shouldShowNameField: true } }, callback);
   }
 
   goToRelatedCollection(collectionName: string) {
@@ -197,12 +197,11 @@ export class CollectionsListComponent implements OnInit {
   menuItemClick($event) {
     switch ($event.source.key) {
       case 'import': {
-        this.dimx?.uploadFile(null, {
+        this.dimx?.uploadFile({
           OverwriteOBject: true,
           Delimiter: ",",
           OwnerID: this.addonService.addonUUID
         });
-        //this.dataSource = this.getDataSource();
         break
       }
       case 'export': {
@@ -216,5 +215,9 @@ export class CollectionsListComponent implements OnInit {
         break
       }
     }
+  }
+
+  onDIMXProcessDone($event) {
+    this.dataSource = this.getDataSource();
   }
 }

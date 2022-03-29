@@ -447,7 +447,7 @@ class RelatedItemsService {
                     Description: "",
                     Hidden: false
                 }
-                this.upsertRelatedCollection(collection);  
+                await this.upsertRelatedCollection(collection);  
             }
             dimxObj.Object.Hidden = false
             //add a Key
@@ -462,8 +462,7 @@ class RelatedItemsService {
              if(dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems){
                 dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
              }
-
-        }
+         }
         return body;
     }
 

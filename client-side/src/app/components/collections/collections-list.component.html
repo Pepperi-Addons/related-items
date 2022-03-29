@@ -9,6 +9,6 @@
           [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
       </div>
     </pep-generic-list>
-    <pep-dimx #dimx [DIMXAddonUUID]="'4f9f10f3-cd7d-43f8-b969-5029dad9d02b'" [DIMXResource]="'RelationsWithExternalID'"></pep-dimx>
+    <pep-dimx #dimx [DIMXAddonUUID]="'4f9f10f3-cd7d-43f8-b969-5029dad9d02b'" [DIMXResource]="'RelationsWithExternalID'"  (DIMXProcessDone)='onDIMXProcessDone($event);'></pep-dimx>
   </ng-container>
 </pep-page-layout>

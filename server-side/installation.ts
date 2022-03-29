@@ -134,7 +134,7 @@ async function createADALSchemes(papiClient: PapiClient) {
         Type: 'cpi_meta_data'
     };
 
-    var relatedItemsMetaDataScheme: AddonDataScheme = {
+    var relatedItemsMetaDataScheme: any = {
         Name: RELATED_ITEM_META_DATA_TABLE_NAME,
         Type: 'meta_data',
         Fields: {
@@ -143,6 +143,12 @@ async function createADALSchemes(papiClient: PapiClient) {
             },
             CollectionName: {
                 Type: 'String'
+            },
+            RelatedItems: {
+                Type: 'Array',
+                Items:{
+                    Type: 'String'
+                }
             }
         }
     };
