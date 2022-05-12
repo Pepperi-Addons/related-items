@@ -37,11 +37,11 @@ export class CollectionsListComponent implements OnInit {
   menuItems = [
     {
       key: 'import',
-      text: 'import'
+      text: this.translate.instant("Import")
     },
     {
       key: 'export',
-      text: 'export'
+      text: this.translate.instant("Export")
     }
   ];
   dataSource: IPepGenericListDataSource = this.getDataSource();
@@ -54,6 +54,7 @@ export class CollectionsListComponent implements OnInit {
     return {
       init: async(params: any) => {
         let res = await this.relatedItemsService.getCollections();
+        console.log("Collection after refresh:", res);
         this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
         if (params.searchString != undefined && params.searchString != "") {
           res = res.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
@@ -126,6 +127,7 @@ export class CollectionsListComponent implements OnInit {
     get: async (data: PepSelectionData) => {
       //Convert data to the objects of the same type of the adal objects
       let objs = [];
+      debugger
       if (data && data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
           let item = this.genericListService.getItemById(data.rows[i]);
@@ -217,7 +219,9 @@ export class CollectionsListComponent implements OnInit {
     }
   }
 
-  onDIMXProcessDone($event) {
+  onDIMXProcessDone(event) {
+    console.log("Refreshing now");
+    console.log("process done event", JSON.stringify(event));
     this.dataSource = this.getDataSource();
   }
 }

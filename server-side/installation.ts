@@ -96,6 +96,14 @@ async function createRelations(papiClient: PapiClient) {
             Description: "Data Import Relation",
             Type: "AddonAPI",
             AddonRelativeURL: "/api/import_data_source"
+        },
+        {
+            RelationName: "UsageMonitor",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: "UsageMonitor",
+            Description: "Related Items collection data",
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/collection_data"
         }
     ];
     try {

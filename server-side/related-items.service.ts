@@ -27,7 +27,7 @@ class RelatedItemsService {
             Type: "data",
             Name: "subscriptionToRelatedItems",
             FilterPolicy: {
-                Action: ['update'],
+                Action: ['update', 'insert'],
                 Resource: [RELATED_ITEM_META_DATA_TABLE_NAME],
                 AddonUUID: [this.addonUUID]
             }
@@ -434,42 +434,55 @@ class RelatedItemsService {
     }
 
     //DIMX
+    async createCollectionIfNeeded(dimxObj) {
+        //create collection if it dosn't exist
+        let collection: any = {};
+        try {
+            collection = await this.getCollectionByKey(dimxObj.Object.CollectionName);
+            collection.Hidden = false;
+        }
+        catch {
+            collection = {
+                Name: dimxObj.Object.CollectionName,
+                Description: "",
+                Hidden: false
+            }
+        }
+        await this.upsertRelatedCollection(collection);
+    }
+
     // for the AddonRelativeURL of the relation
     async importDataSource(body) {
-        for(var dimxObj of body.DIMXObjects) {
-            //create collection if it dosn't exist
-            try {
-                await this.getCollectionByKey(dimxObj.Object.CollectionName);
-            }
-            catch {
-                let collection: Collection = {
-                    Name: dimxObj.Object.CollectionName,
-                    Description: "",
-                    Hidden: false
+        for (var dimxObj of body.DIMXObjects) {
+            await this.createCollectionIfNeeded(dimxObj);
+            //check if the user has the item 
+            let items = await this.getItemsFilteredByFields([dimxObj.Object.ItemExternalID], ['UUID']);
+            if (items.length > 0) {
+                dimxObj.Object.Hidden = false
+                //add a Key
+                dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
+    
+                // handeling restriction on related items list
+                dimxObj.Object.RelatedItems.forEach(async (item, index) => {
+                    ////Check if the item try to reference itself
+                    if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
+                    //check if the user has the related item 
+                    let items = await this.getItemsFilteredByFields([item], ['UUID']);
+                    if (items.length === 0 ) dimxObj.Object.RelatedItems.splice(index, 1);
+                });
+                //limit the number of related items for each item to maximumNumberOfRelatedItems
+                if (dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems) {
+                    dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
                 }
-                await this.upsertRelatedCollection(collection);  
             }
-            dimxObj.Object.Hidden = false
-            //add a Key
-            dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
-
-            // handeling restriction on related items list
-            ////Check if the item try to reference itself
-            dimxObj.Object.RelatedItems.forEach( (item, index) => {
-                if(item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index,1);
-              });
-             //limit the number of related items for each item to maximumNumberOfRelatedItems
-             if(dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems){
-                dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
-             }
-         }
+        }
         return body;
     }
 
     async exportDataSource(body) {
         console.log("Export data is working")
         return body;
-     }
+    }
 }
 
 export default RelatedItemsService;
