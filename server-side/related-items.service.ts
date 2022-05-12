@@ -461,14 +461,14 @@ class RelatedItemsService {
                 dimxObj.Object.Hidden = false
                 //add a Key
                 dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
-    
+
                 // handeling restriction on related items list
                 dimxObj.Object.RelatedItems.forEach(async (item, index) => {
                     ////Check if the item try to reference itself
                     if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
                     //check if the user has the related item 
                     let items = await this.getItemsFilteredByFields([item], ['UUID']);
-                    if (items.length === 0 ) dimxObj.Object.RelatedItems.splice(index, 1);
+                    if (items.length === 0) dimxObj.Object.RelatedItems.splice(index, 1);
                 });
                 //limit the number of related items for each item to maximumNumberOfRelatedItems
                 if (dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems) {
@@ -482,6 +482,46 @@ class RelatedItemsService {
     async exportDataSource(body) {
         console.log("Export data is working")
         return body;
+    }
+
+    // Usage monitor
+    async getNumberOfCollectionsUsageData() {
+        const collections = await this.getCollections({});
+
+        return {
+            Title: "Data",
+            "Resources": [
+                {
+                    "Data": "Related Items Collections",
+                    "Description": "Number of Related Items Collections",
+                    "Size": collections.length,
+                },
+            ],
+            "ReportingPeriod": "Weekly",
+            "AggregationFunction": "LAST"
+        }
+    }
+
+    async getTotalNumberOfLinesInCollectionsUsageData() {
+        let totalNumberOfLines = 0;
+        const collections = await this.getCollections({});
+        collections.forEach(element => {
+            totalNumberOfLines = totalNumberOfLines + element.Count;
+
+        });
+
+        return {
+            Title: "Data",
+            "Resources": [
+                {
+                    "Data": "Related Items Collections Lines",
+                    "Description": "Total number of lines in Related Items Collections",
+                    "Size": totalNumberOfLines,
+                },
+            ],
+            "ReportingPeriod": "Weekly",
+            "AggregationFunction": "LAST"
+        }
     }
 }
 

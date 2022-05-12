@@ -100,10 +100,18 @@ async function createRelations(papiClient: PapiClient) {
         {
             RelationName: "UsageMonitor",
             AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
-            Name: "UsageMonitor",
-            Description: "Related Items collection data",
+            Name: "NumberOfCollectionsUsageMonitor",
+            Description: 'relation for "data" tab in usage monitor to display number of Relates Items collections',
             Type: "AddonAPI",
             AddonRelativeURL: "/api/collection_data"
+        },
+        {
+            RelationName: "UsageMonitor",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: "UsageMonitor",
+            Description: 'relation for "data" tab in usage monitor to display number of lines in Relates Items collections',
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/total_lines_in_collection_data"
         }
     ];
     try {

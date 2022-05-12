@@ -173,26 +173,28 @@ export async function export_data_source(client: Client, request:Request) {
         throw new Error(`Method ${request.method} not supported`);       
     }
 }
-// // endpoints for the user calls
-// export async function dimx_import_data(client: Client, request:Request) {
-//     const service = new RelatedItemsService(client)
-//     if (request.method == 'POST') {
-//         return service.dimxImportData();
-//     }
-//     else if (request.method == 'GET') {
-//         throw new Error(`Method ${request.method} not supported`);       
-//     }
-// }
+// usage monitor
+export async function collection_data(client: Client, request:Request) {
+    const service = new RelatedItemsService(client);
 
-// export async function dimx_export_data(client: Client, request:Request) {
-//     const service = new RelatedItemsService(client)
-//     if (request.method == 'POST') {
-//        return service.dimxExportData();
-//     }
-//     else if (request.method == 'GET') {
-//         throw new Error(`Method ${request.method} not supported`);       
-//     }
-//}
+    if (request.method === 'GET') {
+        return await service.getNumberOfCollectionsUsageData()
+    }
+    else {
+        throw new Error(`Method ${request.method} is not supported`)
+    }
+}
+
+export async function total_lines_in_collection_data(client: Client, request:Request) {
+    const service = new RelatedItemsService(client);
+
+    if (request.method === 'GET') {
+        return await service.getTotalNumberOfLinesInCollectionsUsageData()
+    }
+    else {
+        throw new Error(`Method ${request.method} is not supported`)
+    }
+}
 
 
 
