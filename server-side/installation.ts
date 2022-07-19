@@ -80,6 +80,38 @@ async function createRelations(papiClient: PapiClient) {
             Description: "Relation from Related-Items addon to ATD Export addon",
             Type: "AddonAPI",
             AddonRelativeURL: "/api/export_atd_fields"
+        },
+        {
+            RelationName: "DataExportResource",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: RELATED_ITEM_META_DATA_TABLE_NAME,
+            Description: "Data Export Relation",
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/export_data_source"
+        },
+        {
+            RelationName: "DataImportResource",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: RELATED_ITEM_META_DATA_TABLE_NAME,
+            Description: "Data Import Relation",
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/import_data_source"
+        },
+        {
+            RelationName: "UsageMonitor",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: "NumberOfCollectionsUsageMonitor",
+            Description: 'relation for "data" tab in usage monitor to display number of Relates Items collections',
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/collection_data"
+        },
+        {
+            RelationName: "UsageMonitor",
+            AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
+            Name: "UsageMonitor",
+            Description: 'relation for "data" tab in usage monitor to display number of lines in Relates Items collections',
+            Type: "AddonAPI",
+            AddonRelativeURL: "/api/total_lines_in_collection_data"
         }
     ];
     try {
@@ -118,7 +150,7 @@ async function createADALSchemes(papiClient: PapiClient) {
         Type: 'cpi_meta_data'
     };
 
-    var relatedItemsMetaDataScheme: AddonDataScheme = {
+    var relatedItemsMetaDataScheme: any = {
         Name: RELATED_ITEM_META_DATA_TABLE_NAME,
         Type: 'meta_data',
         Fields: {
@@ -127,6 +159,12 @@ async function createADALSchemes(papiClient: PapiClient) {
             },
             CollectionName: {
                 Type: 'String'
+            },
+            RelatedItems: {
+                Type: 'Array',
+                Items:{
+                    Type: 'String'
+                }
             }
         }
     };

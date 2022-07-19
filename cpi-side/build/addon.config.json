@@ -1,6 +1,6 @@
 {
     "AddonUUID": "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
-    "AddonVersion": "0.0.123",
+    "AddonVersion": "0.0.131",
     "DebugPort": 4500,
     "WebappBaseUrl": "https://app.sandbox.pepperi.com",
     "DefaultEditor": "main",
@@ -24,7 +24,9 @@
                 "Description": "Collection Managment"
             }
         ],
-        "Dependencies": {},
+        "Dependencies": {
+            "cpi_node": "0.3.7"
+        },
         "CPISide": [
             "addon-cpi.ts"
         ]

@@ -52,7 +52,9 @@ class RelatedItemsCPIManager {
                 if (fieldFromADAL) {
                     const items = await this.getListOfRelatedItems(data, fieldFromADAL, currentItemID);
                     const tsItems = (await Promise.all(items.map(item => transactionScope?.getLine(item)))).filter(Boolean) as TransactionLine[];
-                    await this.createGenericList(tsItems, field, typeID)
+                    if (tsItems.length > 0) {
+                        await this.createGenericList(tsItems, field, typeID)
+                    }
                 }
             }
         }
@@ -65,13 +67,20 @@ class RelatedItemsCPIManager {
 
         if (listType == ListSourceType.RelatedCollectionType) {
             let key = `${listSource}_${currentItemID}`
-            let item = await pepperi.api.adal.get({
-                addon: config.AddonUUID,
-                table: 'CPIRelation',
-                key: key
-            });
+            try {
+                let item = await pepperi.api.adal.get({
+                    addon: config.AddonUUID,
+                    table: 'CPIRelation',
+                    key: key
+                });
+    
+                relatedItems = item.object.RelatedItems;
+            }
+            catch {
+                relatedItems = [];
+                console.log('Item not found')
+            }
 
-            relatedItems = item.object.RelatedItems;
         }
         else {
             try {

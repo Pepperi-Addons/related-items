@@ -3,8 +3,8 @@
     <h2 mat-dialog-title class="mat-dialog-title pepperi-border-bottom">
         {{ dialogTitle | translate}}
     </h2>
-    <div class="item-id">
-        <pep-textbox [label]="'Item ID' | translate" [(value)]="dialogData.ItemExternalID" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('ExternalID', $event)"></pep-textbox>
+    <div class="item-note">
+        <pep-textbox [label]="dialogNote | translate" [(value)]="dialogData.ItemExternalID" [disabled]="false" [readonly]="false" (valueChange)="onValueChanged('ExternalID', $event)"></pep-textbox>
     </div>
   <div mat-dialog-actions class="pepperi-border-top mat-dialog-actions split-actions"
       style="justify-content: flex-end;">

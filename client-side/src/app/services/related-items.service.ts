@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FileSelectDirective } from 'ng2-file-upload';
-import { Collection, RelationItem } from '../../../../shared/entities';
-import { fieldFormMode } from '../components/field-form/field-form.component';
+import { Collection, RelationItem, IFile, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../../shared/entities';
 import { AddonService } from './addon.service';
 
 @Injectable({
@@ -9,11 +7,10 @@ import { AddonService } from './addon.service';
 })
 
 export class RelatedItemsService {
-
     constructor(
         private addonService: AddonService
-    )  {
-          
+    ) {
+
     }
 
     getCollections(query?: string) {
@@ -55,12 +52,12 @@ export class RelatedItemsService {
     }
 
     getItemsWithExternalId(externalID: string) {
-        return this.addonService.papiClient.items.find({fields:['UUID'], where: `ExternalID like '${externalID}'` });
+        return this.addonService.papiClient.items.find({ fields: ['UUID'], where: `ExternalID like '${externalID}'` });
     }
 
     // ATD
     async getTypeInternalID(uuid: string) {
-        return  await this.addonService.papiClient.types.find({
+        return await this.addonService.papiClient.types.find({
             where: `UUID='${uuid}'`
         }).then((types) => {
             console.log('uuid is' + uuid + 'types is', types);
@@ -69,7 +66,7 @@ export class RelatedItemsService {
         });
     }
 
-    async getFieldsFromADAL(uuid:string,query?: string) {
+    async getFieldsFromADAL(uuid: string, query?: string) {
         let typeID = await this.getTypeInternalID(uuid)
         let url = `/addons/api/${this.addonService.addonUUID}/api/atd_fields`
         if (query) {
@@ -87,11 +84,11 @@ export class RelatedItemsService {
         }
         return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/delete_atd_fields`, obj).toPromise();
     }
-    async createTSAField(obj: {TypeID:number, Name:string, FieldID:string, ListSource:string, ListType:string, Hidden: boolean}) {
+    async createTSAField(obj: { TypeID: number, Name: string, FieldID: string, ListSource: string, ListType: string, Hidden: boolean }) {
         return await this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/create_tsa_field`, obj).toPromise();
     }
 
-    async getFieldsOfItemsAndTransactionLine(typeID): Promise<{key:number, value:string}[]> {
+    async getFieldsOfItemsAndTransactionLine(typeID): Promise<{ key: number, value: string }[]> {
         let fieldsForTransactonLines = await this.addonService.papiClient.get(`/meta_data/transaction_lines/types/${typeID}/fields`);
 
         fieldsForTransactonLines = fieldsForTransactonLines.filter(field => field.Type === "String")
@@ -100,7 +97,7 @@ export class RelatedItemsService {
 
         let stringFields = fieldsForTransactonLines.concat(fieldsForItems);
 
-         //types.concat(fieldsForItems);
+        //types.concat(fieldsForItems);
         return stringFields.map(item => {
             return {
                 value: item.FieldID,

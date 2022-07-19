@@ -15,6 +15,7 @@ export class ItemSelectionComponent implements OnInit {
   allItems = [];
   externalID: string;
   dialogTitle: string = this.translate.instant("Add_Item_Title");
+  dialogNote: string
 
   constructor(
       private translate: TranslateService,
@@ -26,6 +27,7 @@ export class ItemSelectionComponent implements OnInit {
     this.dialogData = incoming.data;
     this.dialogData.ItemExternalID = '';
     this.dialogTitle = this.dialogData.Title;
+    this.dialogNote = this.dialogData.Note;
   }
 
   ngOnInit() {
@@ -45,7 +47,7 @@ export class ItemSelectionComponent implements OnInit {
       this.dialogRef.close(this.dialogData);
     }
     else {
-      let errorMessage = `External ID is mandatory`;
+      let errorMessage = this.translate.instant("Ext_Id_Is_Mandatory_Error");
       this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage });
     }
   }

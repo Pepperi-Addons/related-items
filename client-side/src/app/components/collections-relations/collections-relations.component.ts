@@ -1,15 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { GenericListComponent, GenericListDataSource} from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ItemSelectionComponent } from '../item-selection/item-selection.component'
 import { DialogService } from '../../services/dialog.service';
-import { CollectionForm } from '../collection-form/collection-form.component';
 import { Collection } from '../../../../../shared/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
+import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { state } from '@angular/animations';
+import { CollectionForm } from '../collection-form/collection-form.component';
+import { ItemSelectionComponent } from '../item-selection/item-selection.component';
 
 @Component({
   selector: 'addon-collections-relations',
@@ -17,8 +18,6 @@ import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
   styleUrls: ['./collections-relations.component.scss']
 })
 export class RelatedCollections implements OnInit {
-  @ViewChild(GenericListComponent) genericList: GenericListComponent;
-
   itemsInCollection = [];
 
   constructor(
@@ -28,7 +27,8 @@ export class RelatedCollections implements OnInit {
     public relatedItemsService: RelatedItemsService,
     public activatedRoute: ActivatedRoute,
     private dialogService: DialogService,
-    private addonService: AddonService
+    private addonService: AddonService,
+    private genericListService: PepGenericListService
   ) {
     this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
 
@@ -46,76 +46,109 @@ export class RelatedCollections implements OnInit {
   ngOnInit() {
   }
 
-  noDataMessage:string;
+  noDataMessage: string;
+  dataSource: IPepGenericListDataSource = this.getDataSource();
+
+  pager: IPepGenericListPager = {
+    type: 'scroll',
+  };
 
   async initializeData() {
     this.collection = await this.relatedItemsService.getCollections(`?Name=${this.collectionName}`).then(objs => objs[0]);
   }
 
-  listDataSource: GenericListDataSource = {
-    getList: async (state) => {
-      this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
-      this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
-      for (const item of this.itemsInCollection) {
-        if (item.RelatedItems) {
-          item.ItemsExternalIDList = item.RelatedItems.join(", ");
-          this.noDataMessage = this.translate.instant("No_Results_Error");
+  getDataSource() {
+    return {
+      init: async (params: any) => {
+        this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
+        this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
+        for (const item of this.itemsInCollection) {
+          if (item.RelatedItems) {
+            item.ItemsExternalIDList = item.RelatedItems.join(", ");
+            this.noDataMessage = this.translate.instant("No_Results_Error");
+          }
+        }
+
+        if (params.searchString != undefined && params.searchString != "") {
+          this.itemsInCollection = this.itemsInCollection.filter(relatedItem => relatedItem.ItemExternalID.toLowerCase().includes(params.searchString.toLowerCase()))
+        }
+        return Promise.resolve({
+          dataView: {
+            Context: {
+              Name: '',
+              Profile: { InternalID: 0 },
+              ScreenSize: 'Landscape'
+            },
+            Type: 'Grid',
+            Title: 'Related Items',
+            Fields: [
+              {
+                FieldID: 'ItemExternalID',
+                Type: 'TextBox',
+                Title: this.translate.instant('Item External Id'),
+                Mandatory: false,
+                ReadOnly: true
+              },
+              {
+                FieldID: 'ItemsExternalIDList',
+                Type: 'TextBox',
+                Title: this.translate.instant('Recommendations'),
+                Mandatory: false,
+                ReadOnly: true
+              }
+            ],
+            Columns: [
+              {
+                Width: 30
+              },
+              {
+                Width: 70
+              }
+            ],
+
+            FrozenColumnsCount: 0,
+            MinimumColumnWidth: 0
+          },
+          totalCount: this.itemsInCollection.length,
+          items: this.itemsInCollection
+        });
+      },
+      inputs: () => {
+        return Promise.resolve(
+          {
+            pager: {
+              type: 'scroll'
+            },
+            selectionType: 'multi'
+          }
+        );
+      },
+    } as IPepGenericListDataSource
+  }
+
+  actions: IPepGenericListActions = {
+    get: async (data) => {
+      //Convert the data to the objects of the same type of the adal objects
+      let objs = [];
+      if (data && data.rows.length > 0) {
+        for (let i = 0; i < data.rows.length; i++) {
+          let item = this.genericListService.getItemById(data.rows[i]);
+          let object = {
+            "CollectionName": this.collectionName,
+            "ItemExternalID": item.Fields[0]?.FormattedValue,
+            "RelatedItems": item.Fields[1]?.FormattedValue,
+            "Key": `${this.collectionName}_${item.Fields[0]?.FormattedValue}`
+          }
+          objs.push(object);
         }
       }
 
-      if (state.searchString != "") {
-        this.itemsInCollection = this.itemsInCollection.filter(relatedItem => relatedItem.ItemExternalID.toLowerCase().includes(state.searchString.toLowerCase()))
-      }
-
-      return this.itemsInCollection;
-    },
-
-    getDataView: async () => {
-      return {
-        Context: {
-          Name: '',
-          Profile: { InternalID: 0 },
-          ScreenSize: 'Landscape'
-        },
-        Type: 'Grid',
-        Title: 'Related Collections',
-        Fields: [
-          {
-            FieldID: 'ItemExternalID',
-            Type: 'TextBox',
-            Title: this.translate.instant('Item External Id'),
-            Mandatory: false,
-            ReadOnly: true
-          },
-          {
-            FieldID: 'ItemsExternalIDList',
-            Type: 'TextBox',
-            Title: this.translate.instant('Recommendations'),
-            Mandatory: false,
-            ReadOnly: true
-          }
-        ],
-        Columns: [
-          {
-            Width: 30
-          },
-          {
-            Width: 70
-          }
-        ],
-
-        FrozenColumnsCount: 0,
-        MinimumColumnWidth: 0
-      }
-    },
-
-    getActions: async (objs) => {
       const actions = [];
 
-      if (objs.length === 1) {
+      if (data.rows.length === 1 && data?.selectionType !== 0) {
         actions.push({
           title: this.translate.instant("Edit"),
-          handler: async (objs) => {
+          handler: async (data) => {
             this.router.navigate([objs[0].ItemExternalID], {
               relativeTo: this.route,
               queryParamsHandling: 'merge'
@@ -123,15 +156,14 @@ export class RelatedCollections implements OnInit {
           }
         });
       }
-      if (objs.length >= 1) {
+      if (data.rows.length >= 1 || data?.selectionType === 0) {
         actions.push({
           title: this.translate.instant("Delete"),
-          handler: async (objs) => {
+          handler: async (data) => {
             this.deleteRelation(objs);
           }
         });
       }
-
       return actions;
     }
   }
@@ -139,12 +171,12 @@ export class RelatedCollections implements OnInit {
   async deleteRelation(objs) {
     const message = this.translate.instant("Delete_Relation_Validate");
     const actionButtons = [
-      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteRelations(objs).then(() => {
-        this.genericList.reload();
+      new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => this.relatedItemsService.deleteRelations(objs).then(() => {
+        this.dataSource = this.getDataSource();
       })),
-      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+      new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
+    return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
   }
 
   addRelatedItems() {
@@ -154,7 +186,7 @@ export class RelatedCollections implements OnInit {
         if (this.itemsInCollection.indexOf(data.ItemExternalID) === -1) {
           let items = (await this.relatedItemsService.getItemsWithExternalId(data.ItemExternalID))
           if (items.length === 0) {
-            let errorMessage = `Cannot find an item with external id '${data.ItemExternalID}'`;
+            let errorMessage = this.translate.instant("Item_Not_Found_Error") + `'${data.ItemExternalID}'`;
             return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage });
           }
           else {
@@ -167,7 +199,7 @@ export class RelatedCollections implements OnInit {
         }
       }
     }
-    let data = { ItemsList: this.itemsInCollection, Title: `Add Item` }
+    let data = { ItemsList: this.itemsInCollection, Title: `Add Item`, Note:  `Item ID`}
     return this.dialogService.openDialog(this.translate.instant("Add Item"), ItemSelectionComponent, [], { data: data }, callback);
   }
 
@@ -191,5 +223,4 @@ export class RelatedCollections implements OnInit {
   backClicked() {
     this.goBack();
   }
-
 }

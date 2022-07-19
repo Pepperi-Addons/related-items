@@ -19,10 +19,11 @@
       </div>
     </div>
     <pep-generic-list 
-    [allowMultipleSelection]="true"
+    [showTopBar]="true"
     [inline]="true"
-    [noDataMessage]=noDataMessage
-    [dataSource]="listDataSource"
+    [noDataFoundMsg]=noDataMessage
+    [dataSource]="dataSource"
+    [actions]="actions"
     [showSearch]="true">
     <div class="right-buttons"  right-buttons >
       <pep-button [sizeType]="'sm'" [value]= "'Add_Button' |translate" [classNames]="'pep-spacing-element'" [styleType]="'strong'" (buttonClick)="addRelatedItem()" ></pep-button>

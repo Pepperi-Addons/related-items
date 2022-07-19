@@ -1,7 +1,6 @@
 import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, FindOptions, } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
-import { promises } from 'dns';
 
 class RelatedItemsService {
 
@@ -28,7 +27,7 @@ class RelatedItemsService {
             Type: "data",
             Name: "subscriptionToRelatedItems",
             FilterPolicy: {
-                Action: ['update'],
+                Action: ['update', 'insert'],
                 Resource: [RELATED_ITEM_META_DATA_TABLE_NAME],
                 AddonUUID: [this.addonUUID]
             }
@@ -341,6 +340,7 @@ class RelatedItemsService {
             apiField.Hidden = true;
             if (await this.papiClient.post(url, apiField)) {
                 field.Hidden = true;
+                field.TypeID = typeID
                 let ans = await this.upsertItemsInFieldsTable(field);
                 fields.push(ans);
             }
@@ -430,6 +430,97 @@ class RelatedItemsService {
                 success: false,
                 errorMessage: err ? err : 'unknown error occured'
             }
+        }
+    }
+
+    //DIMX
+    async createCollectionIfNeeded(dimxObj) {
+        //create collection if it dosn't exist
+        let collection: any = {};
+        try {
+            collection = await this.getCollectionByKey(dimxObj.Object.CollectionName);
+            collection.Hidden = false;
+        }
+        catch {
+            collection = {
+                Name: dimxObj.Object.CollectionName,
+                Description: "",
+                Hidden: false
+            }
+        }
+        await this.upsertRelatedCollection(collection);
+    }
+
+    // for the AddonRelativeURL of the relation
+    async importDataSource(body) {
+        for (var dimxObj of body.DIMXObjects) {
+            await this.createCollectionIfNeeded(dimxObj);
+            //check if the user has the item 
+            let items = await this.getItemsFilteredByFields([dimxObj.Object.ItemExternalID], ['UUID']);
+            if (items.length > 0) {
+                dimxObj.Object.Hidden = false
+                //add a Key
+                dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
+
+                // handeling restriction on related items list
+                dimxObj.Object.RelatedItems.forEach(async (item, index) => {
+                    ////Check if the item try to reference itself
+                    if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
+                    //check if the user has the related item 
+                    let items = await this.getItemsFilteredByFields([item], ['UUID']);
+                    if (items.length === 0) dimxObj.Object.RelatedItems.splice(index, 1);
+                });
+                //limit the number of related items for each item to maximumNumberOfRelatedItems
+                if (dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems) {
+                    dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
+                }
+            }
+        }
+        return body;
+    }
+
+    async exportDataSource(body) {
+        console.log("Export data is working")
+        return body;
+    }
+
+    // Usage monitor
+    async getNumberOfCollectionsUsageData() {
+        const collections = await this.getCollections({});
+
+        return {
+            Title: "Data",
+            "Resources": [
+                {
+                    "Data": "Related Items Collections",
+                    "Description": "Number of Related Items Collections",
+                    "Size": collections.length,
+                },
+            ],
+            "ReportingPeriod": "Weekly",
+            "AggregationFunction": "LAST"
+        }
+    }
+
+    async getTotalNumberOfLinesInCollectionsUsageData() {
+        let totalNumberOfLines = 0;
+        const collections = await this.getCollections({});
+        collections.forEach(element => {
+            totalNumberOfLines = totalNumberOfLines + element.Count;
+
+        });
+
+        return {
+            Title: "Data",
+            "Resources": [
+                {
+                    "Data": "Related Items Collections Lines",
+                    "Description": "Total number of lines in Related Items Collections",
+                    "Size": totalNumberOfLines,
+                },
+            ],
+            "ReportingPeriod": "Weekly",
+            "AggregationFunction": "LAST"
         }
     }
 }

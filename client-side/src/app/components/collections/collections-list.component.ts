@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { GenericListComponent, GenericListDataSource } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { Component, OnInit, ViewChild} from '@angular/core';
+import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -8,6 +8,8 @@ import { MessageDialogComponent } from '../message-dialog/message-dialog.compone
 import { DialogService } from '../../services/dialog.service';
 import { AddonService } from '../../services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
+import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
+import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 @Component({
   selector: 'addon-collections',
@@ -15,7 +17,7 @@ import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
   styleUrls: ['./collections-list.component.scss']
 })
 export class CollectionsListComponent implements OnInit {
-  @ViewChild(GenericListComponent) genericList: GenericListComponent;
+  @ViewChild('dimx') dimx:DIMXComponent | undefined;
 
   constructor(
     public addonService: AddonService,
@@ -23,7 +25,8 @@ export class CollectionsListComponent implements OnInit {
     public router: Router,
     public route: ActivatedRoute,
     public relatedItemsService: RelatedItemsService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private genericListService: PepGenericListService
   ) {
     this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
   }
@@ -31,85 +34,128 @@ export class CollectionsListComponent implements OnInit {
   ngOnInit() { }
 
   noDataMessage: string;
-
-  listDataSource: GenericListDataSource = {
-    getList: async (state) => {
-      let res = await this.relatedItemsService.getCollections();
-      this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
-      if (state.searchString != "") {
-        res = res.filter(collection => collection.Name.toLowerCase().includes(state.searchString.toLowerCase()))
-        this.noDataMessage = this.noDataMessage = this.translate.instant("No_Results_Error")
-      }
-      return res;
+  menuItems = [
+    {
+      key: 'import',
+      text: this.translate.instant("Import")
     },
+    {
+      key: 'export',
+      text: this.translate.instant("Export")
+    }
+  ];
+  dataSource: IPepGenericListDataSource = this.getDataSource();
 
-    getDataView: async () => {
-      return {
-        Context: {
-          Name: '',
-          Profile: { InternalID: 0 },
-          ScreenSize: 'Landscape'
-        },
-        Type: 'Grid',
-        Title: 'Related Items',
-        Fields: [
-          {
-            FieldID: 'Name',
-            Type: 'TextBox',
-            Title: this.translate.instant('Name'),
-            Mandatory: false,
-            ReadOnly: true
-          },
-          {
-            FieldID: 'Description',
-            Type: 'TextBox',
-            Title: this.translate.instant('Description'),
-            Mandatory: false,
-            ReadOnly: true
-          },
-          {
-            FieldID: 'Count',
-            Type: 'NumberInteger',
-            Title: this.translate.instant('Count'),
-            Mandatory: false,
-            ReadOnly: true
-          }
-        ],
-        Columns: [
-          {
-            Width: 35
-          },
-          {
-            Width: 35
-          }, {
-            Width: 30
-          }
-        ],
+  pager: IPepGenericListPager = {
+    type: 'scroll',
+  };
 
-        FrozenColumnsCount: 0,
-        MinimumColumnWidth: 0
+  getDataSource() {
+    return {
+      init: async(params: any) => {
+        let res = await this.relatedItemsService.getCollections();
+        console.log("Collection after refresh:", res);
+        this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+        if (params.searchString != undefined && params.searchString != "") {
+          res = res.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
+          this.noDataMessage = this.noDataMessage = this.translate.instant("No_Results_Error")
+        }
+        return Promise.resolve({
+          dataView: {
+            Context: {
+              Name: '',
+              Profile: { InternalID: 0 },
+              ScreenSize: 'Landscape'
+            },
+            Type: 'Grid',
+            Title: 'Related Items',
+            Fields: [
+              {
+                FieldID: 'Name',
+                Type: 'TextBox',
+                Title: this.translate.instant("Name"),
+                Mandatory: false,
+                ReadOnly: true
+              },
+              {
+                FieldID: 'Description',
+                Type: 'TextBox',
+                Title: this.translate.instant("Description"),
+                Mandatory: false,
+                ReadOnly: true
+              },
+              {
+                FieldID: 'Count',
+                Type: 'NumberInteger',
+                Title: this.translate.instant("Count"),
+                Mandatory: false,
+                ReadOnly: true
+              }
+            ],
+            Columns: [
+              {
+                Width: 35
+              },
+              {
+                Width: 35
+              }, {
+                Width: 30
+              }
+            ],
+
+            FrozenColumnsCount: 0,
+            MinimumColumnWidth: 0
+          },
+          totalCount: res.length,
+          items: res
+        });
+      },
+      inputs: () => {
+        return Promise.resolve(
+          {
+            pager: {
+              type: 'scroll'
+            },
+            selectionType: 'multi'
+          }
+        );
+      },
+    } as IPepGenericListDataSource
+  }
+
+  actions: IPepGenericListActions = {
+    get: async (data: PepSelectionData) => {
+      //Convert data to the objects of the same type of the adal objects
+      let objs = [];
+      debugger
+      if (data && data.rows.length > 0) {
+        for (let i = 0; i < data.rows.length; i++) {
+          let item = this.genericListService.getItemById(data.rows[i]);
+          let object = {
+            "Name": item.Fields[0]?.FormattedValue,
+            "Description": item.Fields[1]?.FormattedValue,
+          }
+          objs.push(object);
+        }
       }
-    },
 
-    getActions: async (objs) => {
       const actions = [];
-      if (objs.length === 1) {
+      if (data.rows.length === 1 && data?.selectionType !== 0) {
         actions.push({
           title: this.translate.instant("Edit"),
-          handler: async (objs) => {
-            this.goToRelatedCollection(objs[0].Name);
+          handler: async (data) => {
+              this.goToRelatedCollection(objs[0].Name);
           }
         });
       }
-      if (objs.length >= 1) {
+      if (data.rows.length >= 1 || data?.selectionType === 0) {
         actions.push({
           title: this.translate.instant("Delete"),
-          handler: async (objs) => {
-            this.deleteCollections(objs);
+          handler: async (data) => {
+              this.deleteCollections(objs);
           }
         });
       }
-
       return actions;
     }
   }
@@ -117,12 +163,12 @@ export class CollectionsListComponent implements OnInit {
   async deleteCollections(objs) {
     const message = this.translate.instant("Delete_Collection_Validate");
     const actionButtons = [
-      new PepDialogActionButton(this.translate.instant('Delete'), 'main strong', () => this.relatedItemsService.deleteCollections(objs).then(() => {
-        this.genericList.reload();
+      new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => this.relatedItemsService.deleteCollections(objs).then(() => {
+        this.dataSource = this.getDataSource();
       })),
-      new PepDialogActionButton(this.translate.instant('Cancel'), 'main weak')
+      new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
     ];
-    return this.dialogService.openDefaultDialog(this.translate.instant('Delete'), actionButtons,message);
+    return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
   }
 
   addCollecton() {
@@ -134,12 +180,12 @@ export class CollectionsListComponent implements OnInit {
           this.goToRelatedCollection(data.Name)
         }
         else {
-          let errorMessage = this.translate.instant('A collection with this name already exists,') + '\n' + this.translate.instant('please choose a different name');
+          let errorMessage = this.translate.instant("Existing_Name_Error_1") + '\n' + this.translate.instant("Existing_Name_Error_2");
           return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage }, () => { });
         }
       }
     }
-    return this.dialogService.openDialog(this.translate.instant("Add collection"), CollectionForm, [], { data: { shouldShowNameField: true } }, callback);
+    return this.dialogService.openDialog(this.translate.instant("Add_Collection_Button"), CollectionForm, [], { data: { shouldShowNameField: true } }, callback);
   }
 
   goToRelatedCollection(collectionName: string) {
@@ -147,5 +193,35 @@ export class CollectionsListComponent implements OnInit {
       relativeTo: this.route,
       queryParamsHandling: 'preserve'
     })
+  }
+
+  //DIMX
+  menuItemClick($event) {
+    switch ($event.source.key) {
+      case 'import': {
+        this.dimx?.uploadFile({
+          OverwriteOBject: true,
+          Delimiter: ",",
+          OwnerID: this.addonService.addonUUID
+        });
+        break
+      }
+      case 'export': {
+        this.dimx?.DIMXExportRun({
+          DIMXExportFormat: "csv",
+          DIMXExportIncludeDeleted: false,
+          DIMXExportFileName: "export",
+          DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems",
+          DIMXExportDelimiter: ","
+      });
+        break
+      }
+    }
+  }
+
+  onDIMXProcessDone(event) {
+    console.log("Refreshing now");
+    console.log("process done event", JSON.stringify(event));
+    this.dataSource = this.getDataSource();
   }
 }
