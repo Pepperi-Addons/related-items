@@ -4,7 +4,7 @@ import { AtdEditorComponent } from './index';
 import { PepUIModule } from 'src/app/modules/pepperi.module';
 import { TranslateService, TranslateModule, TranslateLoader, TranslateStore } from '@ngx-translate/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { PepFileService, PepAddonService, PepHttpService, PepCustomizationService, PepNgxLibModule, PepLayoutService } from '@pepperi-addons/ngx-lib';
+import { PepFileService, PepAddonService, PepHttpService, PepCustomizationService, PepNgxLibModule } from '@pepperi-addons/ngx-lib';
 import { FieldFormComponent } from '../field-form/field-form.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MaterialModule } from 'src/app/modules/material.module';
@@ -20,6 +20,8 @@ import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
 import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepNgxCompositeLibModule } from '@pepperi-addons/ngx-composite-lib';
 import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { Router } from '@angular/router';
+import { AppRoutingModule } from 'src/app/app.routes';
 
 
 @NgModule({
@@ -29,6 +31,8 @@ import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
+    AppRoutingModule,
     PepUIModule,
     MatDialogModule,
     HttpClientModule,
@@ -45,9 +49,9 @@ import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-
 
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient, fileService: PepFileService, addonService: PepAddonService) =>
-          PepAddonService.createDefaultMultiTranslateLoader(http, fileService, addonService, "4f9f10f3-cd7d-43f8-b969-5029dad9d02b"),
-        deps: [HttpClient, PepFileService, PepAddonService],
+        useFactory: (addonService: PepAddonService) =>
+          PepAddonService.createMultiTranslateLoader(addonService,['ngx-lib', 'ngx-composite-lib'], "4f9f10f3-cd7d-43f8-b969-5029dad9d02b"),
+        deps: [PepAddonService],
 
       }, isolate: false
 
@@ -59,12 +63,7 @@ import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-
   providers: [
     HttpClient,
     TranslateStore,
-    PepHttpService,
     AddonService,
-    PepAddonService,
-    PepFileService,
-    PepCustomizationService,
-    PepDialogService,
     RelatedItemsService,
     DialogService
   ]

@@ -18,7 +18,7 @@ import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
   styleUrls: ['./related-collection-form.component.scss']
 })
 export class RelatedCollectionFormComponent implements OnInit {
-  @ViewChild(GenericListComponent) genericList: GenericListComponent;
+  @ViewChild('glist1') glist1: GenericListComponent | undefined;
 
   constructor(
     public translate: TranslateService,
@@ -27,8 +27,7 @@ export class RelatedCollectionFormComponent implements OnInit {
     public relatedItemsService: RelatedItemsService,
     private dialogService: DialogService,
     private addonService: AddonService,
-    public activatedRoute: ActivatedRoute,
-    private genericListService: PepGenericListService
+    public activatedRoute: ActivatedRoute
   ) {
     this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
     this.initializeData();
@@ -61,10 +60,10 @@ export class RelatedCollectionFormComponent implements OnInit {
   }
 
   getDataSource() {
+    this.noDataMessage = this.translate.instant("No_Related_Items_In_Item_Error")
     return {
       init: async (params: any) => {
         this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
-        this.noDataMessage = this.translate.instant("No_Related_Items_In_Item_Error")
         if (!this.currentItem.RelatedItems) {
           this.currentItem.RelatedItems = [];
         }
@@ -123,16 +122,14 @@ export class RelatedCollectionFormComponent implements OnInit {
           items: this.currentItem.RelatedItems
         });
       },
-      inputs: () => {
-        return Promise.resolve(
+      inputs:
           {
             pager: {
               type: 'scroll'
             },
-            selectionType: 'multi'
-          }
-        );
-      },
+            selectionType: 'multi',
+            noDataFoundMsg: this.noDataMessage
+          },
     } as IPepGenericListDataSource
   }
   actions: IPepGenericListActions = {
@@ -141,7 +138,7 @@ export class RelatedCollectionFormComponent implements OnInit {
       let objs = [];
       if (data && data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
-          let item = this.genericListService.getItemById(data.rows[i]);
+          let item = this.glist1.getItemById(data.rows[i]);
           let object = {
             "ImageURL": item.Fields[0]?.FormattedValue,
             "ExternalID": item.Fields[1]?.FormattedValue,

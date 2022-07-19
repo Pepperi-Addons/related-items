@@ -7,7 +7,7 @@ import { Collection } from '../../../../../shared/entities';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
-import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { GenericListComponent, IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { state } from '@angular/animations';
 import { CollectionForm } from '../collection-form/collection-form.component';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component';
@@ -18,6 +18,7 @@ import { ItemSelectionComponent } from '../item-selection/item-selection.compone
   styleUrls: ['./collections-relations.component.scss']
 })
 export class RelatedCollections implements OnInit {
+  @ViewChild('glist1') glist1: GenericListComponent | undefined;
   itemsInCollection = [];
 
   constructor(
@@ -27,8 +28,7 @@ export class RelatedCollections implements OnInit {
     public relatedItemsService: RelatedItemsService,
     public activatedRoute: ActivatedRoute,
     private dialogService: DialogService,
-    private addonService: AddonService,
-    private genericListService: PepGenericListService
+    private addonService: AddonService
   ) {
     this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
 
@@ -58,10 +58,10 @@ export class RelatedCollections implements OnInit {
   }
 
   getDataSource() {
+    this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
     return {
       init: async (params: any) => {
         this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
-        this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
         for (const item of this.itemsInCollection) {
           if (item.RelatedItems) {
             item.ItemsExternalIDList = item.RelatedItems.join(", ");
@@ -113,16 +113,15 @@ export class RelatedCollections implements OnInit {
           items: this.itemsInCollection
         });
       },
-      inputs: () => {
-        return Promise.resolve(
+      inputs:
           {
             pager: {
               type: 'scroll'
             },
-            selectionType: 'multi'
+            selectionType: 'multi',
+            noDataFoundMsg: this.noDataMessage
           }
-        );
-      },
+     ,
     } as IPepGenericListDataSource
   }
 
@@ -132,7 +131,7 @@ export class RelatedCollections implements OnInit {
       let objs = [];
       if (data && data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
-          let item = this.genericListService.getItemById(data.rows[i]);
+          let item = this.glist1.getItemById(data.rows[i]);
           let object = {
             "CollectionName": this.collectionName,
             "ItemExternalID": item.Fields[0]?.FormattedValue,

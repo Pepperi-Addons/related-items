@@ -7,7 +7,7 @@ import { PepIconModule } from '@pepperi-addons/ngx-lib/icon';
 import { PepSizeDetectorModule } from '@pepperi-addons/ngx-lib/size-detector';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
-import { PepFileService, PepAddonService } from '@pepperi-addons/ngx-lib';
+import { PepFileService, PepAddonService, PepNgxLibModule } from '@pepperi-addons/ngx-lib';
 import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
 import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
 import { PepImageModule } from '@pepperi-addons/ngx-lib/image';
@@ -28,7 +28,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FeatureModule } from './modules/shared.module';
 import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
 import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
-import { PepDIMXModule } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 export function createTranslateLoader(http: HttpClient, fileService: PepFileService, addonService: PepAddonService) {
     const translationsPath: string = fileService.getAssetsTranslationsPath();
@@ -69,6 +68,7 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         CommonModule,
         HttpClientModule,
         AppRoutingModule,
+        PepNgxLibModule,
         FeatureModule,
         PepSizeDetectorModule,
         MatIconModule,
@@ -83,13 +83,14 @@ export function createTranslateLoader(http: HttpClient, fileService: PepFileServ
         MatDialogModule,
         PepImageModule,
         PepGenericListModule,
-        PepDIMXModule,
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
-                useFactory: createTranslateLoader,
-                deps: [HttpClient, PepFileService, PepAddonService]
-            }
+                useFactory: (addonService: PepAddonService) =>
+                  PepAddonService.createMultiTranslateLoader(addonService,['ngx-lib', 'ngx-composite-lib']),
+                deps: [PepAddonService],
+        
+              }
         })
 
     ],

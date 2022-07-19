@@ -1,14 +1,19 @@
 <pep-page-layout>
   <ng-container pep-main-area>
-    <pep-generic-list [title]="" [pager]="pager" [dataSource]="dataSource" [inline]="true"
-      [noDataFoundMsg]=noDataMessage [showTopBar]="true" [showSearch]="true" [actions]="actions">
-      <div class="right-buttons" right-buttons>
+    <pep-generic-list #glist1
+    [title]="" 
+    [pager]="pager" 
+    [dataSource]="dataSource" 
+    [inline]="true"
+    [showTopBar]="true" 
+    [showSearch]="true" 
+    [actions]="actions">
+    <div class="right-buttons" right-buttons>
         <pep-menu iconName="system_menu" type="action" styleType="weak" sizeType="sm" classNames=""
           [items]="menuItems" [disabled]="false" (menuItemClick)="menuItemClick($event)"></pep-menu>
         <pep-button [sizeType]="'sm'" [classNames]="'pep-spacing-element'" [value]="'Add_Collection_Button'| translate"
           [styleType]="'strong'" (buttonClick)="addCollecton()"></pep-button>
-      </div>
+    </div>
     </pep-generic-list>
-    <pep-dimx #dimx [DIMXAddonUUID]="'4f9f10f3-cd7d-43f8-b969-5029dad9d02b'" [DIMXResource]="'RelationsWithExternalID'"  (DIMXProcessDone)='onDIMXProcessDone($event);'></pep-dimx>
   </ng-container>
 </pep-page-layout>

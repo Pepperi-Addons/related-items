@@ -1,11 +1,11 @@
 <pep-page-layout [addPadding]="true">
   <ng-container pep-main-area>
-    <pep-generic-list class="generic-list"
+    <pep-generic-list #glist1
+    class="generic-list"
     [title] = "'Related_Items_Title' | translate"
     [showTopBar]="true" 
     [dataSource]="dataSource" 
     [inline]="true"
-    [noDataFoundMsg]= noDataMessage
     [actions]="actions"
     [addPadding]="true"
     >
