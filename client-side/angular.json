@@ -37,6 +37,11 @@
                 "glob": "**/*",
                 "input": "node_modules/@pepperi-addons/ngx-lib/src/assets",
                 "output": "./assets/ngx-lib"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@pepperi-addons/ngx-composite-lib/src/assets",
+                "output": "./assets/ngx-composite-lib"
               }
             ],
             "scripts": [

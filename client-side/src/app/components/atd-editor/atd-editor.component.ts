@@ -6,9 +6,8 @@ import { DialogService } from 'src/app/services/dialog.service';
 import { AddonService } from 'src/app/services/addon.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import { fieldFormMode } from 'src/app/components/field-form/field-form.component'
-import config from '../../../../../addon.config.json';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
-import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { GenericListComponent, IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 
 @Component({
@@ -17,6 +16,7 @@ import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
   styleUrls: ['./atd-editor.component.scss']
 })
 export class AtdEditorComponent implements OnInit {
+  @ViewChild('glist1') glist1: GenericListComponent | undefined;
 
   @Input() hostObject: any;
   @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
@@ -28,8 +28,7 @@ export class AtdEditorComponent implements OnInit {
     private relatedItemsService: RelatedItemsService,
     private translate: TranslateService,
     private dialogService: DialogService,
-    private addonService: AddonService,
-    private genericListService: PepGenericListService) {
+    private addonService: AddonService) {
   }
 
   ngOnInit() {
@@ -37,11 +36,8 @@ export class AtdEditorComponent implements OnInit {
     this.relatedItemsService.getTypeInternalID(this.configID).then(typeID => {
       this.typeID = typeID;
     });
-    //this.addonService.addonUUID = config.AddonUUID;
     this.addonService.addonUUID = "4f9f10f3-cd7d-43f8-b969-5029dad9d02b";
   }
-
-  noDataMessage: string;
   dataSource: IPepGenericListDataSource = this.getDataSource();
 
   pager: IPepGenericListPager = {
@@ -53,7 +49,6 @@ export class AtdEditorComponent implements OnInit {
     return {
       init: async (params: any) => {
         let res = await this.relatedItemsService.getFieldsFromADAL(this.configID);
-        this.noDataMessage = this.translate.instant("No_Related_Items_Error")
         res.map(item => {
           item.ListName = item.ListSource;
         });
@@ -107,16 +102,14 @@ export class AtdEditorComponent implements OnInit {
           items: res
         });
       },
-      inputs: () => {
-        return Promise.resolve(
+      inputs:
           {
             pager: {
               type: 'scroll'
             },
-            selectionType: 'multi'
-          }
-        );
-      },
+            selectionType: 'multi',
+            noDataFoundMsg: this.translate.instant("No_Related_Items_Error")
+          },
     } as IPepGenericListDataSource
   }
 
@@ -126,7 +119,7 @@ export class AtdEditorComponent implements OnInit {
       let objs = [];
       if (data && data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
-          let item = this.genericListService.getItemById(data.rows[i]);
+          let item = this.glist1.getItemById(data.rows[i]);
           let object = {
             "Name": item.Fields[0]?.FormattedValue,
             "FieldID": item.Fields[1]?.FormattedValue,
