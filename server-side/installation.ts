@@ -61,7 +61,7 @@ async function createRelations(papiClient: PapiClient) {
             Name: "RelatedItemsRelation",
             Description: "Related Items",
             Type: "NgComponent",
-            AddonRelativeURL: "atd_editor",
+            AddonRelativeURL: "related_items",
             SubType: "NG14",
             ModuleName: 'AtdEditorModule',
             ComponentName: 'AtdEditorComponent',
