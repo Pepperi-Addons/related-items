@@ -12,12 +12,14 @@ import { state } from '@angular/animations';
 import { CollectionForm } from '../collection-form/collection-form.component';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component';
 
+import { config } from '../../addon.config'
+
 @Component({
   selector: 'addon-collections-relations',
   templateUrl: './collections-relations.component.html',
   styleUrls: ['./collections-relations.component.scss']
 })
-export class RelatedCollections implements OnInit {
+export class RelatedCollectionsComponent implements OnInit {
   @ViewChild('glist1') glist1: GenericListComponent | undefined;
   itemsInCollection = [];
 
@@ -30,7 +32,7 @@ export class RelatedCollections implements OnInit {
     private dialogService: DialogService,
     private addonService: AddonService
   ) {
-    this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
+    this.addonService.addonUUID = config.AddonUUID;
 
     this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
 

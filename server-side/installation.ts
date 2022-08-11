@@ -12,6 +12,7 @@ import { Client, Request } from '@pepperi-addons/debug-server'
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk'
 import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, Relation} from '../shared/entities'
 import RelatedItemsService from './related-items.service'
+import config from '../addon.config.json';``
 
 export async function install(client: Client, request: Request): Promise<any> {
     const service = new RelatedItemsService(client)
@@ -112,6 +113,21 @@ async function createRelations(papiClient: PapiClient) {
             Description: 'relation for "data" tab in usage monitor to display number of lines in Relates Items collections',
             Type: "AddonAPI",
             AddonRelativeURL: "/api/total_lines_in_collection_data"
+        },
+        {
+            RelationName: "SettingsBlock",
+            GroupName: 'Related_Items',
+            SlugName: 'collections',
+            Name: 'CollectionsList',
+            Description: 'Collection Managment',
+            Type: "NgComponent",
+            SubType: "NG14",
+            AddonUUID: config.AddonUUID,
+            AddonRelativeURL: 'related_items',
+            ComponentName: `CollectionsListComponent`,
+            ModuleName: `CollectionsListModule`,
+            ElementsModule: 'WebComponents',
+            ElementName: `settings-element-${config.AddonUUID}`
         }
     ];
     try {

@@ -1,6 +1,6 @@
 {
   "AddonUUID": "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
-  "AddonVersion": "0.0.190",
+  "AddonVersion": "0.1.115",
   "DebugPort": 4500,
   "WebappBaseUrl": "https://app.sandbox.pepperi.com",
   "DefaultEditor": "main",
@@ -16,7 +16,7 @@
     "en.ngx-lib.json"
   ],
   "PublishConfig": {
-    "ClientStack": "ng10",
+    "ClientStack": "ng14",
     "Editors": [
       {
         "ParentPackageName": "Related_Items",

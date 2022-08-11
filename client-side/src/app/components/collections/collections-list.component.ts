@@ -11,6 +11,7 @@ import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { ViewContainerRef } from "@angular/core";
 import { DIMXHostObject, PepDIMXHelperService } from '@pepperi-addons/ngx-composite-lib';
+import { config } from '../../addon.config';
 
 
 @Component({
@@ -31,7 +32,7 @@ export class CollectionsListComponent implements OnInit {
     private viewContainerRef: ViewContainerRef,
     private dimxService: PepDIMXHelperService
   ) {
-    this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
+    this.addonService.addonUUID = config.AddonUUID;
   }
 
   ngOnInit() {

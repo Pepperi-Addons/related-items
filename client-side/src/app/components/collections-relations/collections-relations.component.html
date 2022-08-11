@@ -1,37 +1,49 @@
-  <div class="collection-relation-container">
-    <div class="collection-addon-page-container">
-    <div class="header-content">
-      <pep-button iconName="arrow_left_alt" sizeType="sm" (buttonClick)="backClicked()"></pep-button>
-      <p class="subtitle"> {{collectionName}} </p>
-      <pep-button class="edit-button"
-      value="Edit"
-      iconName="system_edit"
-      styleType="weak"
-      styleStateType="system"
-      classNames=""
-      [disabled]="false"
-      iconPosition="end"
-      [sizeType]="'sm'"
-      [visible]="true"
-      (buttonClick)="editClicked()"
-    ></pep-button>
+<pep-page-layout [addPadding]="true">
+  <ng-container pep-top-area>
+      <pep-top-bar [inline]="false" [title]="('Title_Addon' | translate)">
+          <div header-start-content>
+          </div>
+      </pep-top-bar>
+  </ng-container>
+
+
+  <ng-container pep-main-area>
+    <div class="collection-relation-container">
+      <div class="collection-addon-page-container">
+      <div class="header-content">
+        <pep-button iconName="arrow_left_alt" sizeType="sm" (buttonClick)="backClicked()"></pep-button>
+        <p class="subtitle"> {{collectionName}} </p>
+        <pep-button class="edit-button"
+        value="Edit"
+        iconName="system_edit"
+        styleType="weak"
+        styleStateType="system"
+        classNames=""
+        [disabled]="false"
+        iconPosition="end"
+        [sizeType]="'sm'"
+        [visible]="true"
+        (buttonClick)="editClicked()"
+      ></pep-button>
+      </div>
+      <div>
+        <h2 mat-dialog-title class="mat-dialog-title pepperi-border-top">
+          <span >  
+              <p class="description">{{ collection.Description| translate}}</p>
+          </span>
+      </h2>
+      </div>
+      <pep-generic-list #glist1
+      [showTopBar]="true"
+      [inline]="true"
+      [dataSource]="dataSource"
+      [showSearch]="true"
+      [actions]="actions">
+      <div class="right-buttons"  right-buttons>
+        <pep-button [sizeType]="'sm'" [value]= "'Add_Button' | translate" [classNames]="'pep-spacing-element'"  [styleType]="'strong'" (buttonClick)="addRelatedItems()"></pep-button>
+      </div>
+      </pep-generic-list>
     </div>
-    <div>
-      <h2 mat-dialog-title class="mat-dialog-title pepperi-border-top">
-        <span >  
-            <p class="description">{{ collection.Description| translate}}</p>
-        </span>
-    </h2>
     </div>
-    <pep-generic-list #glist1
-    [showTopBar]="true"
-    [inline]="true"
-    [dataSource]="dataSource"
-    [showSearch]="true"
-    [actions]="actions">
-    <div class="right-buttons"  right-buttons>
-      <pep-button [sizeType]="'sm'" [value]= "'Add_Button' | translate" [classNames]="'pep-spacing-element'"  [styleType]="'strong'" (buttonClick)="addRelatedItems()"></pep-button>
-    </div>
-    </pep-generic-list>
-  </div>
-  </div>
+  </ng-container>
+</pep-page-layout>

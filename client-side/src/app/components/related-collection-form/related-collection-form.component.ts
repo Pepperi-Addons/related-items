@@ -11,6 +11,7 @@ import { AddonService } from 'src/app/services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
+import { config } from '../../addon.config';
 
 @Component({
   selector: 'addon-related-collection-form',
@@ -29,7 +30,7 @@ export class RelatedCollectionFormComponent implements OnInit {
     private addonService: AddonService,
     public activatedRoute: ActivatedRoute
   ) {
-    this.addonService.addonUUID = this.route.snapshot.params.addon_uuid;
+    this.addonService.addonUUID = config.AddonUUID;
     this.initializeData();
   }
 
