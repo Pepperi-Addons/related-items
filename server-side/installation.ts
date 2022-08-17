@@ -66,7 +66,7 @@ async function createRelations(papiClient: PapiClient) {
             ModuleName: 'AtdEditorModule',
             ComponentName: 'AtdEditorComponent',
             ElementsModule: 'WebComponents',
-            ElementName: `settings-element-${config.AddonUUID}`
+            ElementName: `atd-editor-element-${config.AddonUUID}`
         },
         {
             RelationName: "ATDImport",
