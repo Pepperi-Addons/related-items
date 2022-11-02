@@ -133,9 +133,9 @@ async function createRelations(papiClient: PapiClient) {
         }
     ];
     try {
-        relations.forEach(async (singleRelation) => {
+        await Promise.all(relations.map(async (singleRelation) => {
             await papiClient.post('/addons/data/relations', singleRelation);
-        });
+        }));
         return {
             success: true,
             errorMessage: ""
