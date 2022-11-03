@@ -22,7 +22,7 @@
     ],
     "Dependencies": {
       "cpi_node": "1.0.6",
-      "dimx": "0.1.121"
+      "dimx": "0.7.29"
     },
     "CPISide": [
       "addon-cpi.ts"
