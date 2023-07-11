@@ -437,29 +437,31 @@ class RelatedItemsService {
     }
 
     //DIMX
-    async createCollectionIfNeeded(dimxObj) {
+    async createCollectionIfNeed(collectionsMap: Map<string, Boolean>) {
+        collectionsMap.forEach(async (isExist, collectionName) => {
         //create collection if it dosn't exist
         let collection: any = {};
         try {
-            collection = await this.getCollectionByKey(dimxObj.Object.CollectionName);
+            collection = await this.getCollectionByKey(collectionName);
             collection.Hidden = false;
         }
         catch {
             collection = {
-                Name: dimxObj.Object.CollectionName,
+                Name: collectionName,
                 Description: "",
                 Hidden: false
             }
         }
         await this.upsertRelatedCollection(collection);
+        });
     }
     
     async importDataSource(body) {
         // call items api, and set in a map if item is exist or not
         await this.dimxValidator.createExistingItemsList(body.DIMXObjects)
+        await this.createCollectionIfNeed(this.dimxValidator.getCollectionsMap());
 
         for (var dimxObj of body.DIMXObjects) {
-            await this.createCollectionIfNeeded(dimxObj);
             // get the dimxobject and return object that meets the restriction :
             // the main item and all the related items are exist
             // * no more than 25 related items

@@ -1,10 +1,10 @@
-import { Item } from '@pepperi-addons/cpi-node/build/cpi-side/app/entities';
 import {SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { PapiClient, AddonData} from '@pepperi-addons/papi-sdk'
 
 export class DimxValidator {
     maximumNumberOfRelatedItems = 25;
     existingItemsMap: Map<string, Boolean> = new Map<string, Boolean>();
+    collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
 
     constructor(private papiClient: PapiClient) {
     }
@@ -18,6 +18,7 @@ export class DimxValidator {
     }
 
     async handleDimxObjItem(dimxObj) {
+        //await this.createCollectionIfNeed(dimxObj);
         console.log("***dimxobj inside the start of handleDimx", dimxObj);
         console.log("***existing items map inside the start of handleDimx", this.existingItemsMap);
         let mainItem = dimxObj.Object;
@@ -76,6 +77,9 @@ export class DimxValidator {
                 items.push(item);
             }
             );
+
+            // add collection name
+            this.collectionsMap.set(dimxObj.Object.CollectionName, true);
         }
         return items;
     }
@@ -103,5 +107,9 @@ export class DimxValidator {
 
         console.log(`sliceKeysToChunks from ${items.length} keys to ${res.length} chunks`)
         return res;
+    }
+    // return map of the collection from the csv file
+    getCollectionsMap() {
+        return this.collectionsMap;
     }
 }
