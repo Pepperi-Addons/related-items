@@ -1,12 +1,14 @@
-import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, FindOptions, } from '@pepperi-addons/papi-sdk'
+import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
+import { DimxValidator } from './dimx/dimx-validator'
 
 class RelatedItemsService {
 
     papiClient: PapiClient
     addonUUID: string;
     maximumNumberOfRelatedItems = 25;
+    dimxValidator: DimxValidator;
 
     constructor(private client: Client) {
         this.papiClient = new PapiClient({
@@ -18,6 +20,7 @@ class RelatedItemsService {
         });
 
         this.addonUUID = client.AddonUUID;
+        this.dimxValidator = new DimxValidator(this.papiClient)
     }
 
     createPNSSubscription() {
@@ -450,32 +453,22 @@ class RelatedItemsService {
         }
         await this.upsertRelatedCollection(collection);
     }
-
-    // for the AddonRelativeURL of the relation
+    
     async importDataSource(body) {
+        // call items api, and set in a map if item is exist or not
+        await this.dimxValidator.createExistingItemsList(body.DIMXObjects)
+
         for (var dimxObj of body.DIMXObjects) {
             await this.createCollectionIfNeeded(dimxObj);
-            //check if the user has the item 
-            let items = await this.getItemsFilteredByFields([dimxObj.Object.ItemExternalID], ['UUID']);
-            if (items.length > 0) {
-                dimxObj.Object.Hidden = false
-                //add a Key
-                dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
+            // get the dimxobject and return object that meets the restriction :
+            // the main item and all the related items are exist
+            // * no more than 25 related items
+            // * not pointing to itself 
+            dimxObj = this.dimxValidator.handleDimxObjItem(dimxObj);
+            console.log("***dimxObj from handleDimx", dimxObj);
 
-                // handeling restriction on related items list
-                dimxObj.Object.RelatedItems.forEach(async (item, index) => {
-                    ////Check if the item try to reference itself
-                    if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
-                    //check if the user has the related item 
-                    let items = await this.getItemsFilteredByFields([item], ['UUID']);
-                    if (items.length === 0) dimxObj.Object.RelatedItems.splice(index, 1);
-                });
-                //limit the number of related items for each item to maximumNumberOfRelatedItems
-                if (dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems) {
-                    dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
-                }
-            }
-        }
+            }; 
+        console.log("***returned body from importDataSource", body);
         return body;
     }
 
