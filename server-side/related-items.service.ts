@@ -5,10 +5,10 @@ import { DimxValidator } from './dimx/dimx-validator'
 
 class RelatedItemsService {
 
+    maximumNumberOfRelatedItems = 25;
+
     papiClient: PapiClient
     addonUUID: string;
-    maximumNumberOfRelatedItems = 25;
-    dimxValidator: DimxValidator;
 
     constructor(private client: Client) {
         this.papiClient = new PapiClient({
@@ -20,7 +20,6 @@ class RelatedItemsService {
         });
 
         this.addonUUID = client.AddonUUID;
-        this.dimxValidator = new DimxValidator(this.papiClient)
     }
 
     createPNSSubscription() {
@@ -437,40 +436,11 @@ class RelatedItemsService {
     }
 
     //DIMX
-    async createCollectionIfNeed(collectionsMap: Map<string, Boolean>) {
-        collectionsMap.forEach(async (isExist, collectionName) => {
-        //create collection if it dosn't exist
-        let collection: any = {};
-        try {
-            collection = await this.getCollectionByKey(collectionName);
-            collection.Hidden = false;
-        }
-        catch {
-            collection = {
-                Name: collectionName,
-                Description: "",
-                Hidden: false
-            }
-        }
-        await this.upsertRelatedCollection(collection);
-        });
-    }
-    
     async importDataSource(body) {
-        // call items api, and set in a map if item is exist or not
-        await this.dimxValidator.createExistingItemsList(body.DIMXObjects)
-        await this.createCollectionIfNeed(this.dimxValidator.getCollectionsMap());
-
-        for (var dimxObj of body.DIMXObjects) {
-            // get the dimxobject and return object that meets the restriction :
-            // the main item and all the related items are exist
-            // * no more than 25 related items
-            // * not pointing to itself 
-            dimxObj = this.dimxValidator.handleDimxObjItem(dimxObj);
-            console.log("***dimxObj from handleDimx", dimxObj);
-
-            }; 
-        console.log("***returned body from importDataSource", body);
+        const dimxValidator = new DimxValidator(this.papiClient, this, body.DIMXObjects)
+        await dimxValidator.loadItems();
+        await dimxValidator.initCollections();
+        body.DIMXObjects = dimxValidator.handleDimxObjItem();
         return body;
     }
 
