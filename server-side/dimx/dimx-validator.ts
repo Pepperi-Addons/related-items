@@ -2,28 +2,21 @@ import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
 import { Collection } from '../../shared/entities'
-import { Item } from '@pepperi-addons/cpi-node/build/cpi-side/app/entities';
 
 export class DimxValidator {
     maxNumOfRelatedItems = 25;
+    maxChunkSize = 500;
     existingItemsMap: Map<string, Boolean> = new Map<string, Boolean>();
-    collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
 
     constructor(private papiClient: PapiClient, private relatedItemsService: RelatedItemsService, private dimxObjects) {
     }
 
-    async loadItems() {
-        this.createCollectionsArrayFromDimxObject();
-        // call items api, and set in a map if item is exist or not
-        await this.createExistingItemsList()
+    private async loadColllections() {
+        const collectionsMap: Map<string, Boolean> = this.getDistinctCollections();
+        await this.createCollection(collectionsMap);
     }
 
-    async initCollections() {
-        this.createCollectionsArrayFromDimxObject()
-        await this.createCollectionIfNeed(this.collectionsMap);
-    }
-
-    async createCollectionIfNeed(collectionsMap: Map<string, Boolean>) {
+    private async createCollection(collectionsMap: Map<string, Boolean>) {
         let collectionArray: [string, Boolean][] = Array.from(collectionsMap);
         collectionArray.map(async collection => {
             let newCollection: Collection = {
@@ -33,34 +26,47 @@ export class DimxValidator {
             }
             await this.relatedItemsService.upsertRelatedCollection(newCollection);
         });
+        Promise.all(collectionArray);
     }
 
     // call items api, and set in a map if item is exist or not
-    async createExistingItemsList() {
+    private async loadItems() {
         //array to save all items in the list in order to search if they exist 
-        const allItems = this.createItemsArrayFromDimxObject(this.dimxObjects);
+        const allItems = this.getItemsArrayFromDimxObject();
+        // to ensure that duplicated items will be removed.
+        this.initItemsMap(allItems);
         // a map to save all the items in the dimx object that existing in the user stock
-        return await this.createExistingItemsMap(allItems);
+        return await this.validateItemsAvailablitiy();
     }
 
-    validateDimxObjItem(dimxObj) {
-        let primaryItem = dimxObj.Object.ItemExternalID
-        this.validatePrimaryItem(primaryItem, dimxObj)
-        this.validateRelatedItems(dimxObj, primaryItem)
-        console.log("dimxObj After Validate: ", dimxObj);
+    // every dimxObject is a related item object
+    private validateDimxObjItem(dimxObj) {
+        console.log("***dimxObj inside validateDimxObjItem: ", dimxObj);
+        if (this.isItemExist(dimxObj.Object.ItemExternalID)) {
+            this.handlePrimaryItem(dimxObj);
+            this.validateRelatedItems(dimxObj);
+        }
+        else {
+            console.log("item doesn't exist: ", dimxObj.Object.ItemExternalID);
+            const errMsg = `${JSON.stringify(dimxObj.Object.ItemExternalID)} failed with the following error: ItemExternalID does not exist`;
+            this.markItemAsError(dimxObj, errMsg)
+        }
         return dimxObj;
     }
 
-    validateRelatedItems(dimxObj, primaryItem) {
+    private validateRelatedItems(dimxObj) {
+        console.log("***dimxObj inside validateRelatedItems: ", dimxObj);
         // handeling restriction on related items list
-        dimxObj.Object.RelatedItems.forEach(async (item, index) => {
-            ////Check if the item try to reference itself
-            if (item === primaryItem) dimxObj.Object.RelatedItems.splice(index, 1);
-            // if the user does not have the item, delete it from the list 
-            if (!this.isItemExist(item)) {
-                dimxObj.Object.RelatedItems.splice(index, 1);
-            }
-        });
+        if(dimxObj.Object.RelatedItems != undefined) {
+            dimxObj.Object.RelatedItems.forEach((item, index) => {
+                ////Check if the item try to reference itself
+                if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
+                // if the user does not have the item, delete it from the list 
+                if (!this.isItemExist(item)) {
+                    dimxObj.Object.RelatedItems.splice(index, 1);
+                }
+            });
+        }
         // no more than 25(maxNumOfRelatedItems) related items
         if (dimxObj.Object.RelatedItems.length > this.maxNumOfRelatedItems) {
             dimxObj.Object.RelatedItems.splice(0, this.maxNumOfRelatedItems - 1);
@@ -68,27 +74,38 @@ export class DimxValidator {
         return dimxObj;
     }
 
-    validatePrimaryItem(ItemExternalID: string, dimxObj) {
-        // add key and hidden state for the primary item
-        if (this.isItemExist(ItemExternalID)) {
-            dimxObj.Object.Hidden = false
-            dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
-        }
+    // add key and hidden state for the primary item
+    private handlePrimaryItem(dimxObj) {
+        dimxObj.Object.Hidden = false
+        dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
     }
 
-    handleDimxObjItem() {
+    private markItemAsError(dimxObj, errorMsg: string) {
+        dimxObj.status = Error;
+        dimxObj.Details = errorMsg;
+    }
+
+    async handleDimxObjItem() {
+        await Promise.all([this.loadItems(), this.loadColllections()]);
         // get the dimxobject and return object that meets the restriction :
-        // the main item and all the related items are exist
+        // * the main item and all the related items are exist
         // * no more than 25 related items
         // * not pointing to itself 
         return this.dimxObjects.map(dimxObj => dimxObj = this.validateDimxObjItem(dimxObj));
     }
 
-    async createExistingItemsMap(allItems: any[]) {
-        // split array into chunks in order to call multiple searches simultaneously 
-        const chunks = this.splitToChunks(allItems, 500);
+    private initItemsMap(allItems) {
+        allItems.map(item => {
+            this.existingItemsMap.set(item, false);
+        });
+    }
 
-        const requests = chunks.map(chunk => {
+    private async validateItemsAvailablitiy() {
+        // convert items map into array in order to split to chunk and search
+        let allItems = Array.from(this.existingItemsMap.keys());
+        // split array into chunks in order to call multiple searches simultaneously
+        const chunks = this.splitToChunks(allItems, this.maxChunkSize);
+        await Promise.all(chunks.map(async chunk => {
             let searchBody: SearchBody = {
                 Fields: [
                     "ExternalID"
@@ -96,46 +113,44 @@ export class DimxValidator {
                 UniqueFieldID: "ExternalID",
                 UniqueFieldList: [...chunk]
             }
-
-            return this.search('items', searchBody).then(items => {
-                console.log("***items from search", items);
-                for (var item of items.Objects) {
-                    this.existingItemsMap.set(item.ExternalID, true)
-                }
-            });
-        })
-        await Promise.all(requests);
+            const items = await this.search('items', searchBody)
+            for (var item of items.Objects) {
+                this.existingItemsMap.set(item.ExternalID, true)
+            }
+        }))
     }
 
     // creates an array of all the items that arrived in dimxObject
-    createItemsArrayFromDimxObject(dimxObjects) {
+    private getItemsArrayFromDimxObject() {
         const items: any[] = [];
         // add the primary item  
-        const itemExternalIDs = dimxObjects.map(dimxObj => dimxObj.Object.ItemExternalID);
-        const relatedItems = dimxObjects.flatMap(dimxObj => dimxObj.Object.RelatedItems);
+        const itemExternalIDs = this.dimxObjects.map(dimxObj => dimxObj.Object.ItemExternalID);
+        const relatedItems = this.dimxObjects.flatMap(dimxObj => dimxObj.Object.RelatedItems);
         items.push(...itemExternalIDs, ...relatedItems);
 
         return items;
     }
 
     // creates an array of all the collections that arrived in dimxObject
-    createCollectionsArrayFromDimxObject() {
+    private getDistinctCollections() {
+        let collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
         this.dimxObjects.map(dimxObj => {
-            this.collectionsMap.set(dimxObj.Object.CollectionName, true);
+            collectionsMap.set(dimxObj.Object.CollectionName, true);
         });
+        return collectionsMap;
     }
 
-    isItemExist(item) {
+    private isItemExist(item) {
         return this.existingItemsMap.get(item) == true
     }
 
     // get list of all items and returns the existing items it Items resource
-    async search(resourceName: string, params: SearchBody): Promise<SearchData<AddonData>> {
+    private async search(resourceName: string, params: SearchBody): Promise<SearchData<AddonData>> {
         return (await this.papiClient.resources.resource(resourceName).search(params));
     }
 
     // gets an array of items and max chuck size and splits the array of items to chunks according to the max chunk size
-    splitToChunks<T>(items: T[], maxKeysInChunk: number): T[][] {
+    private splitToChunks<T>(items: T[], maxKeysInChunk: number): T[][] {
         const numberOfKeys = items.length;
         const res: T[][] = []
 

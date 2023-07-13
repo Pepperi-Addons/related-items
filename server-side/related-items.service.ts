@@ -438,9 +438,7 @@ class RelatedItemsService {
     //DIMX
     async importDataSource(body) {
         const dimxValidator = new DimxValidator(this.papiClient, this, body.DIMXObjects)
-        await dimxValidator.loadItems();
-        await dimxValidator.initCollections();
-        body.DIMXObjects = dimxValidator.handleDimxObjItem();
+        body.DIMXObjects = await dimxValidator.handleDimxObjItem();
         return body;
     }
 
