@@ -43,7 +43,7 @@ export class DimxValidator {
     private handleItemRelations(dimxObj) {
         console.log("***dimxObj inside handleItemRelations: ", dimxObj);
         let msgError: string | undefined = undefined;
-        let schemeValidation = this.validateItemRelationScheme(dimxObj)
+        let schemeValidation = this.validateItemRelationScheme(dimxObj.Object)
 
         if (schemeValidation) {
             if (this.isItemExist(dimxObj.Object.ItemExternalID)) {
@@ -149,7 +149,10 @@ export class DimxValidator {
     private getDistinctCollections() {
         let collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
         this.dimxObjects.map(dimxObj => {
-            collectionsMap.set(dimxObj.Object.CollectionName, true);
+            const collectionName = dimxObj.Object.CollectionName
+            if(collectionName != undefined) {
+                collectionsMap.set(dimxObj.Object.CollectionName, true);
+            }
         });
         return Array.from(collectionsMap);
     }
