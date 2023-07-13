@@ -1,7 +1,7 @@
 import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
-import { Collection } from '../../shared/entities'
+import { Collection, ItemRelations } from '../../shared/entities'
 
 export class DimxValidator {
     maxNumOfRelatedItems = 25;
@@ -12,13 +12,12 @@ export class DimxValidator {
     }
 
     private async loadColllections() {
-        const collectionsMap: Map<string, Boolean> = this.getDistinctCollections();
-        await this.createCollection(collectionsMap);
+        const collections = this.getDistinctCollections();
+        await this.createCollection(collections);
     }
 
-    private async createCollection(collectionsMap: Map<string, Boolean>) {
-        let collectionArray: [string, Boolean][] = Array.from(collectionsMap);
-        collectionArray.map(async collection => {
+    private async createCollection(collections: [string, Boolean][]) {
+        collections.map(async collection => {
             let newCollection: Collection = {
                 Name: collection[0],
                 Description: "",
@@ -26,13 +25,14 @@ export class DimxValidator {
             }
             await this.relatedItemsService.upsertRelatedCollection(newCollection);
         });
-        Promise.all(collectionArray);
+        Promise.all(collections);
     }
 
     // call items api, and set in a map if item is exist or not
     private async loadItems() {
         //array to save all items in the list in order to search if they exist 
         const allItems = this.getItemsArrayFromDimxObject();
+        console.log("number of items in the recived csv: ", allItems.length);
         // to ensure that duplicated items will be removed.
         this.initItemsMap(allItems);
         // a map to save all the items in the dimx object that existing in the user stock
@@ -40,36 +40,49 @@ export class DimxValidator {
     }
 
     // every dimxObject is a related item object
-    private validateDimxObjItem(dimxObj) {
-        console.log("***dimxObj inside validateDimxObjItem: ", dimxObj);
-        if (this.isItemExist(dimxObj.Object.ItemExternalID)) {
-            this.handlePrimaryItem(dimxObj);
-            this.validateRelatedItems(dimxObj);
+    private handleItemRelations(dimxObj) {
+        console.log("***dimxObj inside handleItemRelations: ", dimxObj);
+        let msgError: string | undefined = undefined;
+        let schemeValidation = this.validateItemRelationScheme(dimxObj)
+
+        if (schemeValidation) {
+            if (this.isItemExist(dimxObj.Object.ItemExternalID)) {
+                this.handlePrimaryItem(dimxObj);
+                this.validateRelatedItems(dimxObj.Object);
+            }
+            else {
+                msgError = `failed with the following error: ${dimxObj.Object.ItemExternalID} ItemExternalID does not exist`;
+            }
         }
         else {
-            console.log("item doesn't exist: ", dimxObj.Object.ItemExternalID);
-            const errMsg = `${JSON.stringify(dimxObj.Object.ItemExternalID)} failed with the following error: ItemExternalID does not exist`;
-            this.markItemAsError(dimxObj, errMsg)
+            msgError = 'Scheme validation failed'
         }
+
+        if(msgError != undefined) {
+            console.warn("error in handleItemRelations: ", msgError);
+            this.markItemAsError(dimxObj, msgError)
+        }
+
         return dimxObj;
     }
 
-    private validateRelatedItems(dimxObj) {
+    private validateRelatedItems(dimxObj: ItemRelations) {
         console.log("***dimxObj inside validateRelatedItems: ", dimxObj);
         // handeling restriction on related items list
-        if(dimxObj.Object.RelatedItems != undefined) {
-            dimxObj.Object.RelatedItems.forEach((item, index) => {
+        if (dimxObj.RelatedItems != undefined) {
+            dimxObj.RelatedItems.forEach((item, index) => {
                 ////Check if the item try to reference itself
-                if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
+                if (item === dimxObj.ItemExternalID) dimxObj.RelatedItems!.splice(index, 1);
                 // if the user does not have the item, delete it from the list 
                 if (!this.isItemExist(item)) {
-                    dimxObj.Object.RelatedItems.splice(index, 1);
+                    dimxObj.RelatedItems!.splice(index, 1);
                 }
             });
-        }
-        // no more than 25(maxNumOfRelatedItems) related items
-        if (dimxObj.Object.RelatedItems.length > this.maxNumOfRelatedItems) {
-            dimxObj.Object.RelatedItems.splice(0, this.maxNumOfRelatedItems - 1);
+
+            // no more than 25(maxNumOfRelatedItems) related items
+            if (dimxObj.RelatedItems.length > this.maxNumOfRelatedItems) {
+                dimxObj.RelatedItems.splice(0, this.maxNumOfRelatedItems - 1);
+            }
         }
         return dimxObj;
     }
@@ -81,7 +94,7 @@ export class DimxValidator {
     }
 
     private markItemAsError(dimxObj, errorMsg: string) {
-        dimxObj.status = Error;
+        dimxObj.Status = 'Error';
         dimxObj.Details = errorMsg;
     }
 
@@ -91,13 +104,14 @@ export class DimxValidator {
         // * the main item and all the related items are exist
         // * no more than 25 related items
         // * not pointing to itself 
-        return this.dimxObjects.map(dimxObj => dimxObj = this.validateDimxObjItem(dimxObj));
+        return this.dimxObjects.map(dimxObj => dimxObj = this.handleItemRelations(dimxObj));
     }
 
     private initItemsMap(allItems) {
         allItems.map(item => {
             this.existingItemsMap.set(item, false);
         });
+        console.log("number of distinct items in the recived csv: ", this.existingItemsMap.size);
     }
 
     private async validateItemsAvailablitiy() {
@@ -137,11 +151,25 @@ export class DimxValidator {
         this.dimxObjects.map(dimxObj => {
             collectionsMap.set(dimxObj.Object.CollectionName, true);
         });
-        return collectionsMap;
+        return Array.from(collectionsMap);
     }
 
     private isItemExist(item) {
         return this.existingItemsMap.get(item) == true
+    }
+
+    private validateItemRelationScheme(itemRelation) {
+        // Define the required properties
+        const requiredProperties = ['CollectionName', 'ItemExternalID', 'RelatedItems'];
+
+        // Check if all required properties are present in the object
+        const missingProperties = requiredProperties.filter(prop => !(prop in itemRelation));
+
+        if (missingProperties.length > 0) {
+            console.log('Validation failed. Missing properties:', missingProperties);
+            return false;
+        }
+        return true;
     }
 
     // get list of all items and returns the existing items it Items resource

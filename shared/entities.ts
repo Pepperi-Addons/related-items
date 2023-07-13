@@ -21,9 +21,10 @@ export interface Collection {
     Hidden?: boolean
 }
 
-export interface RelationItem {
+export interface ItemRelations {
     CollectionName?: string,
     ItemUUID?: string,
+    ItemExternalID?: string,
     RelatedItems?: string[],
     Key?: string,
     Hidden?: boolean

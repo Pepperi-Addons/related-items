@@ -1,6 +1,6 @@
 import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
-import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
+import { Collection, ItemRelations, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
 import { DimxValidator } from './dimx/dimx-validator'
 
 class RelatedItemsService {
@@ -135,7 +135,7 @@ class RelatedItemsService {
         }
     }
 
-    async deleteRelations(body: RelationItem[]) {
+    async deleteRelations(body: ItemRelations[]) {
         let relations = body.map(relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true;
@@ -438,6 +438,7 @@ class RelatedItemsService {
     //DIMX
     async importDataSource(body) {
         const dimxValidator = new DimxValidator(this.papiClient, this, body.DIMXObjects)
+        // checks that the names of the columns are what is required, and returns an error if not
         body.DIMXObjects = await dimxValidator.handleDimxObjItem();
         return body;
     }
