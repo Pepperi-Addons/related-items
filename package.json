@@ -15,7 +15,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"@pepperi-addons/cpi-node": "^0.2.3",
-		"@pepperi-addons/papi-sdk": "^1.31.1",
+		"@pepperi-addons/papi-sdk": "^1.47.3",
 		"@pepperi-addons/scripts": "^2.0.5",
 		"file-saver": "^2.0.5"
 	}

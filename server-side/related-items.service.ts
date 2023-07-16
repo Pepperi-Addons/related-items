@@ -1,12 +1,14 @@
-import { PapiClient, InstalledAddon, Item, ApiFieldObject, AddonData, FindOptions, } from '@pepperi-addons/papi-sdk'
+import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
-import { Collection, RelationItem, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
+import { Collection, ItemRelations, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from '../shared/entities'
+import { DimxValidator } from './dimx/dimx-validator'
 
 class RelatedItemsService {
 
+    maximumNumberOfRelatedItems = 25;
+
     papiClient: PapiClient
     addonUUID: string;
-    maximumNumberOfRelatedItems = 25;
 
     constructor(private client: Client) {
         this.papiClient = new PapiClient({
@@ -126,14 +128,14 @@ class RelatedItemsService {
             throw new Error(`CollectionName is required`);
         }
         if (!body.ItemExternalID) {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({ where: `Key like '${body.CollectionName}_%'` });
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({ where: `Key like '${body.CollectionName}_%'` , page_size: -1});
         }
         else {
             return await this.getRelationWithExternalIDByKey(body)
         }
     }
 
-    async deleteRelations(body: RelationItem[]) {
+    async deleteRelations(body: ItemRelations[]) {
         let relations = body.map(relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true;
@@ -434,48 +436,10 @@ class RelatedItemsService {
     }
 
     //DIMX
-    async createCollectionIfNeeded(dimxObj) {
-        //create collection if it dosn't exist
-        let collection: any = {};
-        try {
-            collection = await this.getCollectionByKey(dimxObj.Object.CollectionName);
-            collection.Hidden = false;
-        }
-        catch {
-            collection = {
-                Name: dimxObj.Object.CollectionName,
-                Description: "",
-                Hidden: false
-            }
-        }
-        await this.upsertRelatedCollection(collection);
-    }
-
-    // for the AddonRelativeURL of the relation
     async importDataSource(body) {
-        for (var dimxObj of body.DIMXObjects) {
-            await this.createCollectionIfNeeded(dimxObj);
-            //check if the user has the item 
-            let items = await this.getItemsFilteredByFields([dimxObj.Object.ItemExternalID], ['UUID']);
-            if (items.length > 0) {
-                dimxObj.Object.Hidden = false
-                //add a Key
-                dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
-
-                // handeling restriction on related items list
-                dimxObj.Object.RelatedItems.forEach(async (item, index) => {
-                    ////Check if the item try to reference itself
-                    if (item === dimxObj.Object.ItemExternalID) dimxObj.Object.RelatedItems.splice(index, 1);
-                    //check if the user has the related item 
-                    let items = await this.getItemsFilteredByFields([item], ['UUID']);
-                    if (items.length === 0) dimxObj.Object.RelatedItems.splice(index, 1);
-                });
-                //limit the number of related items for each item to maximumNumberOfRelatedItems
-                if (dimxObj.Object.RelatedItems.length > this.maximumNumberOfRelatedItems) {
-                    dimxObj.Object.RelatedItems = dimxObj.Object.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
-                }
-            }
-        }
+        const dimxValidator = new DimxValidator(this.papiClient, this, body.DIMXObjects)
+        // checks that the names of the columns are what is required, and returns an error if not
+        body.DIMXObjects = await dimxValidator.handleDimxObjItem();
         return body;
     }
 

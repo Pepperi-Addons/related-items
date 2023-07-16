@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Collection, RelationItem, IFile, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../../shared/entities';
+import { Collection, ItemRelations, IFile, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../../shared/entities';
 import { AddonService } from './addon.service';
 
 @Injectable({
@@ -34,7 +34,7 @@ export class RelatedItemsService {
         return this.addonService.pepGet(encodeURI(url)).toPromise();
     }
 
-    deleteRelations(relation: RelationItem[]) {
+    deleteRelations(relation: ItemRelations[]) {
         return this.addonService.pepPost(`/addons/api/${this.addonService.addonUUID}/api/delete_relations`, relation).toPromise();
     }
 
