@@ -16,10 +16,10 @@ export class DimxValidator {
         await this.createCollection(collections);
     }
 
-    private async createCollection(collections: [string, Boolean][]) {
+    private async createCollection(collections: string []) {
         collections.map(async collection => {
             let newCollection: Collection = {
-                Name: collection[0],
+                Name: collection,
                 Description: "",
                 Hidden: false
             }
@@ -111,7 +111,7 @@ export class DimxValidator {
         allItems.map(item => {
             this.existingItemsMap.set(item, false);
         });
-        console.log("number of distinct items in the recived csv: ", this.existingItemsMap.size);
+        console.log("number of distinct items : ", this.existingItemsMap.size);
     }
 
     private async validateItemsAvailablitiy() {
@@ -146,15 +146,17 @@ export class DimxValidator {
     }
 
     // creates an array of all the collections that arrived in dimxObject
-    private getDistinctCollections() {
+    private getDistinctCollections(): string[] {
         let collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
+        // we pass them into a map in order to return only distinct collections
         this.dimxObjects.map(dimxObj => {
             const collectionName = dimxObj.Object.CollectionName
             if(collectionName != undefined) {
                 collectionsMap.set(dimxObj.Object.CollectionName, true);
             }
         });
-        return Array.from(collectionsMap);
+        const collectionsArray =  Array.from(collectionsMap.keys());
+        return collectionsArray;
     }
 
     private isItemExist(item) {
