@@ -38,7 +38,7 @@ export class CollectionsListComponent implements OnInit {
   ngOnInit() {
     const dimxHostObject: DIMXHostObject = {
       DIMXAddonUUID: this.addonService.addonUUID,
-      DIMXResource: "RelationsWithExternalID",
+      DIMXResource: "related_items",
     }
     this.dimxService.register(this.viewContainerRef, dimxHostObject, (onDIMXProcessDoneEvent: any) => {
       this.onDIMXProcessDone(onDIMXProcessDoneEvent);

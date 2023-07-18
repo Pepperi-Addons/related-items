@@ -3,7 +3,7 @@ import { ImageObject } from '@pepperi-addons/papi-sdk/dist/entities/base';
 
 export const COLLECTION_TABLE_NAME = 'Collection';
 export const RELATED_ITEM_CPI_META_DATA_TABLE_NAME = 'CPIRelation';
-export const RELATED_ITEM_META_DATA_TABLE_NAME = 'RelationsWithExternalID';
+export const RELATED_ITEM_META_DATA_TABLE_NAME = 'related_items';
 export const RELATED_ITEM_ATD_FIELDS_TABLE_NAME = 'AtdFields';
 
 export type fileStatus = 'uploading'|'downloading'|'done'|'failed'|'hidden';

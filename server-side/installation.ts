@@ -171,6 +171,7 @@ async function createADALSchemes(papiClient: PapiClient) {
     var relatedItemsMetaDataScheme: any = {
         Name: RELATED_ITEM_META_DATA_TABLE_NAME,
         Type: 'meta_data',
+        GenericResource: true,
         Fields: {
             ItemExternalID: {
                 Type: 'String'
