@@ -82,10 +82,6 @@ class RelatedItemsService {
         }
     }
 
-    async getCollectionByKey(key: string) {
-        return this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).key(key).get();
-    }
-
     upsertRelatedCollection(body: Collection) {
         if (body.Name) {
             body.Key = body.Name;
@@ -123,6 +119,15 @@ class RelatedItemsService {
         }
     }
 
+    async upsertItemRelations(body: RelationItemWithExternalID) {
+        if (body.Hidden == true) {
+            return await this.deleteRelations([body]);
+        }
+        else {
+            return await this.addItemsToRelationWithExternalID(body);
+        }
+    }
+
     async getRelationsItemsWithExternalID(body: RelationItemWithExternalID) {
         if (!body.CollectionName) {
             throw new Error(`CollectionName is required`);
@@ -133,6 +138,14 @@ class RelatedItemsService {
         else {
             return await this.getRelationWithExternalIDByKey(body)
         }
+    }
+
+    // Generic resource  - get a single resource entity by key
+    async getItemRelationEntity(key: string) {
+        if (!key) {
+            throw new Error(`Key is required`);
+        }
+        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(key).get();
     }
 
     async deleteRelations(body: ItemRelations[]) {
@@ -147,7 +160,7 @@ class RelatedItemsService {
 
     async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
         if (body.CollectionName && body.ItemExternalID) {
-            let collection = await this.getCollectionByKey(body.CollectionName);
+            let collection = await this.upsertRelatedCollection({"Name": body.CollectionName});
             if (collection) {
                 let item = await this.getRelationWithExternalIDByKey(body);
 
