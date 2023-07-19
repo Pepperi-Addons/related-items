@@ -6,7 +6,7 @@ export async function related_items(client: Client, request: Request) {
     const service = new RelatedItemsService(client)
 
      if (request.method === 'POST') {
-        return service.upsertRelations(request.body);
+        return service.upsertItemRelations(request.body);
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
@@ -17,7 +17,7 @@ export async function get_related_items_by_key(client: Client, request: Request)
     const service = new RelatedItemsService(client)
 
     if (request.method === 'GET') {
-        return service.getRelationEntity(request.query);
+        return service.getItemRelationEntity(request.query.key);
     }
     else {
         throw new Error(`Method ${request.method} not supported`);

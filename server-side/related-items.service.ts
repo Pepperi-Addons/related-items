@@ -119,8 +119,7 @@ class RelatedItemsService {
         }
     }
 
-    async upsertRelations(body: RelationItemWithExternalID) {
-        debugger
+    async upsertItemRelations(body: RelationItemWithExternalID) {
         if (body.Hidden == true) {
             return await this.deleteRelations([body]);
         }
@@ -142,11 +141,11 @@ class RelatedItemsService {
     }
 
     // Generic resource  - get a single resource entity by key
-    async getRelationEntity(query) {
-        if (!query.key) {
+    async getItemRelationEntity(key: string) {
+        if (!key) {
             throw new Error(`Key is required`);
         }
-        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(query.key).get();
+        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(key).get();
     }
 
     async deleteRelations(body: ItemRelations[]) {
