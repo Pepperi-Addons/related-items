@@ -99,6 +99,7 @@ export class DimxValidator {
     }
 
     async handleDimxObjItem() {
+        this.dimxObjects.OverwriteObject = true;
         await Promise.all([this.loadItems(), this.loadColllections()]);
         // get the dimxobject and return object that meets the restriction :
         // * the main item and all the related items are exist
