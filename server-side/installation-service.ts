@@ -38,7 +38,7 @@ export class InstallationService {
             if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
                 const ansFromCreateSchemes = await this.createNewScheme();
                 if (ansFromCreateSchemes.success === true) {
-                    this.handleSchemeData(); // export from the old scheme and import to the new one
+                   await this.handleSchemeData(); // export from the old scheme and import to the new one
                 }
                 else {
                     throw new Error(`Failed to create related_items scheme`);
