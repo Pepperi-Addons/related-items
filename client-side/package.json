@@ -48,7 +48,7 @@
     "quill": "^1.3.7",
     "rxjs": "~7.5.0",
     "tslib": "^2.0.0",
-    "udc-shared": "file:../shared",
+    "shared": "file:../shared",
     "zone.js": "~0.11.5"
   },
   "devDependencies": {

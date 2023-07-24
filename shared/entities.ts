@@ -57,17 +57,17 @@ export interface Relation {
 
 export class exportAnswer {
     success: boolean;
-    DataForImport: {};
+    DataForImport: any;
 
-    constructor(success: boolean, obj: {}) {
+    constructor(success: boolean, obj: any) {
         this.success = success;
         this.DataForImport = obj;
     }
 }
 
 export class IFile {
-    key: number = 0;
-    name: string = '';
+    key = 0;
+    name = '';
     status: fileStatus = 'downloading';
 }
 
