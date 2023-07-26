@@ -49,7 +49,7 @@ export class InstallationService {
         private async createNewScheme(){
             var relatedItemsScheme: AddonDataScheme = {
                 Name: this.newTableName,
-                Type: 'data',
+                Type: 'meta_data',
                 GenericResource: true,
                 Fields: {
                     ItemExternalID: {
@@ -86,7 +86,7 @@ export class InstallationService {
         private async handleSchemeData(){
             const fileURI = await this.exportRelationsWithExternalID();
             if (fileURI) {
-                const ansFromImport = await this.importExportedFileTorelatedItemsScheme(fileURI);
+                const ansFromImport = await this.importFileToRelatedItems(fileURI);
                 const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
                 if (ansFromAuditLog.success === true) {
                     this.purgeOldScheme();
@@ -110,7 +110,7 @@ export class InstallationService {
             
         }
 
-        private async importExportedFileTorelatedItemsScheme(fileURI) {
+        private async importFileToRelatedItems(fileURI) {
             const body = {
                 URI: fileURI
             };

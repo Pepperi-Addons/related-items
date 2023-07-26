@@ -1,23 +1,30 @@
 import { Client } from "@pepperi-addons/debug-server/dist";
 import { BaseCommand } from "../related-items-base-command";
-import { ItemRelations, Collection } from "../../../../shared/entities";
+import { ItemRelations } from "../../../../shared/entities";
 import { DataImportInput } from "@pepperi-addons/papi-sdk";
+import { ResourceService } from "../../services/resource-service";
+import { v4 as uuid } from 'uuid';
 
-export class ImportDataCommand extends BaseCommand {
+// base class for import data tests
+export class ImportDataBaseCommand extends BaseCommand {
 
-    numberOfEntities;
-    
-    constructor(client: Client){
+    resource: ResourceService;
+    numberOfEntities: number = 0; // number of entities to import
+    collectionName: string;
+
+    constructor(protected client: Client) {
         super(client)
+         this.resource = new ResourceService(this.papiClient, client);
+         this.collectionName = this.title + "_" + uuid();
     }
-
+    
     //create ItemRelations Array with items to import
     //number of items to import decided by numberOfEntities
-    async initData() {
+    async initData(): Promise<ItemRelations[]> {
         var relations: ItemRelations[] = [];
         for ( var index = 0; index < this.numberOfEntities; index++) {
             var relation : ItemRelations = {
-                "CollectionName": this.title,
+                "CollectionName": this.collectionName,
                 "ItemExternalID": this.items[index].ExternalID,
                 "RelatedItems": [this.items[index + 1].ExternalID, this.items[index + 2].ExternalID, this.items[index + 3].ExternalID]
             }
@@ -28,20 +35,19 @@ export class ImportDataCommand extends BaseCommand {
 
     async testAction() {
         const dimxObj: DataImportInput = {
-            "Objects": this.data
+            "Objects": this.mockItemRelationsData
         }
-        return this.papiClient.resources.resource("related_items").import.data(dimxObj);
+        return await this.resource.importData(dimxObj);
      }
 
      async cleanup(): Promise<any> {
-        this.data.map(obj => obj.Hidden = true);
-
+        this.mockItemRelationsData.map(obj => obj.Hidden = true);
         const dimxObj: DataImportInput = {
-            "Objects": this.data
+            "Objects": this.mockItemRelationsData
         }
         // delete items inside the collection
-        await this.papiClient.resources.resource("related_items").import.data(dimxObj);
+        await this.resource.importData(dimxObj);
         // delete the collection
-        return this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, [{"Name": this.title}]);
+        return await this.resource.deleteCollections([{"Name": this.collectionName}]);
      }
 }

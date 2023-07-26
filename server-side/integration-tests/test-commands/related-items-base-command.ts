@@ -1,16 +1,17 @@
 import { BaseTest } from '@pepperi-addons/addon-testing-framework'
 import { Client } from '@pepperi-addons/debug-server/dist';
-import { AddonData, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
-import { ItemRelations, itemsResourceObject } from '../../../shared/entities';
-import { v4 as uuid } from 'uuid';
+import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { ItemRelations } from '../../../shared/entities';
+import { ItemsService } from '../services/items-service';
+
 
 export class BaseCommand extends BaseTest {
     title = 'Test Title'
-    items;
-    data;
-    testActionRes;
-    processRes;
-    addonUUID;
+    items; // distribut items
+    mockItemRelationsData: ItemRelations[] = [];
+    testActionResult; //the answer from the test function
+    dataToTest; // data for the test
+    
 
     protected papiClient: PapiClient;
     
@@ -23,7 +24,6 @@ export class BaseCommand extends BaseTest {
             addonSecretKey: client.AddonSecretKey,
              actionUUID: client.ActionUUID,
         })
-        this.addonUUID = client.AddonUUID;
     }
     
     tests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic): void {
@@ -31,22 +31,24 @@ export class BaseCommand extends BaseTest {
     }
 
     execute(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic): void {
+        const itemsService = new ItemsService(this.papiClient);
+
         describe(this.title, () => {
             it('prepareUserItems', async () => {
-               this.items = await this.prepareUserItems();
+               this.items = await itemsService.prepareUserItems();
             })
             it("initData", async () => {
-               this.data = await this.initData(this.items);
+               this.mockItemRelationsData = await this.initData(this.items);
             })
             it("testAction", async () => {
-                this.testActionRes = await this.testAction(this.data);
+                this.testActionResult = await this.testAction(this.mockItemRelationsData);
             })
             it("processRes",async () => {
-                this.processRes = await this.processTestAction(this.testActionRes);
+                this.dataToTest = await this.processTestAction(this.testActionResult);
             })
             it('Test and Cleanup', async () => {
                 try {
-                await this.test(this.testActionRes, this.processRes, expect)
+                await this.test(this.testActionResult, this.dataToTest, expect)
                 } finally {
                     await this.cleanup()
                     
@@ -59,42 +61,7 @@ export class BaseCommand extends BaseTest {
         throw new Error("Method not implemented.");
     }
 
-    async getUsersItems(): Promise<ItemRelations[]> {
-        return (await this.papiClient.resources.resource("items").search({
-            Fields: ['ExternalID'],
-            PageSize: 500,
-        })).Objects as ItemRelations[];
-    }
-
-    async prepareUserItems(): Promise<ItemRelations[]> {
-        var items: ItemRelations[] = await this.getUsersItems()
-        // Creating items if there are not enough items for tests
-        if (items.length < 500) {
-            this.createNewItems(items.length);
-            // get list with the new items
-            items = await this.getUsersItems();
-        }
-        return items;
-    }
-
-    createNewItems(itemsCounter) {
-        var itemsToAdd: itemsResourceObject[] = [];
-        var i = 0;
-        while (itemsCounter.length < 1000) {
-            itemsToAdd.push({
-                "ExternalID": `Test${i}`,
-                "MainCategoryID": 1,
-                "Key": uuid()
-            });
-            i++;
-        }
-        const dataImportInput = {
-            "Objects" : itemsToAdd
-        }
-        this.papiClient.resources.resource("items").import.data(dataImportInput);
-    }
-
-    initData(items: ItemRelations[]) {
+    initData(items: ItemRelations[]): Promise<ItemRelations[]> {
         throw new Error("Method not implemented.");
     }
 
