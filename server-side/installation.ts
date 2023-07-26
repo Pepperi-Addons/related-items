@@ -50,8 +50,8 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
 
     await createRelations(papiClient);
     const ansFromMigration = await installationService.performMigration(request.body.FromVersion);
-    if (ansFromMigration.success === true) {
-        return { success: false, resultObject: {} }
+    if (ansFromMigration.success == false) {
+        return { success: false, resultObject: "migration failed" }
     }
 
     return { success: true, resultObject: {} }

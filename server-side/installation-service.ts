@@ -25,7 +25,7 @@ export class InstallationService {
         // migrate from the old ADAL schema RelationsWithExternalID the the new one
         async performMigration(fromVersion) {
             try{
-                 await this.migrateToV1_1_x(fromVersion);
+                await this.migrateToV1_1_x(fromVersion);
                 return { success: true, resultObject: {}};
             }
             catch(e) {
@@ -38,7 +38,7 @@ export class InstallationService {
             if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
                 const ansFromCreateSchemes = await this.createNewScheme();
                 if (ansFromCreateSchemes.success === true) {
-                   await this.handleSchemeData(); // export from the old scheme and import to the new one
+                    await this.handleSchemeData(); // export from the old scheme and import to the new one
                 }
                 else {
                     throw new Error(`Failed to create related_items scheme`);
@@ -49,7 +49,7 @@ export class InstallationService {
         private async createNewScheme(){
             var relatedItemsScheme: AddonDataScheme = {
                 Name: this.newTableName,
-                Type: 'meta_data',
+                Type: 'data',
                 GenericResource: true,
                 Fields: {
                     ItemExternalID: {
@@ -86,8 +86,11 @@ export class InstallationService {
         private async handleSchemeData(){
             const fileURI = await this.exportRelationsWithExternalID();
             if (fileURI) {
-                this.importExportedFileTorelatedItemsScheme(fileURI);
-                this.purgeOldScheme();
+                const ansFromImport = await this.importExportedFileTorelatedItemsScheme(fileURI);
+                const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
+                if (ansFromAuditLog.success === true) {
+                    this.purgeOldScheme();
+                }
             }
             else {
                 console.log("No scheme to migrate")
@@ -111,13 +114,16 @@ export class InstallationService {
             const body = {
                 URI: fileURI
             };
-            return this.papiClient.post(`/addons/data/import/${this.client.AddonUUID}/related_items`, body);
+            return this.papiClient.post(`/addons/data/import/file/${this.client.AddonUUID}/related_items`, body);
         }
 
         private async getURIFromAuditLog(auditLog) {
             const ansFromAuditLog = await this.pollExecution(this.papiClient, auditLog.ExecutionUUID);
             if (ansFromAuditLog.success === true) {
                 return JSON.parse(ansFromAuditLog.resultObject).URI;
+            }
+            else {
+                throw new Error(`Failed to create related_items scheme`);
             }
         }
 

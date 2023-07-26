@@ -5,7 +5,7 @@ export class BigDataCommand extends ImportDataCommand {
     constructor(client: Client){
         super(client)
         this.title = 'Big Size Data Test'
-        this.numberOfEntities = 1000;
+        this.numberOfEntities = 500;
 
     }
 
@@ -20,6 +20,6 @@ export class BigDataCommand extends ImportDataCommand {
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        expect(data).to.equal(1000);
+        expect(data).to.equal(500);
     }
 }

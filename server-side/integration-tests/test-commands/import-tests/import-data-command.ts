@@ -1,6 +1,6 @@
 import { Client } from "@pepperi-addons/debug-server/dist";
-import { BaseCommand } from "./related-items-base-command";
-import { ItemRelations, Collection } from "../../../shared/entities";
+import { BaseCommand } from "../related-items-base-command";
+import { ItemRelations, Collection } from "../../../../shared/entities";
 import { DataImportInput } from "@pepperi-addons/papi-sdk";
 
 export class ImportDataCommand extends BaseCommand {
@@ -34,7 +34,14 @@ export class ImportDataCommand extends BaseCommand {
      }
 
      async cleanup(): Promise<any> {
-        const collections: Collection[] = [{"Name": this.title}];
-        return this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, collections);
+        this.data.map(obj => obj.Hidden = true);
+
+        const dimxObj: DataImportInput = {
+            "Objects": this.data
+        }
+        // delete items inside the collection
+        await this.papiClient.resources.resource("related_items").import.data(dimxObj);
+        // delete the collection
+        return this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, [{"Name": this.title}]);
      }
 }

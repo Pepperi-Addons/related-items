@@ -71,3 +71,9 @@ export class IFile {
     status: fileStatus = 'downloading';
 }
 
+export interface itemsResourceObject {
+    ExternalID: string;
+    MainCategoryID: number;
+    Key: string;
+}
+

@@ -89,7 +89,7 @@ export class DimxValidator {
 
     // add key and hidden state for the primary item
     private handlePrimaryItem(dimxObj) {
-        dimxObj.Object.Hidden = false
+        dimxObj.Object.Hidden = dimxObj.Object.Hidden? dimxObj.Object.Hidden : false
         dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
     }
 
@@ -100,6 +100,7 @@ export class DimxValidator {
 
     async handleDimxObjItem() {
         this.dimxObjects.OverwriteObject = true;
+        this.dimxObjects.OwnerID = this.relatedItemsService.addonUUID;
         await Promise.all([this.loadItems(), this.loadColllections()]);
         // get the dimxobject and return object that meets the restriction :
         // * the main item and all the related items are exist
