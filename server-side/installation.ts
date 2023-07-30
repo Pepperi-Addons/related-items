@@ -49,7 +49,7 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
         addonSecretKey: client.AddonSecretKey,
         actionUUID: client["ActionUUID"]
     });
-    const installationService = new InstallationService(client);
+    const installationService = new InstallationService(papiClient);
 
     await createRelations(papiClient);
     const ansFromMigration = await installationService.performMigration(request.body.FromVersion);
@@ -161,6 +161,7 @@ async function createRelations(papiClient: PapiClient) {
 }
 
 async function createADALSchemes(papiClient: PapiClient) {
+    const installationService = new InstallationService(papiClient)
     var collectionsScheme: AddonDataScheme = {
         Name: COLLECTION_TABLE_NAME,
         Type: 'meta_data',
@@ -186,6 +187,7 @@ async function createADALSchemes(papiClient: PapiClient) {
         await papiClient.addons.data.schemes.post(collectionsScheme);
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
+        await installationService.createRelatedItemsScheme()
 
         return {
             success: true,
