@@ -89,7 +89,7 @@ export class DimxValidator {
 
     // add key and hidden state for the primary item
     private handlePrimaryItem(dimxObj) {
-        dimxObj.Object.Hidden = false
+        dimxObj.Object.Hidden = dimxObj.Object.Hidden? dimxObj.Object.Hidden : false
         dimxObj.Object.Key = `${dimxObj.Object.CollectionName}_${dimxObj.Object.ItemExternalID}`;
     }
 
