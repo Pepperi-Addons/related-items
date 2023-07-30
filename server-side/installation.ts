@@ -17,7 +17,6 @@ import { InstallationService } from './installation-service';
 
 export async function install(client: Client, request: Request): Promise<any> {
     const service = new RelatedItemsService(client)
-    const installationService = new InstallationService(client)
 
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
@@ -27,8 +26,7 @@ export async function install(client: Client, request: Request): Promise<any> {
         actionUUID: client["ActionUUID"]
     });
 
-    await createADALSchemes(papiClient);
-    await installationService.createNewScheme()
+    await createADALSchemes(papiClient, client);
     await service.createPNSSubscription();
     await createRelations(papiClient);
 
@@ -159,7 +157,8 @@ async function createRelations(papiClient: PapiClient) {
     }
 }
 
-async function createADALSchemes(papiClient: PapiClient) {
+async function createADALSchemes(papiClient: PapiClient, client: Client) {
+    const installationService = new InstallationService(client)
     var collectionsScheme: AddonDataScheme = {
         Name: COLLECTION_TABLE_NAME,
         Type: 'meta_data',
@@ -185,6 +184,7 @@ async function createADALSchemes(papiClient: PapiClient) {
         await papiClient.addons.data.schemes.post(collectionsScheme);
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
+        await installationService.createRelatedItemsScheme()
 
         return {
             success: true,

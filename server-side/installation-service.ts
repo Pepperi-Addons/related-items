@@ -36,7 +36,7 @@ export class InstallationService {
     
         private async migrateToV1_1_x(fromVersion) {
             if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
-                const ansFromCreateSchemes = await this.createNewScheme();
+                const ansFromCreateSchemes = await this.createRelatedItemsScheme();
                 if (ansFromCreateSchemes.success === true) {
                     await this.handleSchemeData(); // export from the old scheme and import to the new one
                 }
@@ -46,7 +46,7 @@ export class InstallationService {
             }
         }
 
-        async createNewScheme(){
+        async createRelatedItemsScheme(){
             var relatedItemsScheme: AddonDataScheme = {
                 Name: this.newTableName,
                 Type: 'data',
