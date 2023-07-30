@@ -26,7 +26,7 @@ export async function install(client: Client, request: Request): Promise<any> {
         actionUUID: client["ActionUUID"]
     });
 
-    await createADALSchemes(papiClient, client);
+    await createADALSchemes(papiClient);
     await service.createPNSSubscription();
     await createRelations(papiClient);
 
@@ -46,7 +46,7 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
         addonSecretKey: client.AddonSecretKey,
         actionUUID: client["ActionUUID"]
     });
-    const installationService = new InstallationService(client);
+    const installationService = new InstallationService(papiClient);
 
     await createRelations(papiClient);
     const ansFromMigration = await installationService.performMigration(request.body.FromVersion);
@@ -157,8 +157,8 @@ async function createRelations(papiClient: PapiClient) {
     }
 }
 
-async function createADALSchemes(papiClient: PapiClient, client: Client) {
-    const installationService = new InstallationService(client)
+async function createADALSchemes(papiClient: PapiClient) {
+    const installationService = new InstallationService(papiClient)
     var collectionsScheme: AddonDataScheme = {
         Name: COLLECTION_TABLE_NAME,
         Type: 'meta_data',
