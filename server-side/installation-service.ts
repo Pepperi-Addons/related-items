@@ -46,10 +46,10 @@ export class InstallationService {
             }
         }
 
-        private async createNewScheme(){
+        async createNewScheme(){
             var relatedItemsScheme: AddonDataScheme = {
                 Name: this.newTableName,
-                Type: 'meta_data',
+                Type: 'data',
                 GenericResource: true,
                 Fields: {
                     ItemExternalID: {

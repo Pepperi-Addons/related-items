@@ -17,6 +17,7 @@ import { InstallationService } from './installation-service';
 
 export async function install(client: Client, request: Request): Promise<any> {
     const service = new RelatedItemsService(client)
+    const installationService = new InstallationService(client)
 
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
@@ -27,6 +28,7 @@ export async function install(client: Client, request: Request): Promise<any> {
     });
 
     await createADALSchemes(papiClient);
+    await installationService.createNewScheme()
     await service.createPNSSubscription();
     await createRelations(papiClient);
 
@@ -175,26 +177,6 @@ async function createADALSchemes(papiClient: PapiClient) {
         Name: RELATED_ITEM_CPI_META_DATA_TABLE_NAME,
         Type: 'cpi_meta_data' as any
     };
-
-    var relatedItemsMetaDataScheme: any = {
-        Name: RELATED_ITEM_META_DATA_TABLE_NAME,
-        Type: 'meta_data',
-        GenericResource: true,
-        Fields: {
-            ItemExternalID: {
-                Type: 'String'
-            },
-            CollectionName: {
-                Type: 'String'
-            },
-            RelatedItems: {
-                Type: 'Array',
-                Items:{
-                    Type: 'String'
-                }
-            }
-        }
-    };
     var relatedItemsAtdFieldsScheme: AddonDataScheme = {
         Name: RELATED_ITEM_ATD_FIELDS_TABLE_NAME,
         Type: 'cpi_meta_data' as any
@@ -202,7 +184,6 @@ async function createADALSchemes(papiClient: PapiClient) {
     try {
         await papiClient.addons.data.schemes.post(collectionsScheme);
         await papiClient.addons.data.schemes.post(relationsScheme);
-        await papiClient.addons.data.schemes.post(relatedItemsMetaDataScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
 
         return {
