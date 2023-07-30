@@ -1,25 +1,14 @@
 
 import semver from 'semver';
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
-import { Client } from '@pepperi-addons/debug-server/dist';
+import config from '../addon.config.json'
 
 export class InstallationService {
 
-    papiClient: PapiClient
-    addonUUID: string;
     oldTableName: string = "RelationsWithExternalID";
     newTableName: string = "related_items"
-
     
-    constructor(private client: Client) {
-        this.papiClient = new PapiClient({
-            baseURL: client.BaseURL,
-            token: client.OAuthAccessToken,
-            addonUUID: client.AddonUUID,
-            addonSecretKey: client.AddonSecretKey,
-            actionUUID: client["ActionUUID"]
-        });
-        this.addonUUID = client.AddonUUID;
+    constructor(private papiClient: PapiClient) {
     }
 
         // migrate from the old ADAL schema RelationsWithExternalID the the new one
@@ -36,7 +25,7 @@ export class InstallationService {
     
         private async migrateToV1_1_x(fromVersion) {
             if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
-                const ansFromCreateSchemes = await this.createNewScheme();
+                const ansFromCreateSchemes = await this.createRelatedItemsScheme();
                 if (ansFromCreateSchemes.success === true) {
                     await this.handleSchemeData(); // export from the old scheme and import to the new one
                 }
@@ -46,10 +35,10 @@ export class InstallationService {
             }
         }
 
-        private async createNewScheme(){
+        async createRelatedItemsScheme(){
             var relatedItemsScheme: AddonDataScheme = {
                 Name: this.newTableName,
-                Type: 'meta_data',
+                Type: 'data',
                 GenericResource: true,
                 Fields: {
                     ItemExternalID: {
@@ -105,7 +94,7 @@ export class InstallationService {
                 DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems",
                 DIMXExportDelimiter: ","
               }
-            const auditLog = await this.papiClient.post(`/addons/data/export/file/${this.client.AddonUUID}/${this.oldTableName}`, body);
+            const auditLog = await this.papiClient.post(`/addons/data/export/file/${config.AddonUUID}/${this.oldTableName}`, body);
             return this.getURIFromAuditLog(auditLog);
             
         }
@@ -114,7 +103,7 @@ export class InstallationService {
             const body = {
                 URI: fileURI
             };
-            return this.papiClient.post(`/addons/data/import/file/${this.client.AddonUUID}/related_items`, body);
+            return this.papiClient.post(`/addons/data/import/file/${config.AddonUUID}/related_items`, body);
         }
 
         private async getURIFromAuditLog(auditLog) {
