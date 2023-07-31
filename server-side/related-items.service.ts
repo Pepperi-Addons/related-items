@@ -159,7 +159,14 @@ class RelatedItemsService {
     }
 
     async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
-        if (body.CollectionName && body.ItemExternalID) {
+        if(body.ItemExternalID) {
+            const primaryItem = await this.papiClient.items.find({ fields: ['UUID'], where: `ExternalID like '${body.ItemExternalID}'` });
+            if(primaryItem.length == 0 ) {
+                throw new Error(`ExternalID does not exist`);
+            }
+        }
+
+        if (body.CollectionName) {
             let collection = await this.upsertRelatedCollection({"Name": body.CollectionName});
             if (collection) {
                 let item = await this.getRelationWithExternalIDByKey(body);

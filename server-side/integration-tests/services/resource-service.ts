@@ -1,6 +1,7 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
 import { Collection, DataImportInput, FileImportInput } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server/dist';
+import { ItemRelations } from '../../../shared/entities';
 
 export class ResourceService {
 
@@ -19,7 +20,11 @@ export class ResourceService {
     }
 
     async deleteCollections(body: Collection[]) {
-        return await  this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, body);
+        return await this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, body);
+    }
+
+    async upsertSingleEntity(body: ItemRelations) {
+        return await this.papiClient.resources.resource("related_items").post(body);
     }
 
     async callAuditLog(executionUUID: string) {
