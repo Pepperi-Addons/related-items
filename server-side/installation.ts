@@ -17,7 +17,6 @@ import { InstallationService } from './installation-service';
 
 export async function install(client: Client, request: Request): Promise<any> {
     const service = new RelatedItemsService(client)
-    const installationService = new InstallationService(client);
 
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
@@ -28,8 +27,6 @@ export async function install(client: Client, request: Request): Promise<any> {
     });
 
     await createADALSchemes(papiClient);
-    await installationService.createNewScheme();
-    await installationService.createPFSResource(papiClient);
     await service.createPNSSubscription();
     await createRelations(papiClient);
 
@@ -188,6 +185,7 @@ async function createADALSchemes(papiClient: PapiClient) {
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
         await installationService.createRelatedItemsScheme()
+        await installationService.createPFSResource()
 
         return {
             success: true,

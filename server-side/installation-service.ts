@@ -37,15 +37,15 @@ export class InstallationService {
         }
     }
 
-    // PFS Scheme
-    async createPFSResource(papiClient: PapiClient) {
+    // PFS Scheme - for import file test
+    async createPFSResource() {
         var pfsScheme: AddonDataScheme = {
             "Name": PFS_TABLE_NAME,
             "Type": 'pfs'
         }
 
         try {
-            await papiClient.addons.data.schemes.post(pfsScheme);
+            await this.papiClient.addons.data.schemes.post(pfsScheme);
 
             return {
                 success: true,
@@ -132,7 +132,7 @@ export class InstallationService {
         catch(e) {
             console.log("Migration failed with the following error:" , e);
             return {
-                success: true,
+                success: false,
                 errorMessage: "Failed to create related_items scheme"
             }
         }
@@ -154,7 +154,7 @@ export class InstallationService {
         const body = {
             URI: fileURI
         };
-        return this.papiClient.post(`/addons/data/import/file/${config.AddonUUID}/related_items`, body);
+        return this.papiClient.post(`/addons/data/import/file/${"4f9f10f3-cd7d-43f8-b969-5029dad9d02b"}/related_items`, body);
     }
 
     private async getURIFromAuditLog(auditLog) {
