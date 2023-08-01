@@ -81,7 +81,7 @@ export class DimxValidator {
 
             // no more than 25(maxNumOfRelatedItems) related items
             if (dimxObj.RelatedItems.length > this.maxNumOfRelatedItems) {
-                dimxObj.RelatedItems.splice(0, this.maxNumOfRelatedItems - 1);
+                dimxObj.RelatedItems.slice(0, this.maxNumOfRelatedItems);
             }
         }
         return dimxObj;
