@@ -191,7 +191,7 @@ export class RelatedCollectionsComponent implements OnInit {
             return this.dialogService.openDialog("", MessageDialogComponent, [], { data: errorMessage });
           }
           else {
-            await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': data.ItemExternalID })
+            await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': data.ItemExternalID, 'RelatedItems': [] })
             this.router.navigate([`${data.ItemExternalID}`], {
               relativeTo: this.route,
               queryParamsHandling: 'merge'
