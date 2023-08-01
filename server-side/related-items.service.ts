@@ -226,7 +226,7 @@ class RelatedItemsService {
         if (numberOfRelatedItems > this.maximumNumberOfRelatedItems) {
             //Save failed items for user message
             exceededItems = item.RelatedItems.slice(this.maximumNumberOfRelatedItems, numberOfRelatedItems)
-            item.RelatedItems = item.RelatedItems.slice(0, this.maximumNumberOfRelatedItems);
+            item.RelatedItems = item.RelatedItems.slice(this.maximumNumberOfRelatedItems, item.RelatedItems.length - 1);
         }
         item.Hidden = false;
         await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item);
