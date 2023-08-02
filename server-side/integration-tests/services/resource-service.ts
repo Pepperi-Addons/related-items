@@ -27,6 +27,10 @@ export class ResourceService {
         return await this.papiClient.resources.resource("related_items").post(body);
     }
 
+    async getItemsRelations(query: string) {
+        return await this.papiClient.get(`/addons/api/${this.addonUUID}/api/relation?${query}`);
+    }
+
     async callAuditLog(executionUUID: string) {
         const ansFromAuditLog = await this.pollExecution(this.papiClient, executionUUID);
         if (ansFromAuditLog.success === true) {

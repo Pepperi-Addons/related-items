@@ -26,16 +26,21 @@ export class NotExistingItemSingleEntityCommand extends BaseCommand {
     }
 
     async testAction() {
-        return await this.resourceService.upsertSingleEntity(this.mockItemRelationsData[0]);
+        try {
+            return await this.resourceService.upsertSingleEntity(this.mockItemRelationsData[0]);
+        }
+        catch {
+            return [];
+        }
      }
 
     async processTestAction(testActionRes) {
-        debugger
-        return testActionRes;
+        return await this.resourceService.getItemsRelations(`CollectionName=${this.collectionName}`);
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        expect(data).to.equal('3 items were added');
+        debugger
+        expect(data).to.be.an('array').that.is.empty;
     }
 
     async cleanup(): Promise<any> {
