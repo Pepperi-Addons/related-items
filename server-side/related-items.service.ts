@@ -74,8 +74,9 @@ class RelatedItemsService {
             return collectionArray;
         }
         else {
-            const array = collectionArray.map(collection => {
-                return this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name }).then(relationsArray => collection.Count = relationsArray?.length);
+            const array = collectionArray.map(async collection => {
+                const items = await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({fields:['ItemExternalID'], where: `Key like '${collection.Name}_%'` , page_size: -1 })
+                collection.Count = items.length;
             })
             await Promise.all(array);
             return collectionArray;
@@ -143,7 +144,7 @@ class RelatedItemsService {
             throw new Error(`CollectionName is required`);
         }
         if (!body.ItemExternalID) {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({ where: `Key like '${body.CollectionName}_%'` , page_size: -1 });
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key like '${body.CollectionName}_%'` , page_size: -1 });
         }
         else {
             return await this.getRelationWithExternalIDByKey(body)
