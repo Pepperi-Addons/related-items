@@ -124,7 +124,9 @@ class RelatedItemsService {
             return await this.deleteRelations([body]);
         }
         else {
-            return await this.addItemsToRelationWithExternalID(body);
+            await this.addItemsToRelationWithExternalID(body);
+            // The key was updated when inserting the item into the table
+            return await this.getItemRelationEntity(body.Key!);
         }
     }
 
