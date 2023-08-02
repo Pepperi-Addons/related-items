@@ -119,6 +119,14 @@ class RelatedItemsService {
         }
     }
 
+    async getRelatedItems(query) {
+        if (query && query.resource_name == 'related_items'){
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find(query);
+        } else {
+            throw new Error(`resource name is not related_items`);
+        }        
+    }
+    
     async upsertItemRelations(body: RelationItemWithExternalID) {
         if (body.Hidden == true) {
             return await this.deleteRelations([body]);
