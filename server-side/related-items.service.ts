@@ -124,7 +124,9 @@ class RelatedItemsService {
             return await this.deleteRelations([body]);
         }
         else {
-            return await this.addItemsToRelationWithExternalID(body);
+            await this.addItemsToRelationWithExternalID(body);
+            // The key was updated when inserting the item into the table
+            return await this.getItemRelationEntity(body.Key!);
         }
     }
 
@@ -133,7 +135,7 @@ class RelatedItemsService {
             throw new Error(`CollectionName is required`);
         }
         if (!body.ItemExternalID) {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({ where: `Key like '${body.CollectionName}_%'` , page_size: -1});
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({ where: `Key like '${body.CollectionName}_%'` , page_size: -1 });
         }
         else {
             return await this.getRelationWithExternalIDByKey(body)
@@ -159,15 +161,10 @@ class RelatedItemsService {
     }
 
     async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
-        if(body.ItemExternalID) {
-            const primaryItem = await this.papiClient.items.find({ fields: ['UUID'], where: `ExternalID like '${body.ItemExternalID}'` });
-            if(primaryItem.length == 0 ) {
-                throw new Error(`ExternalID does not exist`);
-            }
-        }
-
-        if (body.CollectionName) {
-            let collection = await this.upsertRelatedCollection({"Name": body.CollectionName});
+        // mandatory fields
+        if (body.CollectionName && body.ItemExternalID && body.RelatedItems) {
+            this.validateItemExternalID(body.ItemExternalID);
+            let collection = await this.upsertRelatedCollection({ "Name": body.CollectionName });
             if (collection) {
                 let item = await this.getRelationWithExternalIDByKey(body);
 
@@ -220,7 +217,14 @@ class RelatedItemsService {
             }
         }
         else {
-            throw new Error(`CollectionName and ItemExternalID are required`);
+            throw new Error(`One or more of the following fields are missing: CollectionName, ItemExternalID, RelatedItems`);
+        }
+    }
+
+    async validateItemExternalID(itemExternalID: string) {
+        const primaryItem = await this.papiClient.items.find({ fields: ['UUID'], where: `ExternalID like '${itemExternalID}'` });
+        if (primaryItem.length == 0) {
+            throw new Error(`ExternalID does not exist`);
         }
     }
 
