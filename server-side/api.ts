@@ -5,8 +5,11 @@ import { Client, Request } from '@pepperi-addons/debug-server'
 export async function related_items(client: Client, request: Request) {
     const service = new RelatedItemsService(client)
 
-     if (request.method === 'POST') {
+    if (request.method === 'POST') {
         return service.upsertItemRelations(request.body);
+    }
+    else if (request.method === 'GET') {
+        return service.getRelatedItems(request.query);
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
