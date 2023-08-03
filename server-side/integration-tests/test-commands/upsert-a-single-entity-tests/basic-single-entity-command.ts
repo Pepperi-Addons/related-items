@@ -34,7 +34,10 @@ export class BasicSingleEntityCommand extends BaseCommand {
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        expect(data).to.equal('3 items were added');
+        const entities = await this.resourceService.getItemsRelations(`CollectionName=${this.collectionName}`);
+        expect(data.CollectionName).to.equal(entities[0].CollectionName);
+        expect(data.ItemExternalID).to.equal(entities[0].ItemExternalID);
+        expect(data.RelatedItems).to.include.members(entities[0].RelatedItems);
     }
 
     async cleanup(): Promise<any> {
