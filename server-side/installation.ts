@@ -16,8 +16,6 @@ import config from '../addon.config.json';
 import { InstallationService } from './installation-service';
 
 export async function install(client: Client, request: Request): Promise<any> {
-    const service = new RelatedItemsService(client)
-
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
         token: client.OAuthAccessToken,
@@ -25,9 +23,10 @@ export async function install(client: Client, request: Request): Promise<any> {
         addonSecretKey: client.AddonSecretKey,
         actionUUID: client["ActionUUID"]
     });
+    const installationService = new InstallationService(papiClient);
 
     await createADALSchemes(papiClient);
-    await service.createPNSSubscription();
+    await installationService.createPNSSubscription();
     await createRelations(papiClient);
 
     return { success: true, resultObject: {} }
