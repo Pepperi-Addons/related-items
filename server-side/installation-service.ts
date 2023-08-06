@@ -27,8 +27,8 @@ export class InstallationService {
     private async migrateToV1_1_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme();
-            await this.createPNSSubscription();
             if (ansFromCreateSchemes.success === true) {
+                await this.createPNSSubscription();
                 await this.handleSchemeData(); // export from the old scheme and import to the new one
             }
             else {
