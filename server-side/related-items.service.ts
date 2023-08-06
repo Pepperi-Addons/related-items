@@ -22,20 +22,6 @@ class RelatedItemsService {
         this.addonUUID = client.AddonUUID;
     }
 
-    createPNSSubscription() {
-        return this.papiClient.notification.subscriptions.upsert({
-            AddonUUID: this.addonUUID,
-            AddonRelativeURL: "/api/triggered_by_pns",
-            Type: "data",
-            Name: "subscriptionToRelatedItems",
-            FilterPolicy: {
-                Action: ['update', 'insert'],
-                Resource: [RELATED_ITEM_META_DATA_TABLE_NAME],
-                AddonUUID: [this.addonUUID]
-            }
-        });
-    }
-
     //Updates RELATED_ITEM_CPI_META_DATA_TABLE_NAME Table to be identical to RELATED_ITEM_META_DATA_TABLE_NAME Table
     async trigeredByPNS(body) {
         let items: AddonData[] = [];
