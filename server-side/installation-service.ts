@@ -51,6 +51,27 @@ export class InstallationService {
         });
     }
 
+    // PFS Scheme - for import file test
+    async createPFSResource() {
+        var pfsScheme: AddonDataScheme = {
+            "Name": PFS_TABLE_NAME,
+            "Type": 'pfs'
+        }
+        try {
+            await this.papiClient.addons.data.schemes.post(pfsScheme);
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        }
+        catch (err) {
+            return {
+                success: false,
+                errorMessage: err ? err : 'Unknown Error Occurred',
+            }
+        }
+    }
+
     async createRelatedItemsScheme() {
         var relatedItemsScheme: AddonDataScheme = {
             Name: this.newTableName,
