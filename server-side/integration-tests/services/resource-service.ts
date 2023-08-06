@@ -1,7 +1,7 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
-import { Collection, DataImportInput, FileImportInput } from '@pepperi-addons/papi-sdk';
+import { Collection, DataImportInput, FileImportInput, FindOptions } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server/dist';
-import { ItemRelations } from '../../../shared/entities';
+import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../shared/entities';
 
 export class ResourceService {
 
@@ -27,8 +27,12 @@ export class ResourceService {
         return await this.papiClient.resources.resource("related_items").post(body);
     }
 
-    async getItemsRelations(query: string) {
-        return await this.papiClient.get(`/addons/api/${this.addonUUID}/api/relation?${query}`);
+    async getItemsRelations(query: FindOptions) {
+        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find(query);
+    }
+
+    async getCPIItemsRelations(query: FindOptions) {
+        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).find(query);
     }
 
     async callAuditLog(executionUUID: string) {
