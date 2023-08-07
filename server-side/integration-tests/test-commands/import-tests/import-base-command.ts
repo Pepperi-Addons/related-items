@@ -22,9 +22,9 @@ export class ImportBaseCommand extends BaseCommand {
     //number of items to import decided by numberOfEntities
     async initData(): Promise<ItemRelations[]> {
 
-        var relations: ItemRelations[] = [];
-        for ( var index = 0; index < this.numberOfEntities; index++) {
-            var relation : ItemRelations = {
+        let relations: ItemRelations[] = [];
+        for ( let index = 0; index < this.numberOfEntities; index++) {
+            let relation : ItemRelations = {
                 "CollectionName": this.collectionName,
                 "ItemExternalID": this.items[index].ExternalID,
                 "RelatedItems": [this.items[index + 1].ExternalID, this.items[index + 2].ExternalID, this.items[index + 3].ExternalID]

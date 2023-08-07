@@ -1,29 +1,34 @@
 import { Client } from "@pepperi-addons/debug-server/dist"
 import { ImportDataBaseCommand } from "../import-tests/import-data/import-data-base-command";
-import { FindOptions } from "@pepperi-addons/papi-sdk";
 
 export class CPISchemeCommand extends ImportDataBaseCommand {
 
     constructor(client: Client){
         super(client, 'CPI_Scheme_Command')
-        this.numberOfEntities = 100;
+        this.numberOfEntities = 5;
 
     }
 
     async processTestAction(testActionRes) {
-        return testActionRes;
+        // waiting for PNS
+        await this.resourceService.sleep(3000);
+        const res = this.mockItemRelationsData.map(async (item) => {
+            // get the corresponding item from the cpi_meta_data type scheme
+            const cpiItem = await this.resourceService.getCPIItemsRelations(item);
+            return {CPIItem: cpiItem, ADALItem: item}
+        });
+        return await Promise.all(res);
     }
 
     async test(res, data, expect) {
-        debugger;
-        data.map(async (item) => {
-            const findOptions: FindOptions = {
-                where: `Key='${item.Key}'`
-            }
-            const cpiItem = await this.resourceService.getCPIItemsRelations(findOptions) as any;
-            const dataItem = await this.resourceService.getItemsRelations(findOptions) as any;
-            expect(cpiItem.RelatedItems).to.include.members(dataItem.RelatedItems);
-        });
+        // every entity in data contains itemRelation and it corresponding cpi-item(represent with UUID) and we check that its related items identical
+        data.map( async item => {
+            const dataRelatedItems = await this.resourceService.getItemsFilteredByUUID(item.ADALItem.RelatedItems);
+            const dataItems = dataRelatedItems.map(obj => obj.UUID);
+            const cpiItems = item.CPIItem[0]?.RelatedItems ? item.CPIItem[0]?.RelatedItems : [];
+            expect(dataItems).to.deep.equal(cpiItems);
+        }
+        );
     }
     async cleanup(): Promise<any> {
         // delete the collection

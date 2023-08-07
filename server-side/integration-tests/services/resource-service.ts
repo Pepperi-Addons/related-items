@@ -11,6 +11,10 @@ export class ResourceService {
         this.addonUUID = client.AddonUUID;
     }
 
+    sleep = (milliseconds) => {
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    };
+
     async importData(body: DataImportInput) {
         return await this.papiClient.resources.resource("related_items").import.data(body);
     }
@@ -31,8 +35,24 @@ export class ResourceService {
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find(query);
     }
 
-    async getCPIItemsRelations(query: FindOptions) {
-        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).find(query);
+    // get as parameter itemRelation and return the corresponding cpi-item
+    async getCPIItemsRelations(item: ItemRelations) {
+        const itemUUID = await this.getItemsFilteredByUUID([item.ItemExternalID]) as any;
+        const CPIItemkey = `${item.CollectionName}_${itemUUID[0].UUID}`;
+        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).find(
+            {
+                where: `Key='${CPIItemkey}'`
+            }
+        );
+    }
+
+    async getItemsFilteredByUUID(itemsExternalIDs) {
+        if (itemsExternalIDs && itemsExternalIDs.length > 0) {
+            let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
+            let query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
+            return await this.papiClient.items.find(query)
+        }
+        return [];
     }
 
     async callAuditLog(executionUUID: string) {
