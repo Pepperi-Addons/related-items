@@ -22,20 +22,6 @@ class RelatedItemsService {
         this.addonUUID = client.AddonUUID;
     }
 
-    createPNSSubscription() {
-        return this.papiClient.notification.subscriptions.upsert({
-            AddonUUID: this.addonUUID,
-            AddonRelativeURL: "/api/triggered_by_pns",
-            Type: "data",
-            Name: "subscriptionToRelatedItems",
-            FilterPolicy: {
-                Action: ['update', 'insert'],
-                Resource: [RELATED_ITEM_META_DATA_TABLE_NAME],
-                AddonUUID: [this.addonUUID]
-            }
-        });
-    }
-
     //Updates RELATED_ITEM_CPI_META_DATA_TABLE_NAME Table to be identical to RELATED_ITEM_META_DATA_TABLE_NAME Table
     async trigeredByPNS(body) {
         let items: AddonData[] = [];
@@ -74,8 +60,9 @@ class RelatedItemsService {
             return collectionArray;
         }
         else {
-            const array = collectionArray.map(collection => {
-                return this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name }).then(relationsArray => collection.Count = relationsArray?.length);
+            const array = collectionArray.map(async collection => {
+                const items = await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({fields:['ItemExternalID'], where: `Key like '${collection.Name}_%'` , page_size: -1 })
+                collection.Count = items.length;
             })
             await Promise.all(array);
             return collectionArray;
@@ -119,12 +106,22 @@ class RelatedItemsService {
         }
     }
 
+    async getRelatedItems(query) {
+        if (query && query.resource_name == 'related_items'){
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find(query);
+        } else {
+            throw new Error(`resource name is not related_items`);
+        }        
+    }
+    
     async upsertItemRelations(body: RelationItemWithExternalID) {
         if (body.Hidden == true) {
             return await this.deleteRelations([body]);
         }
         else {
-            return await this.addItemsToRelationWithExternalID(body);
+            await this.addItemsToRelationWithExternalID(body);
+            // The key was updated when inserting the item into the table
+            return await this.getItemRelationEntity(body.Key!);
         }
     }
 
@@ -133,7 +130,7 @@ class RelatedItemsService {
             throw new Error(`CollectionName is required`);
         }
         if (!body.ItemExternalID) {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({ where: `Key like '${body.CollectionName}_%'` , page_size: -1 });
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key like '${body.CollectionName}_%'` , page_size: -1 });
         }
         else {
             return await this.getRelationWithExternalIDByKey(body)

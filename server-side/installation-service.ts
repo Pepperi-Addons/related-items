@@ -1,15 +1,14 @@
 
-import semver from 'semver';
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
-import { Client } from '@pepperi-addons/debug-server/dist';
 import { PFS_TABLE_NAME } from '../shared/entities';
 import config from '../addon.config.json'
+import semver from 'semver';
 
 export class InstallationService {
 
     oldTableName: string = "RelationsWithExternalID";
     newTableName: string = "related_items"
-    
+
     constructor(private papiClient: PapiClient) {
     }
 
@@ -24,15 +23,15 @@ export class InstallationService {
             return { success: false, resultObject: {} };
         }
     }
-
     private async migrateToV1_1_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme();
             if (ansFromCreateSchemes.success === true) {
+                await this.createPNSSubscription();
                 await this.handleSchemeData(); // export from the old scheme and import to the new one
             }
             else {
-                throw new Error(`Migrate ${fromVersion} failed`);
+                throw new Error(`Failed to create related_items scheme`);
             }
         }
     }
@@ -43,7 +42,6 @@ export class InstallationService {
             "Name": PFS_TABLE_NAME,
             "Type": 'pfs'
         }
-
         try {
             await this.papiClient.addons.data.schemes.post(pfsScheme);
 
@@ -101,7 +99,21 @@ export class InstallationService {
         return await this.papiClient.post(`/addons/data/schemes/${this.oldTableName}/purge`, {});
     }
 
-    async createRelatedItemsScheme(){
+    createPNSSubscription() {
+        return this.papiClient.notification.subscriptions.upsert({
+            AddonUUID: config.AddonUUID,
+            AddonRelativeURL: "/api/triggered_by_pns",
+            Type: "data",
+            Name: "subscriptionToRelatedItems",
+            FilterPolicy: {
+                Action: ['update', 'insert'],
+                Resource: [RELATED_ITEM_META_DATA_TABLE_NAME],
+                AddonUUID: [config.AddonUUID]
+            }
+        });
+    }
+
+    async createRelatedItemsScheme() {
         var relatedItemsScheme: AddonDataScheme = {
             Name: this.newTableName,
             Type: 'data',
@@ -115,7 +127,7 @@ export class InstallationService {
                 },
                 RelatedItems: {
                     Type: 'Array',
-                    Items:{
+                    Items: {
                         Type: 'String'
                     }
                 }
