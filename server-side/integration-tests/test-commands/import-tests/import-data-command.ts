@@ -1,6 +1,6 @@
 import { Client } from "@pepperi-addons/debug-server/dist";
 import { BaseCommand } from "../related-items-base-command";
-import { ItemRelations } from "../../../../shared/entities";
+import { ItemRelations } from "shared";
 import { DataImportInput } from "@pepperi-addons/papi-sdk";
 import { ResourceService } from "../../services/resource-service";
 import { v4 as uuid } from 'uuid';

@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { ItemRelations, itemsResourceObject } from '../../../shared/entities';
+import { ItemRelations, itemsResourceObject } from 'shared';
 import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
 
 export class ItemsService {
