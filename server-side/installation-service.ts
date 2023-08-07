@@ -37,7 +37,7 @@ export class InstallationService {
     }
 
     // PFS Scheme - for import file test
-    async createPFSResource() {
+    async createTestPFSResource() {
         var pfsScheme: AddonDataScheme = {
             "Name": PFS_TABLE_NAME,
             "Type": 'pfs'
@@ -166,7 +166,7 @@ export class InstallationService {
         const body = {
             URI: fileURI
         };
-        return this.papiClient.post(`/addons/data/import/file/${"4f9f10f3-cd7d-43f8-b969-5029dad9d02b"}/related_items`, body);
+        return this.papiClient.post(`/addons/data/import/file/${config.AddonUUID}/related_items`, body);
     }
 
     private async getURIFromAuditLog(auditLog) {

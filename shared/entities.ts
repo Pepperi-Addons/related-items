@@ -5,7 +5,7 @@ export const COLLECTION_TABLE_NAME = 'Collection';
 export const RELATED_ITEM_CPI_META_DATA_TABLE_NAME = 'CPIRelation';
 export const RELATED_ITEM_META_DATA_TABLE_NAME = 'related_items';
 export const RELATED_ITEM_ATD_FIELDS_TABLE_NAME = 'AtdFields';
-export const PFS_TABLE_NAME = 'PFSTable';
+export const PFS_TABLE_NAME = 'IntegrationTestPFSTable';
 
 export type fileStatus = 'uploading'|'downloading'|'done'|'failed'|'hidden';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';

@@ -51,20 +51,6 @@ export class ResourceService {
 
         return new Promise<any>(executePoll);
     }
-
-    async DownloadResultArray(downloadURL): Promise<any[]> {
-        console.log(`OutputArrayObject: Downloading file`);
-        try {
-            const response = await fetch(downloadURL);
-            const data: string = await response.text();
-            const DIMXObjectArr: any[] = JSON.parse(data);
-            return DIMXObjectArr;
-        }
-        catch (ex) {
-            console.log(`DownloadResultArray: ${ex}`);
-            throw new Error((ex as { message: string }).message);
-        }
-    }
 }
 
 
