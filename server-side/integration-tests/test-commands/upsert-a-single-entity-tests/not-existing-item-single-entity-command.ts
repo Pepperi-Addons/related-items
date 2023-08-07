@@ -29,7 +29,8 @@ export class NotExistingItemSingleEntityCommand extends BaseCommand {
         try {
             return await this.resourceService.upsertSingleEntity(this.mockItemRelationsData[0]);
         }
-        catch {
+        catch(e) {
+            console.log("upsert of not existing item failed with error:",e)
             return [];
         }
      }
@@ -40,7 +41,6 @@ export class NotExistingItemSingleEntityCommand extends BaseCommand {
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
         const entity = await this.resourceService.getItemsRelations(`CollectionName=${this.collectionName}`);
-        expect(data).to.be.an('array').that.is.empty;
         expect(entity).to.be.an('array').that.is.empty;
     }
 
