@@ -10,14 +10,11 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk'
-import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, Relation, PFS_TABLE_NAME} from '../shared/entities'
-import RelatedItemsService from './related-items.service'
+import {COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, Relation} from 'shared'
 import config from '../addon.config.json';
 import { InstallationService } from './installation-service';
 
 export async function install(client: Client, request: Request): Promise<any> {
-    const service = new RelatedItemsService(client)
-
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
         token: client.OAuthAccessToken,
@@ -25,9 +22,10 @@ export async function install(client: Client, request: Request): Promise<any> {
         addonSecretKey: client.AddonSecretKey,
         actionUUID: client["ActionUUID"]
     });
+    const installationService = new InstallationService(papiClient);
 
     await createADALSchemes(papiClient);
-    await service.createPNSSubscription();
+    await installationService.createPNSSubscription();
     await createRelations(papiClient);
 
     return { success: true, resultObject: {} }
@@ -185,7 +183,6 @@ async function createADALSchemes(papiClient: PapiClient) {
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
         await installationService.createRelatedItemsScheme()
-        await installationService.createPFSResource()
 
         return {
             success: true,

@@ -1,8 +1,8 @@
 import { Client } from "@pepperi-addons/debug-server/dist";
+import { BaseCommand } from "../related-items-base-command";
+import { ItemRelations } from "shared";
 import { v4 as uuid } from 'uuid';
 import { ResourceService } from "../../services/resource-service";
-import { ItemRelations } from "../../../../shared/entities";
-import { BaseCommand } from "../related-items-base-command";
 
 // base class for all import tests
 export class ImportBaseCommand extends BaseCommand {

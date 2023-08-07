@@ -1,7 +1,7 @@
 import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
-import { Collection, ItemRelations } from '../../shared/entities'
+import { Collection, ItemRelations } from 'shared'
 
 export class DimxValidator {
     maxNumOfRelatedItems = 25;
@@ -81,7 +81,7 @@ export class DimxValidator {
 
             // no more than 25(maxNumOfRelatedItems) related items
             if (dimxObj.RelatedItems.length > this.maxNumOfRelatedItems) {
-                dimxObj.RelatedItems.slice(0, this.maxNumOfRelatedItems);
+                dimxObj.RelatedItems = dimxObj.RelatedItems.slice(0, this.maxNumOfRelatedItems);
             }
         }
         return dimxObj;
