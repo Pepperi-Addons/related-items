@@ -1,8 +1,8 @@
 
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
+import config from '../addon.config.json'
 import semver from 'semver';
-import config from '../addon.config.json';
-import { RELATED_ITEM_META_DATA_TABLE_NAME } from 'shared';
+import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME } from 'shared';
 
 export class InstallationService {
 
@@ -23,7 +23,6 @@ export class InstallationService {
             return { success: false, resultObject: {} };
         }
     }
-
     private async migrateToV1_1_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme();
@@ -36,6 +35,70 @@ export class InstallationService {
             }
         }
     }
+
+    // PFS Scheme - for import file test
+    async createTestPFSResource() {
+        var pfsScheme: AddonDataScheme = {
+            "Name": PFS_TABLE_NAME,
+            "Type": 'pfs'
+        }
+        try {
+            await this.papiClient.addons.data.schemes.post(pfsScheme);
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        }
+        catch (err) {
+            return {
+                success: false,
+                errorMessage: err ? err : 'Unknown Error Occurred',
+            }
+        }
+    }
+
+    private async handleSchemeData() {
+        const fileURI = await this.exportRelationsWithExternalID();
+        if (fileURI) {
+            const ansFromImport = await this.importFileToRelatedItems(fileURI);
+            const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
+            if (ansFromAuditLog.success === true) {
+                this.purgeOldScheme();
+            }
+        }
+        else {
+            console.log("No scheme to migrate")
+        }
+    }
+
+    async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 60, validate = (res) => {
+        return res != null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
+    }) {
+        let attempts = 0;
+
+        const executePoll = async (resolve, reject) => {
+            const result = await papiClient.get(`/audit_logs/${ExecutionUUID}`);
+            attempts++;
+
+            if (validate(result)) {
+                return resolve({ "success": result.Status.Name === 'Success', "errorCode": 0, 'resultObject': result.AuditInfo.ResultObject });
+            }
+            else if (maxAttempts && attempts === maxAttempts) {
+                return resolve({ "success": false, "errorCode": 1 });
+            }
+            else {
+                setTimeout(executePoll, interval, resolve, reject);
+            }
+        };
+
+        return new Promise<any>(executePoll);
+    }
+
+    private async purgeOldScheme() {
+        return await this.papiClient.post(`/addons/data/schemes/${this.oldTableName}/purge`, {});
+    }
+
     createPNSSubscription() {
         return this.papiClient.notification.subscriptions.upsert({
             AddonUUID: config.AddonUUID,
@@ -78,29 +141,14 @@ export class InstallationService {
                 errorMessage: ""
             }
         }
-        catch (e) {
-            console.log("Migration failed with the following error:", e);
+        catch(e) {
+            console.log("Migration failed with the following error:" , e);
             return {
-                success: true,
+                success: false,
                 errorMessage: "Failed to create related_items scheme"
             }
         }
     }
-
-    private async handleSchemeData() {
-        const fileURI = await this.exportRelationsWithExternalID();
-        if (fileURI) {
-            const ansFromImport = await this.importFileToRelatedItems(fileURI);
-            const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
-            if (ansFromAuditLog.success === true) {
-                this.purgeOldScheme();
-            }
-        }
-        else {
-            console.log("No scheme to migrate")
-        }
-    }
-
     private async exportRelationsWithExternalID() {
         const body = {
             DIMXExportFormat: "csv",
@@ -108,10 +156,10 @@ export class InstallationService {
             DIMXExportFileName: "export",
             DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems",
             DIMXExportDelimiter: ","
-        }
+          }
         const auditLog = await this.papiClient.post(`/addons/data/export/file/${config.AddonUUID}/${this.oldTableName}`, body);
         return this.getURIFromAuditLog(auditLog);
-
+        
     }
 
     private async importFileToRelatedItems(fileURI) {
@@ -126,35 +174,5 @@ export class InstallationService {
         if (ansFromAuditLog.success === true) {
             return JSON.parse(ansFromAuditLog.resultObject).URI;
         }
-        else {
-            throw new Error(`Failed to create related_items scheme`);
-        }
-    }
-
-    async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 60, validate = (res) => {
-        return res != null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
-    }) {
-        let attempts = 0;
-
-        const executePoll = async (resolve, reject) => {
-            const result = await papiClient.get(`/audit_logs/${ExecutionUUID}`);
-            attempts++;
-
-            if (validate(result)) {
-                return resolve({ "success": result.Status.Name === 'Success', "errorCode": 0, 'resultObject': result.AuditInfo.ResultObject });
-            }
-            else if (maxAttempts && attempts === maxAttempts) {
-                return resolve({ "success": false, "errorCode": 1 });
-            }
-            else {
-                setTimeout(executePoll, interval, resolve, reject);
-            }
-        };
-
-        return new Promise<any>(executePoll);
-    }
-
-    private async purgeOldScheme() {
-        return await this.papiClient.post(`/addons/data/schemes/${this.oldTableName}/purge`, {});
     }
 }
