@@ -6,12 +6,14 @@ export class CPISchemeCommand extends ImportDataBaseCommand {
     constructor(client: Client){
         super(client, 'CPI_Scheme_Command')
         this.numberOfEntities = 5;
-
+        this.timeToWait = 3000;
     }
+
+    timeToWait: number; // time to wait to PNS
 
     async processTestAction(testActionRes) {
         // waiting for PNS
-        await this.resourceService.sleep(3000);
+        await this.resourceService.sleep(this.timeToWait);
         const res = this.mockItemRelationsData.map(async (item) => {
             // get the corresponding item from the cpi_meta_data type scheme
             const cpiItem = await this.resourceService.getCPIItemsRelations(item);
@@ -21,6 +23,7 @@ export class CPISchemeCommand extends ImportDataBaseCommand {
     }
 
     async test(res, data, expect) {
+        debugger
         // every entity in data contains itemRelation and it corresponding cpi-item(represent with UUID) and we check that its related items identical
         data.map( async item => {
             const dataRelatedItems = await this.resourceService.getItemsFilteredByUUID(item.ADALItem.RelatedItems);
