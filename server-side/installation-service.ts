@@ -1,8 +1,8 @@
 
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
-import { PFS_TABLE_NAME } from '../shared/entities';
 import config from '../addon.config.json'
 import semver from 'semver';
+import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME } from 'shared';
 
 export class InstallationService {
 

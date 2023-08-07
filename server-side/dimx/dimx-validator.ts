@@ -1,7 +1,7 @@
 import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
-import { Collection, ItemRelations } from '../../shared/entities'
+import { Collection, ItemRelations } from 'shared'
 
 export class DimxValidator {
     maxNumOfRelatedItems = 25;
