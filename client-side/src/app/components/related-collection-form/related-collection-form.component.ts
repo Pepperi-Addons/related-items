@@ -5,7 +5,7 @@ import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router'
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DialogService } from '../../services/dialog.service';
-import { ItemWithImageURL } from '../../../../../shared/entities';
+import { ItemWithImageURL } from 'shared';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';

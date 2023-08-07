@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Collection, ItemRelations, IFile, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../../shared/entities';
+import { Collection, ItemRelations } from 'shared';
 import { AddonService } from './addon.service';
 
 @Injectable({

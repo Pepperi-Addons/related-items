@@ -1,6 +1,6 @@
 import '@pepperi-addons/cpi-node'
 import { Item, TransactionLine, UIObject } from '@pepperi-addons/cpi-node/build/cpi-side/app/entities';
-import { ListSourceType } from '../shared/entities';
+import { ListSourceType } from 'shared';
 import config from "../addon.config.json"
 
 export async function load() {

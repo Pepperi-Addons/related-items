@@ -1,7 +1,7 @@
 import { BaseTest } from '@pepperi-addons/addon-testing-framework'
 import { Client } from '@pepperi-addons/debug-server/dist';
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { ItemRelations } from '../../../shared/entities';
+import { ItemRelations } from 'shared';
 import { ItemsService } from '../services/items-service';
 
 

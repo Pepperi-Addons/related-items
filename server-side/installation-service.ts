@@ -2,7 +2,7 @@
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
 import semver from 'semver';
 import config from '../addon.config.json';
-import { RELATED_ITEM_META_DATA_TABLE_NAME } from '../shared/entities';
+import { RELATED_ITEM_META_DATA_TABLE_NAME } from 'shared';
 
 export class InstallationService {
 
