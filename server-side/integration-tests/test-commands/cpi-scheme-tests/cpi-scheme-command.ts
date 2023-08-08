@@ -23,7 +23,6 @@ export class CPISchemeCommand extends ImportDataBaseCommand {
     }
 
     async test(res, data, expect) {
-        debugger
         // every entity in data contains itemRelation and it corresponding cpi-item(represent with UUID) and we check that its related items identical
         data.map( async item => {
             const dataRelatedItems = await this.resourceService.getItemsFilteredByUUID(item.ADALItem.RelatedItems);

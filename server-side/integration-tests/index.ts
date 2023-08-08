@@ -6,3 +6,4 @@ export * from "./test-commands/upsert-a-single-entity-tests/basic-single-entity-
 export * from "./test-commands/upsert-a-single-entity-tests/not-existing-item-single-entity-command"
 export * from "./test-commands/cpi-scheme-tests/cpi-scheme-command"
 export * from "./test-commands/cpi-scheme-tests/big-cpi-scheme-command"
+export * from "./test-commands/cpi-scheme-tests/cpi-scheme-delete-items-command"
