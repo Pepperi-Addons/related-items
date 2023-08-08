@@ -19,7 +19,7 @@ export class ImportNotExistingItemCommand extends ImportDataBaseCommand {
         let secondItem: ItemRelations = {
             "CollectionName": this.collectionName,
             "ItemExternalID": this.items[1].ExternalID,
-            "RelatedItems": [this.items[1].ExternalID, this.items[2].ExternalID]
+            "RelatedItems": [this.items[2].ExternalID, this.items[1].ExternalID]
         }  
         relations.push(firstItem);
         relations.push(secondItem);
@@ -27,9 +27,14 @@ export class ImportNotExistingItemCommand extends ImportDataBaseCommand {
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        this.mockItemRelationsData.map(item => {
-            debugger
-            console.log(item)
+        this.mockItemRelationsData.map(async item => {
+            // fisrt item - pop the not existing item
+            // second item - pop the related item that identical to the primary item
+            item.RelatedItems?.pop();
+            const adalItem = await this.resourceService.getItemsRelations({
+                where: `Key='${this.collectionName}_${item.ItemExternalID}'`});
+                expect(item.ItemExternalID).to.equal(adalItem[0].ItemExternalID);
+                expect(item.RelatedItems).to.deep.equal(adalItem[0].RelatedItems);
         });
     }
 }
