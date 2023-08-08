@@ -1,9 +1,8 @@
 
 import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
-import { PFS_TABLE_NAME } from '../shared/entities';
 import semver from 'semver';
 import config from '../addon.config.json';
-import { RELATED_ITEM_META_DATA_TABLE_NAME } from '../shared/entities';
+import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME } from 'shared';
 
 export class InstallationService {
 
@@ -24,7 +23,6 @@ export class InstallationService {
             return { success: false, resultObject: {} };
         }
     }
-
     private async migrateToV1_1_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme();
