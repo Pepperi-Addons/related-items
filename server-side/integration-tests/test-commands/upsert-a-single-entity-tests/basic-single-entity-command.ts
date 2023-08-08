@@ -1,28 +1,11 @@
 import { Client } from "@pepperi-addons/debug-server/dist"
-import { BaseCommand } from "../related-items-base-command"
-import { ItemRelations } from "../../../../shared/entities"
-import { v4 as uuid } from 'uuid';
-import { ResourceService } from "../../services/resource-service";
+import { ImportBaseCommand } from "../import-tests/import-base-command";
 
-export class BasicSingleEntityCommand extends BaseCommand {
-
-    title = 'Basic Upsert A Single Entity Test';
-    resourceService: ResourceService;
-    collectionName: string;
+export class BasicSingleEntityCommand extends ImportBaseCommand {
 
     constructor(client: Client){
-        super(client)
-        this.resourceService = new ResourceService(this.papiClient, client);
-        this.collectionName = this.title + uuid();
-    }
-
-    initData(): Promise<ItemRelations[]> {
-        const itemToUpsert: ItemRelations = {
-            "CollectionName": this.collectionName,
-            ItemExternalID: this.items[0].ExternalID,
-            RelatedItems: [this.items[1].ExternalID!, this.items[2].ExternalID!, this.items[3].ExternalID!]
-        }
-        return Promise.resolve([itemToUpsert]);
+        super(client, 'Basic Upsert A Single Entity Test')
+        this.numberOfEntities = 1;
     }
 
     async testAction() {
