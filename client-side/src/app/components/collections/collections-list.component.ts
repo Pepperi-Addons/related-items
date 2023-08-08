@@ -63,12 +63,12 @@ export class CollectionsListComponent implements OnInit {
   };
 
     getDataSource() {
-      this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+      this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Collection_Error")
       return {
         init: async (params: any) => {
           let res = await this.relatedItemsService.getCollections();
           console.log("Collection after refresh:", res);
-          this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+          this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Collection_Error")
           if (params.searchString != undefined && params.searchString != "") {
             res = res.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
             this.noDataMessage = this.noDataMessage = this.translate.instant("No_Results_Error")

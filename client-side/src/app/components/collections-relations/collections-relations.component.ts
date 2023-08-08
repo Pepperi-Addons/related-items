@@ -60,7 +60,7 @@ export class RelatedCollectionsComponent implements OnInit {
   }
 
   getDataSource() {
-    this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
+    this.noDataMessage = this.translate.instant("No_Related_Items_Error");
     return {
       init: async (params: any) => {
         this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
