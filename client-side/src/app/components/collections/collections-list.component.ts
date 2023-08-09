@@ -200,7 +200,7 @@ export class CollectionsListComponent implements OnInit {
     }
 
     goToRelatedCollection(collectionName: string) {
-      this.router.navigate([`${collectionName}`], {
+      this.router.navigate([encodeURIComponent(`${collectionName}`)], {
         relativeTo: this.route,
         queryParamsHandling: 'preserve'
       })
