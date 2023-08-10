@@ -22,6 +22,23 @@ import { config } from '../../addon.config';
 export class CollectionsListComponent implements OnInit {
   @ViewChild('glist1') glist1: GenericListComponent | undefined;
 
+  noDataMessage: string;
+  menuItems = [
+    {
+      key: 'import',
+      text: this.translate.instant("Import")
+    },
+    {
+      key: 'export',
+      text: this.translate.instant("Export")
+    }
+  ];
+  dataSource: IPepGenericListDataSource;
+
+  pager: IPepGenericListPager = {
+    type: 'scroll',
+  };
+
   constructor(
     public addonService: AddonService,
     public translate: TranslateService,
@@ -35,7 +52,11 @@ export class CollectionsListComponent implements OnInit {
     this.addonService.addonUUID = config.AddonUUID;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // waiting for translate to load
+    await this.translate.get('No_Related_Collection_Error').toPromise();
+
+    this.dataSource = this.getDataSource();
     const dimxHostObject: DIMXHostObject = {
       DIMXAddonUUID: this.addonService.addonUUID,
       DIMXResource: "related_items",
@@ -45,33 +66,16 @@ export class CollectionsListComponent implements OnInit {
     })
   }
 
-  noDataMessage: string;
-  menuItems = [
-    {
-      key: 'import',
-      text: this.translate.instant("Import")
-    },
-    {
-      key: 'export',
-      text: this.translate.instant("Export")
-    }
-  ];
-  dataSource: IPepGenericListDataSource = this.getDataSource();
-
-  pager: IPepGenericListPager = {
-    type: 'scroll',
-  };
-
     getDataSource() {
-      this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+      this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
       return {
         init: async (params: any) => {
           let res = await this.relatedItemsService.getCollections();
           console.log("Collection after refresh:", res);
-          this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+           this.noDataMessage = this.translate.instant("No_Related_Collection_Error")
           if (params.searchString != undefined && params.searchString != "") {
             res = res.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
-            this.noDataMessage = this.noDataMessage = this.translate.instant("No_Results_Error")
+             this.noDataMessage = this.translate.instant("No_Results_Error")
           }
           return Promise.resolve({
             dataView: {
@@ -129,7 +133,7 @@ export class CollectionsListComponent implements OnInit {
                 type: 'scroll'
               },
               selectionType: 'multi',
-              noDataFoundMsg: this.translate.instant(this.noDataMessage)
+              noDataFoundMsg: this.noDataMessage
             }
       ,
       } as IPepGenericListDataSource
