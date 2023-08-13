@@ -27,12 +27,12 @@ export class ResourceService {
         return await this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, body);
     }
 
-    async deleteItems(mockItemRelationsData: ItemRelations[]) {
-        mockItemRelationsData.map(async (item) => {
+    async deleteItems(itemsToDelete: ItemRelations[]) {
+        itemsToDelete.map(async (item) => {
             return item.Hidden = true;
         });
         const dimxObj: DataImportInput = {
-            "Objects": mockItemRelationsData
+            "Objects": itemsToDelete
         }
         return await this.importData(dimxObj);
     }
