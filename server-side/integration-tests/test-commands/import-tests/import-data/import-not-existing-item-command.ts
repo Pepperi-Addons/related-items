@@ -26,15 +26,19 @@ export class ImportNotExistingItemCommand extends ImportDataBaseCommand {
         return relations;
     }
 
+    async processTestAction(testActionRes){
+        return testActionRes;
+    }
+
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        this.mockItemRelationsData.map(async item => {
-            // fisrt item - pop the not existing item
-            // second item - pop the related item that identical to the primary item
-            item.RelatedItems?.pop();
-            const adalItem = await this.resourceService.getItemsRelations({
-                where: `Key='${this.collectionName}_${item.ItemExternalID}'`});
-                expect(item.ItemExternalID).to.equal(adalItem[0].ItemExternalID);
-                expect(item.RelatedItems).to.deep.equal(adalItem[0].RelatedItems);
-        });
+        const firstItem: ItemRelations = await this.resourceService.getItemsRelations({
+            where: `Key='${data[0].Key}'`}).then(objs => objs[0]);
+        // check that the not existing item removed from the related items
+        expect(firstItem.RelatedItems).to.deep.equal([this.items[1].ExternalID, this.items[2].ExternalID]);
+
+        // check that the related item that identical to the primary item removed from the related items
+        const secondItem: ItemRelations = await this.resourceService.getItemsRelations({
+            where: `Key='${data[1].Key}'`}).then(objs => objs[0]);
+        expect(secondItem.RelatedItems).to.deep.equal([this.items[2].ExternalID]);
     }
 }
