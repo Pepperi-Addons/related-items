@@ -27,17 +27,27 @@ export class ResourceService {
         return await this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, body);
     }
 
+    async deleteItems(itemsToDelete: ItemRelations[]) {
+        itemsToDelete.map(async (item) => {
+            return item.Hidden = true;
+        });
+        const dimxObj: DataImportInput = {
+            "Objects": itemsToDelete
+        }
+        return await this.importData(dimxObj);
+    }
+
     async upsertSingleEntity(body: ItemRelations) {
         return await this.papiClient.resources.resource("related_items").post(body);
     }
 
     async getItemsRelations(query: FindOptions) {
-        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find(query);
+        return await this.papiClient.resources.resource("related_items").get(query);
     }
 
     // get as parameter itemRelation and return the corresponding cpi-item
     async getCPIItemsRelations(item: ItemRelations) {
-        const itemUUID = await this.getItemsFilteredByUUID([item.ItemExternalID]) as any;
+        const itemUUID = await this.getItemsUUID([item.ItemExternalID]) as any;
         const CPIItemkey = `${item.CollectionName}_${itemUUID[0].UUID}`;
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).find(
             {
@@ -46,7 +56,7 @@ export class ResourceService {
         );
     }
 
-    async getItemsFilteredByUUID(itemsExternalIDs) {
+    async getItemsUUID(itemsExternalIDs) {
         if (itemsExternalIDs && itemsExternalIDs.length > 0) {
             let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
             let query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
