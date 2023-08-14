@@ -32,14 +32,6 @@ export interface ItemRelations {
     Hidden?: boolean
 }
 
-export interface RelationItemWithExternalID {
-    CollectionName?: string,
-    ItemUUID?: string,
-    ItemExternalID?: string,
-    RelatedItems?: string[],
-    Key?: string
-    Hidden?: boolean
-}
 export type ItemWithImageURL = Item & {
     Name?: string;
     LongDescription?: string;
@@ -77,5 +69,11 @@ export interface itemsResourceObject {
     ExternalID: string;
     MainCategoryID: number;
     Key: string;
+}
+
+export interface ItemRelationValidate {
+    relationItem: ItemRelations;
+    success: boolean;
+    message: string | undefined;
 }
 

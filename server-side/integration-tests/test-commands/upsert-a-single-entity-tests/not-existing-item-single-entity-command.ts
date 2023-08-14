@@ -40,7 +40,7 @@ export class NotExistingItemSingleEntityCommand extends BaseCommand {
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        const entity = await this.resourceService.getItemsRelations({where: `CollectionName=${this.collectionName}`});
+        const entity = await this.resourceService.getItemsRelations({where: `CollectionName="${this.collectionName}"`});
         expect(entity).to.be.an('array').that.is.empty;
     }
 
