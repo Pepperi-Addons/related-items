@@ -1,6 +1,6 @@
 import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
-import { Collection, ItemRelations, RelationItemWithExternalID, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from 'shared'
+import { Collection, ItemRelations, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from 'shared'
 import { DimxValidator } from './dimx/dimx-validator'
 
 class RelatedItemsService {
@@ -102,7 +102,7 @@ class RelatedItemsService {
 
     // RELATED_ITEM_META_DATA_TABLE_NAME endpoints
 
-    async getRelationWithExternalIDByKey(body: RelationItemWithExternalID) {
+    async getRelationWithExternalIDByKey(body: ItemRelations) {
         if (body.Key === undefined) {
             body.Key = `${body.CollectionName}_${body.ItemExternalID}`;
         }
@@ -122,7 +122,7 @@ class RelatedItemsService {
         }        
     }
     
-    async upsertItemRelations(body: RelationItemWithExternalID) {
+    async upsertItemRelations(body: ItemRelations) {
         if (body.Hidden == true) {
             return await this.deleteRelations([body]);
         }
@@ -133,7 +133,7 @@ class RelatedItemsService {
         }
     }
 
-    async getRelationsItemsWithExternalID(body: RelationItemWithExternalID) {
+    async getRelationsItemsWithExternalID(body: ItemRelations) {
         if (!body.CollectionName) {
             throw new Error(`CollectionName is required`);
         }
@@ -163,7 +163,7 @@ class RelatedItemsService {
         return p
     }
 
-    async addItemsToRelationWithExternalID(body: RelationItemWithExternalID) {
+    async addItemsToRelationWithExternalID(body: ItemRelations) {
         // mandatory fields
         if (body.CollectionName && body.ItemExternalID && body.RelatedItems) {
             this.validateItemExternalID(body.ItemExternalID);

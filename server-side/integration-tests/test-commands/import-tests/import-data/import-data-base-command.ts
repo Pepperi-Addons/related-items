@@ -1,5 +1,4 @@
 import { Client } from "@pepperi-addons/debug-server/dist";
-import { BaseCommand } from "../../related-items-base-command";
 import { ItemRelations } from "../../../../../shared/entities";
 import { DataImportInput } from "@pepperi-addons/papi-sdk";
 import { ImportBaseCommand } from "../import-base-command";
@@ -18,18 +17,22 @@ export class ImportDataBaseCommand extends ImportBaseCommand {
         return await this.resourceService.importData(dimxObj);
      }
 
-
+     // get items from adal and save them in map with key = itemExternalID
     async processTestAction(testActionRes) {
-        this.dataToTest = 0;
-        testActionRes.map(res => {
-            if (res.Status == "Insert") {
-                this.dataToTest++;
-            }
-        });
-        return this.dataToTest;
+        const entities = await this.resourceService.getItemsRelations({where: `CollectionName="${this.collectionName}"`});
+        let itemsMap = new Map();
+        entities.forEach((item: ItemRelations) => {
+            itemsMap.set(item.ItemExternalID, item);
+        }
+        );
+        return itemsMap;
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        expect(data).to.equal(this.numberOfEntities);
+        this.mockItemRelationsData.forEach((itemRelation: ItemRelations) => {
+            let item = data.get(itemRelation.ItemExternalID);
+            expect(item.RelatedItems.to.deep.equal(itemRelation.RelatedItems));
+        });
     }
+
 }
