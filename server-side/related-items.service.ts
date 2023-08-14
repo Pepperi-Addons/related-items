@@ -24,20 +24,27 @@ class RelatedItemsService {
 
     //Updates RELATED_ITEM_CPI_META_DATA_TABLE_NAME Table to be identical to RELATED_ITEM_META_DATA_TABLE_NAME Table
     async trigeredByPNS(body) {
+        console.log(`@@@trigeredByPNS was called with body: ${JSON.stringify(body)}`);
         let items: AddonData[] = [];
-        for (const object of body.Message.ModifiedObjects) {
+        // for each modified object create matching item in RELATED_ITEM_CPI_META_DATA_TABLE_NAME
+        const arr = body.Message.ModifiedObjects.map(async object => {
+            // get the object from related_items scheme
             let relation = await this.getRelationWithExternalIDByKey({ 'Key': object.ObjectKey })
             if (relation != undefined) {
+                console.log(`@@@relation ${relation.Key} was modified`);
+                // get primary item UUID
                 let itemUUID = await this.getItemsFilteredByFields([relation.ItemExternalID], ['UUID']).then(objs => objs[0].UUID);
+                // get related items UUIDs and prepare them for the new item
                 let relatedItemsUUIDs: any = await this.getItemsFilteredByFields(relation.RelatedItems, ['UUID']);
                 relatedItemsUUIDs = relatedItemsUUIDs.map(item => item.UUID);
 
                 let key = `${relation.CollectionName}_${itemUUID}`;
                 let cpiRelationItem = { 'Key': key, 'Hidden': relation.Hidden, RelatedItems: relatedItemsUUIDs }
+                console.log(`@@@cpiRelationItem ${cpiRelationItem.Key} was created`);
                 items.push(await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem));
-            }
-        }
-        return items;
+            }   
+        });
+        await Promise.all(arr);
     }
 
     //Collection table functions
