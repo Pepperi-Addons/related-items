@@ -19,7 +19,7 @@ export class ImportDataBaseCommand extends ImportBaseCommand {
 
      // get items from adal and save them in map with key = itemExternalID
     async processTestAction(testActionRes) {
-        const entities = await this.resourceService.getItemsRelations(`CollectionName=${this.collectionName}`);
+        const entities = await this.resourceService.getItemsRelations({where: `CollectionName="${this.collectionName}"`});
         let itemsMap = new Map();
         entities.forEach((item: ItemRelations) => {
             itemsMap.set(item.ItemExternalID, item);
@@ -29,7 +29,7 @@ export class ImportDataBaseCommand extends ImportBaseCommand {
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        this.mockItemRelationsData.map((itemRelation: ItemRelations) => {
+        this.mockItemRelationsData.forEach((itemRelation: ItemRelations) => {
             let item = data.get(itemRelation.ItemExternalID);
             expect(item.RelatedItems.to.deep.equal(itemRelation.RelatedItems));
         });
