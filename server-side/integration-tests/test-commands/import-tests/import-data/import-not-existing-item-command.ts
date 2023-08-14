@@ -32,13 +32,13 @@ export class ImportNotExistingItemCommand extends ImportDataBaseCommand {
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
         const firstItem: ItemRelations = await this.resourceService.getItemsRelations({
-            where: `Key='${data[0].Key}'`}).then(objs => objs[0]);
+            where: `Key='${this.mockItemRelationsData[0].CollectionName}_${this.mockItemRelationsData[0].ItemExternalID}'`}).then(objs => objs[0]);
         // check that the not existing item removed from the related items
         expect(firstItem.RelatedItems).to.deep.equal([this.items[1].ExternalID, this.items[2].ExternalID]);
 
         // check that the related item that identical to the primary item removed from the related items
         const secondItem: ItemRelations = await this.resourceService.getItemsRelations({
-            where: `Key='${data[1].Key}'`}).then(objs => objs[0]);
+            where: `Key='${this.mockItemRelationsData[1].CollectionName}_${this.mockItemRelationsData[1].ItemExternalID}'`}).then(objs => objs[0]);
         expect(secondItem.RelatedItems).to.deep.equal([this.items[2].ExternalID]);
     }
 }
