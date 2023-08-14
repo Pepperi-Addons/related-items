@@ -44,8 +44,7 @@ class RelatedItemsService {
                 items.push(await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem));
             }   
         });
-        Promise.all(arr);
-        return items;
+        await Promise.all(arr);
     }
 
     //Collection table functions
