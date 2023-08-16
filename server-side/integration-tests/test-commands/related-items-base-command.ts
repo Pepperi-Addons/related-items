@@ -49,9 +49,12 @@ export class BaseCommand extends BaseTest {
             it('Test and Cleanup', async () => {
                 try {
                 await this.test(this.testActionResult, this.dataToTest, expect)
-                } finally {
+                } 
+                catch (err) {
+                    console.log(err);
+                }
+                finally {
                     await this.cleanup()
-                    
                 }
             })
         })
