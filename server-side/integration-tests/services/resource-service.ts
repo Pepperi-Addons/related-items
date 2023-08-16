@@ -58,8 +58,8 @@ export class ResourceService {
 
     async getItemsUUID(itemsExternalIDs) {
         if (itemsExternalIDs && itemsExternalIDs.length > 0) {
-            let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
-            let query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
+            const externelIDsList = `(${ itemsExternalIDs.map(id => `'${id}'`).join(',') })`;
+            const query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
             return await this.papiClient.items.find(query)
         }
         return [];

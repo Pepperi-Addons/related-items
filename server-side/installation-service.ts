@@ -6,8 +6,8 @@ import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME } from 'shared';
 
 export class InstallationService {
 
-    oldTableName: string = "RelationsWithExternalID";
-    newTableName: string = "related_items"
+    oldTableName = "RelationsWithExternalID";
+    newTableName = "related_items"
 
     constructor(private papiClient: PapiClient) {
     }
@@ -51,7 +51,7 @@ export class InstallationService {
 
     // PFS Scheme - for import file test
     async createPFSResource() {
-        var pfsScheme: AddonDataScheme = {
+        const pfsScheme: AddonDataScheme = {
             "Name": PFS_TABLE_NAME,
             "Type": 'pfs'
         }
@@ -71,7 +71,7 @@ export class InstallationService {
     }
 
     async createRelatedItemsScheme() {
-        var relatedItemsScheme: AddonDataScheme = {
+        const relatedItemsScheme: AddonDataScheme = {
             Name: this.newTableName,
             Type: 'data',
             GenericResource: true,

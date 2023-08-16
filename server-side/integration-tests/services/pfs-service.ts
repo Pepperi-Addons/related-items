@@ -33,10 +33,10 @@ export class PfsService {
     }
 
     async createPfsFile(temporaryFileUrl: string) {
-        let expirationDateTime = new Date();
+        const expirationDateTime = new Date();
         expirationDateTime.setDate(expirationDateTime.getDate() + 1);
         const body: AddonFile = {
-            "Key": "/tempBulkAPI/" + uuid() + ".csv",
+            "Key": `/tempBulkAPI/${ uuid() }.csv`,
             "MIME": "text/csv",
             "ExpirationDateTime": expirationDateTime,
             "TemporaryFileURLs": [temporaryFileUrl]

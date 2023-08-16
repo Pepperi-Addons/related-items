@@ -36,7 +36,7 @@ export async function uninstall(client: Client, request: Request): Promise<any> 
 }
 
 export async function upgrade(client: Client, request: Request): Promise<any> {
-    console.log("*** Related Items Upgrade body",request.body);
+    console.log("*** Related Items Upgrade body", request.body);
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
         token: client.OAuthAccessToken,
@@ -60,7 +60,7 @@ export async function downgrade(client: Client, request: Request): Promise<any> 
 }
 
 async function createRelations(papiClient: PapiClient) {
-    let relations: Relation[] = [
+    const relations: Relation[] = [
         {
             RelationName: "TransactionTypeListTabs",
             AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
@@ -150,14 +150,14 @@ async function createRelations(papiClient: PapiClient) {
     catch (err) {
         return {
             success: false,
-            errorMessage:  err ? err : 'Unknown Error Occured',
+            errorMessage: err ? err : 'Unknown Error Occured',
         }
     }
 }
 
 async function createADALSchemes(papiClient: PapiClient) {
     const installationService = new InstallationService(papiClient)
-    var collectionsScheme: AddonDataScheme = {
+    const collectionsScheme: AddonDataScheme = {
         Name: COLLECTION_TABLE_NAME,
         Type: 'meta_data',
         Fields: {
@@ -170,11 +170,11 @@ async function createADALSchemes(papiClient: PapiClient) {
         }
     };
 
-    var relationsScheme: AddonDataScheme = {
+    const relationsScheme: AddonDataScheme = {
         Name: RELATED_ITEM_CPI_META_DATA_TABLE_NAME,
         Type: 'cpi_meta_data' as any
     };
-    var relatedItemsAtdFieldsScheme: AddonDataScheme = {
+    const relatedItemsAtdFieldsScheme: AddonDataScheme = {
         Name: RELATED_ITEM_ATD_FIELDS_TABLE_NAME,
         Type: 'cpi_meta_data' as any
     };

@@ -11,10 +11,10 @@ export class BaseCommand extends BaseTest {
     mockItemRelationsData: ItemRelations[] = [];
     testActionResult; //the answer from the test function
     dataToTest; // data for the test
-    
+
 
     protected papiClient: PapiClient;
-    
+
     constructor(protected client: Client) {
         super()
         this.papiClient = new PapiClient({
@@ -25,7 +25,7 @@ export class BaseCommand extends BaseTest {
              actionUUID: client.ActionUUID,
         })
     }
-    
+
     tests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic): void {
         this.execute(describe, it, expect)
     }
@@ -43,13 +43,13 @@ export class BaseCommand extends BaseTest {
             it("testAction", async () => {
                 this.testActionResult = await this.testAction(this.mockItemRelationsData);
             })
-            it("processRes",async () => {
+            it("processRes", async () => {
                 this.dataToTest = await this.processTestAction(this.testActionResult);
             })
             it('Test and Cleanup', async () => {
                 try {
                 await this.test(this.testActionResult, this.dataToTest, expect)
-                } 
+                }
                 catch (err) {
                     console.log(err);
                 }

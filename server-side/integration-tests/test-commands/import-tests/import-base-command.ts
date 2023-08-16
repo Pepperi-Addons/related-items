@@ -8,22 +8,22 @@ import { ResourceService } from "../../services/resource-service";
 export class ImportBaseCommand extends BaseCommand {
 
     resourceService: ResourceService;
-    numberOfEntities: number = 0; // number of entities to import
+    numberOfEntities = 0; // number of entities to import
     collectionName: string;
 
     constructor(protected client: Client, title: string) {
         super(client)
          this.resourceService = new ResourceService(this.papiClient, client);
          this.title = title;
-         this.collectionName = this.title + "_" + uuid();
+         this.collectionName = `${this.title }_${ uuid()}`;
     }
-    
+
     //create ItemRelations Array with items to import
     //number of items to import decided by numberOfEntities
     async initData(): Promise<ItemRelations[]> {
-        let relations: ItemRelations[] = [];
+        const relations: ItemRelations[] = [];
         for ( let index = 0; index < this.numberOfEntities; index++) {
-            let relation : ItemRelations = {
+            const relation : ItemRelations = {
                 "CollectionName": this.collectionName,
                 "ItemExternalID": this.items[index].ExternalID,
                 "RelatedItems": [this.items[index + 1].ExternalID, this.items[index + 2].ExternalID, this.items[index + 3].ExternalID]
