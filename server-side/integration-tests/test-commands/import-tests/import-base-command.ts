@@ -21,7 +21,6 @@ export class ImportBaseCommand extends BaseCommand {
     //create ItemRelations Array with items to import
     //number of items to import decided by numberOfEntities
     async initData(): Promise<ItemRelations[]> {
-
         let relations: ItemRelations[] = [];
         for ( let index = 0; index < this.numberOfEntities; index++) {
             let relation : ItemRelations = {
@@ -35,6 +34,7 @@ export class ImportBaseCommand extends BaseCommand {
     }
 
      async cleanup(): Promise<any> {
+        await this.resourceService.deleteItems(this.mockItemRelationsData);
         // delete the collection
         return await this.resourceService.deleteCollections([{"Name": this.collectionName}]);
      }

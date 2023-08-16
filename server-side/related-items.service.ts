@@ -153,7 +153,7 @@ class RelatedItemsService {
     }
 
     async deleteRelations(body: ItemRelations[]) {
-        let relations = body.map(relationToDelete => {
+        let relations = body.map(async relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true;
             return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(relationToDelete);
