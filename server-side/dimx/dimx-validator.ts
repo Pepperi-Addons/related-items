@@ -1,5 +1,4 @@
-import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
-import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
+import { SearchBody, SearchData, PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
 import { Collection, ItemRelations } from 'shared'
 
@@ -58,7 +57,7 @@ export class DimxValidator {
             msgError = 'Scheme validation failed'
         }
 
-        if (msgError != undefined) {
+        if (msgError !== undefined) {
             console.warn("error in handleItemRelations: ", msgError);
             this.markItemAsError(dimxObj, msgError)
         }
@@ -69,7 +68,7 @@ export class DimxValidator {
     private validateRelatedItems(dimxObj: ItemRelations) {
         console.log("***dimxObj inside validateRelatedItems: ", dimxObj);
         // handeling restriction on related items list
-        if (dimxObj.RelatedItems != undefined) {
+        if (dimxObj.RelatedItems !== undefined) {
             dimxObj.RelatedItems.forEach((item, index) => {
                 ////Check if the item try to reference itself
                 if (item === dimxObj.ItemExternalID) { dimxObj.RelatedItems!.splice(index, 1); }
@@ -152,7 +151,7 @@ export class DimxValidator {
         // we pass them into a map in order to return only distinct collections
         this.dimxObjects.map(dimxObj => {
             const collectionName = dimxObj.Object.CollectionName
-            if (collectionName != undefined) {
+            if (collectionName !== undefined) {
                 collectionsMap.set(dimxObj.Object.CollectionName, true);
             }
         });
@@ -161,7 +160,7 @@ export class DimxValidator {
     }
 
     private isItemExist(item) {
-        return this.existingItemsMap.get(item) == true
+        return this.existingItemsMap.get(item) === true
     }
 
     private validateItemRelationScheme(itemRelation) {

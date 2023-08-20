@@ -31,7 +31,6 @@ export class CPISchemeCommand extends ImportBaseCommand {
     }
 
      async test(res, data, expect) {
-        debugger
         // every entity in data contains itemRelation and it corresponding cpi-item(represent with UUID) and we check that its related items identical
         const ans = data.map( async (item) => {
             //get all the related items uuids

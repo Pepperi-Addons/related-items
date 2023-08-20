@@ -13,7 +13,7 @@ export class InstallationService {
     }
 
     // migrate from the old ADAL schema RelationsWithExternalID the the new one
-    async performMigration(fromVersion) {
+    async performMigration(fromVersion): Promise<{ success: boolean, resultObject: any}> {
         try {
             await this.migrateToV1_1_x(fromVersion);
             return { success: true, resultObject: {} };
@@ -23,6 +23,7 @@ export class InstallationService {
             return { success: false, resultObject: {} };
         }
     }
+    // eslint-disable-next-line
     private async migrateToV1_1_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme();
@@ -71,7 +72,25 @@ export class InstallationService {
     }
 
     async createRelatedItemsScheme() {
-        const relatedItemsScheme: AddonDataScheme = {
+        const relatedItemsScheme: AddonDataScheme = this.getRelatedItemsScheme();
+        try {
+            await this.papiClient.addons.data.schemes.post(relatedItemsScheme);
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        }
+        catch (e) {
+            console.log("Migration failed with the following error:", e);
+            return {
+                success: true,
+                errorMessage: "Failed to create related_items scheme"
+            }
+        }
+    }
+
+    private getRelatedItemsScheme(): AddonDataScheme {
+        return {
             Name: this.newTableName,
             Type: 'data',
             GenericResource: true,
@@ -88,21 +107,6 @@ export class InstallationService {
                         Type: 'String'
                     }
                 }
-            }
-        };
-
-        try {
-            await this.papiClient.addons.data.schemes.post(relatedItemsScheme);
-            return {
-                success: true,
-                errorMessage: ""
-            }
-        }
-        catch (e) {
-            console.log("Migration failed with the following error:", e);
-            return {
-                success: true,
-                errorMessage: "Failed to create related_items scheme"
             }
         }
     }
@@ -152,7 +156,7 @@ export class InstallationService {
     }
 
     async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 60, validate = (res) => {
-        return res != null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
+        return res !== null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
     }) {
         let attempts = 0;
 

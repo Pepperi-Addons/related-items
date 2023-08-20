@@ -24,9 +24,9 @@ export async function install(client: Client, request: Request): Promise<any> {
     });
     const installationService = new InstallationService(papiClient);
 
-    await createADALSchemes(papiClient);
+    await create_adal_schemes(papiClient);
     await installationService.createPNSSubscription();
-    await createRelations(papiClient);
+    await create_relations(papiClient);
 
     return { success: true, resultObject: {} }
 }
@@ -46,9 +46,9 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
     });
     const installationService = new InstallationService(papiClient);
 
-    await createRelations(papiClient);
+    await create_relations(papiClient);
     const ansFromMigration = await installationService.performMigration(request.body.FromVersion);
-    if (ansFromMigration.success == false) {
+    if (ansFromMigration.success === false) {
         return { success: false, resultObject: "migration failed" }
     }
 
@@ -58,8 +58,8 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
 export async function downgrade(client: Client, request: Request): Promise<any> {
     return { success: true, resultObject: {} }
 }
-
-async function createRelations(papiClient: PapiClient) {
+/* eslint-disable */
+async function create_relations(papiClient: PapiClient) {
     const relations: Relation[] = [
         {
             RelationName: "TransactionTypeListTabs",
@@ -155,7 +155,7 @@ async function createRelations(papiClient: PapiClient) {
     }
 }
 
-async function createADALSchemes(papiClient: PapiClient) {
+async function create_adal_schemes(papiClient: PapiClient) {
     const installationService = new InstallationService(papiClient)
     const collectionsScheme: AddonDataScheme = {
         Name: COLLECTION_TABLE_NAME,
@@ -196,3 +196,5 @@ async function createADALSchemes(papiClient: PapiClient) {
         }
     }
 }
+/* eslint-enable */
+

@@ -22,7 +22,7 @@ export class BaseCommand extends BaseTest {
             token: client.OAuthAccessToken,
             addonUUID: client.AddonUUID,
             addonSecretKey: client.AddonSecretKey,
-             actionUUID: client.ActionUUID,
+            actionUUID: client.ActionUUID,
         })
     }
 
