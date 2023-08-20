@@ -8,19 +8,19 @@ export class ImportNotExistingItemCommand extends ImportDataBaseCommand {
     }
 
     async initData(): Promise<ItemRelations[]> {
-        var relations: ItemRelations[] = [];
+        const relations: ItemRelations[] = [];
         //item that contains item that not exist in its related items
-        let firstItem: ItemRelations = {
+        const firstItem: ItemRelations = {
             "CollectionName": this.collectionName,
             "ItemExternalID": this.items[0].ExternalID,
             "RelatedItems": [this.items[1].ExternalID, this.items[2].ExternalID, 'notExistingItem']
         }
-        //item points to itself 
-        let secondItem: ItemRelations = {
+        //item points to itself
+        const secondItem: ItemRelations = {
             "CollectionName": this.collectionName,
             "ItemExternalID": this.items[1].ExternalID,
             "RelatedItems": [this.items[2].ExternalID, this.items[1].ExternalID]
-        }  
+        }
         relations.push(firstItem);
         relations.push(secondItem);
         return relations;

@@ -1,12 +1,11 @@
-import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
-import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
+import { SearchBody, SearchData, PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
 import { Collection, ItemRelations } from 'shared'
 
 export class DimxValidator {
     maxNumOfRelatedItems = 25;
     maxChunkSize = 500;
-    existingItemsMap: Map<string, Boolean> = new Map<string, Boolean>();
+    existingItemsMap: Map<string, boolean> = new Map<string, boolean>();
 
     constructor(private papiClient: PapiClient, private relatedItemsService: RelatedItemsService, private dimxObjects) {
     }
@@ -18,7 +17,7 @@ export class DimxValidator {
 
     private async createCollection(collections: string []) {
         collections.map(async collection => {
-            let newCollection: Collection = {
+            const newCollection: Collection = {
                 Name: collection,
                 Description: "",
                 Hidden: false
@@ -30,7 +29,7 @@ export class DimxValidator {
 
     // call items api, and set in a map if item is exist or not
     private async loadItems() {
-        //array to save all items in the list in order to search if they exist 
+        //array to save all items in the list in order to search if they exist
         const allItems = this.getItemsArrayFromDimxObject();
         console.log("number of items in the recived csv: ", allItems.length);
         // to ensure that duplicated items will be removed.
@@ -43,7 +42,7 @@ export class DimxValidator {
     private handleItemRelations(dimxObj) {
         console.log("***dimxObj inside handleItemRelations: ", dimxObj);
         let msgError: string | undefined = undefined;
-        let schemeValidation = this.validateItemRelationScheme(dimxObj.Object)
+        const schemeValidation = this.validateItemRelationScheme(dimxObj.Object)
 
         if (schemeValidation) {
             if (this.isItemExist(dimxObj.Object.ItemExternalID)) {
@@ -58,7 +57,7 @@ export class DimxValidator {
             msgError = 'Scheme validation failed'
         }
 
-        if(msgError != undefined) {
+        if (msgError !== undefined) {
             console.warn("error in handleItemRelations: ", msgError);
             this.markItemAsError(dimxObj, msgError)
         }
@@ -69,11 +68,11 @@ export class DimxValidator {
     private validateRelatedItems(dimxObj: ItemRelations) {
         console.log("***dimxObj inside validateRelatedItems: ", dimxObj);
         // handeling restriction on related items list
-        if (dimxObj.RelatedItems != undefined) {
+        if (dimxObj.RelatedItems !== undefined) {
             dimxObj.RelatedItems.forEach((item, index) => {
                 ////Check if the item try to reference itself
-                if (item === dimxObj.ItemExternalID) dimxObj.RelatedItems!.splice(index, 1);
-                // if the user does not have the item, delete it from the list 
+                if (item === dimxObj.ItemExternalID) { dimxObj.RelatedItems!.splice(index, 1); }
+                // if the user does not have the item, delete it from the list
                 if (!this.isItemExist(item)) {
                     dimxObj.RelatedItems!.splice(index, 1);
                 }
@@ -104,7 +103,7 @@ export class DimxValidator {
         // get the dimxobject and return object that meets the restriction :
         // * the main item and all the related items are exist
         // * no more than 25 related items
-        // * not pointing to itself 
+        // * not pointing to itself
         return this.dimxObjects.map(dimxObj => dimxObj = this.handleItemRelations(dimxObj));
     }
 
@@ -117,11 +116,11 @@ export class DimxValidator {
 
     private async validateItemsAvailablitiy() {
         // convert items map into array in order to split to chunk and search
-        let allItems = Array.from(this.existingItemsMap.keys());
+        const allItems = Array.from(this.existingItemsMap.keys());
         // split array into chunks in order to call multiple searches simultaneously
         const chunks = this.splitToChunks(allItems, this.maxChunkSize);
         await Promise.all(chunks.map(async chunk => {
-            let searchBody: SearchBody = {
+            const searchBody: SearchBody = {
                 Fields: [
                     "ExternalID"
                 ],
@@ -129,7 +128,7 @@ export class DimxValidator {
                 UniqueFieldList: [...chunk]
             }
             const items = await this.search('items', searchBody)
-            for (var item of items.Objects) {
+            for (const item of items.Objects) {
                 this.existingItemsMap.set(item.ExternalID, true)
             }
         }))
@@ -138,7 +137,7 @@ export class DimxValidator {
     // creates an array of all the items that arrived in dimxObject
     private getItemsArrayFromDimxObject() {
         const items: any[] = [];
-        // add the primary item  
+        // add the primary item
         const itemExternalIDs = this.dimxObjects.map(dimxObj => dimxObj.Object.ItemExternalID);
         const relatedItems = this.dimxObjects.flatMap(dimxObj => dimxObj.Object.RelatedItems);
         items.push(...itemExternalIDs, ...relatedItems);
@@ -148,20 +147,20 @@ export class DimxValidator {
 
     // creates an array of all the collections that arrived in dimxObject
     private getDistinctCollections(): string[] {
-        let collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
+        const collectionsMap: Map<string, boolean> = new Map<string, boolean>();
         // we pass them into a map in order to return only distinct collections
         this.dimxObjects.map(dimxObj => {
             const collectionName = dimxObj.Object.CollectionName
-            if(collectionName != undefined) {
+            if (collectionName !== undefined) {
                 collectionsMap.set(dimxObj.Object.CollectionName, true);
             }
         });
-        const collectionsArray =  Array.from(collectionsMap.keys());
+        const collectionsArray = Array.from(collectionsMap.keys());
         return collectionsArray;
     }
 
     private isItemExist(item) {
-        return this.existingItemsMap.get(item) == true
+        return this.existingItemsMap.get(item) === true
     }
 
     private validateItemRelationScheme(itemRelation) {

@@ -2,6 +2,7 @@ import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchD
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, ItemRelations, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from 'shared'
 import { DimxValidator } from './dimx/dimx-validator'
+import { Item } from '@pepperi-addons/cpi-node';
 
 class RelatedItemsService {
 
@@ -25,32 +26,45 @@ class RelatedItemsService {
     //Updates RELATED_ITEM_CPI_META_DATA_TABLE_NAME Table to be identical to RELATED_ITEM_META_DATA_TABLE_NAME Table
     async trigeredByPNS(body) {
         console.log(`@@@trigeredByPNS was called with body: ${JSON.stringify(body)}`);
-        let items: AddonData[] = [];
-        // for each modified object create matching item in RELATED_ITEM_CPI_META_DATA_TABLE_NAME
-        const arr = body.Message.ModifiedObjects.map(async object => {
-            // get the object from related_items scheme
-            let relation = await this.getRelationWithExternalIDByKey({ 'Key': object.ObjectKey })
-            if (relation != undefined) {
-                console.log(`@@@relation ${relation.Key} was modified`);
-                // get primary item UUID
-                let itemUUID = await this.getItemsFilteredByFields([relation.ItemExternalID], ['UUID']).then(objs => objs[0].UUID);
-                // get related items UUIDs and prepare them for the new item
-                let relatedItemsUUIDs: any = await this.getItemsFilteredByFields(relation.RelatedItems, ['UUID']);
-                relatedItemsUUIDs = relatedItemsUUIDs.map(item => item.UUID);
+        const itemsRelations: ItemRelations[] = await this.papiClient.addons.data.search.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: body.Message.ModifiedObjects}) as any;
+        console.log("@@@Inside PNS, itemsRelations: ", itemsRelations);
+         // creates an string array of all the items external ids and related items external ids
+        const externalIdsArray = this.getDistinctExternalIDsArray(itemsRelations as ItemRelations[]);
+        console.log(`@@@trigeredByPNS externalIdsArray: ${externalIdsArray}`);
+        // get all items
+        const items = await this.getItemsFilteredByFields(externalIdsArray, ['ExternalID', 'UUID']);
 
-                let key = `${relation.CollectionName}_${itemUUID}`;
-                let cpiRelationItem = { 'Key': key, 'Hidden': relation.Hidden, RelatedItems: relatedItemsUUIDs }
-                console.log(`@@@cpiRelationItem ${cpiRelationItem.Key} was created`);
-                items.push(await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem));
-            }   
+        const arr = itemsRelations.map(async itemRelation => {
+        // get primary item uuid
+            const itemUUID = items.find(item => item.ExternalID === itemRelation.ItemExternalID)?.UUID;
+            // get related items uuids
+            const relatedItemsUUIDs: any = itemRelation.RelatedItems?.map(relatedItem => items.find(item => item.ExternalID === relatedItem)?.UUID);
+            console.log(`@@@trigeredByPNS relatedItemsUUIDs: ${relatedItemsUUIDs}`);
+            console.log(`@@@trigeredByPNS itemRelation.RelatedItems: ${itemRelation.RelatedItems}`);
+            const key = `${itemRelation.CollectionName}_${itemUUID}`;
+            const cpiRelationItem = { 'Key': key, 'Hidden': itemRelation.Hidden, RelatedItems: relatedItemsUUIDs }
+            console.log(`@@@cpiRelationItem ${cpiRelationItem.Key} was created`);
+            await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem)
         });
-        await Promise.all(arr);
+
+         await Promise.all(arr);
     }
+
+        // creates an string array of all the items external ids and related items external ids
+        private getDistinctExternalIDsArray(itemsRelation: ItemRelations[]): string[] {
+            const itemsMap: Map<string, boolean> = new Map<string, boolean>();
+            // add the primary item
+            itemsRelation.forEach(item => {
+                itemsMap.set(item.ItemExternalID!, true);
+                item.RelatedItems?.forEach(relatedItem => itemsMap.set(relatedItem, true));
+            });
+            return Array.from(itemsMap.keys());
+        }
 
     //Collection table functions
     async getCollections(query): Promise<any> {
         const { Name, ...options } = query;
-        let collectionArray;
+        let collectionArray: AddonData[];
         if (query.Name) {
             try {
                 collectionArray = [await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).key(Name).get()];
@@ -68,7 +82,7 @@ class RelatedItemsService {
         }
         else {
             const array = collectionArray.map(async collection => {
-                const items = await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({fields:['ItemExternalID'], where: `Key like '${collection.Name}_%'` , page_size: -1 })
+                const items = await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({fields: ['ItemExternalID'], where: `Key like '${collection.Name}_%'`, page_size: -1 })
                 collection.Count = items.length;
             })
             await Promise.all(array);
@@ -90,7 +104,7 @@ class RelatedItemsService {
         for (const collectionToDelete of body) {
             collectionToDelete.Hidden = true;
 
-            let relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': collectionToDelete.Name });
+            const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': collectionToDelete.Name });
             if (relatedItems) {
                 this.deleteRelations(relatedItems as any);
             }
@@ -109,20 +123,20 @@ class RelatedItemsService {
             return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(body.Key).get();
         }
         catch (error) {
-            return;
+
         }
     }
 
     async getRelatedItems(query) {
-        if (query && query.resource_name == 'related_items'){
+        if (query && query.resource_name === 'related_items'){
             return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find(query);
         } else {
             throw new Error(`resource name is not related_items`);
-        }        
+        }
     }
-    
+
     async upsertItemRelations(body: ItemRelations) {
-        if (body.Hidden == true) {
+        if (body.Hidden === true) {
             return await this.deleteRelations([body]);
         }
         else {
@@ -137,7 +151,7 @@ class RelatedItemsService {
             throw new Error(`CollectionName is required`);
         }
         if (!body.ItemExternalID) {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key like '${body.CollectionName}_%'` , page_size: -1 });
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key like '${body.CollectionName}_%'`, page_size: -1 });
         }
         else {
             return await this.getRelationWithExternalIDByKey(body)
@@ -153,7 +167,7 @@ class RelatedItemsService {
     }
 
     async deleteRelations(body: ItemRelations[]) {
-        let relations = body.map(async relationToDelete => {
+        const relations = body.map(async relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true;
             return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(relationToDelete);
@@ -162,30 +176,40 @@ class RelatedItemsService {
         return p
     }
 
+    async validateItemRelationScheme(itemRelation: ItemRelations) {
+            // Define the required properties
+            const requiredProperties = ['CollectionName', 'ItemExternalID', 'RelatedItems'];
+
+            // Check if all required properties are present in the object
+            const missingProperties = requiredProperties.filter(prop => !(prop in itemRelation));
+
+            if (missingProperties.length > 0) {
+                throw new Error(`One or more of the following fields are missing: CollectionName, ItemExternalID, RelatedItems`);
+            }
+        }
+/* eslint-disable */
     async addItemsToRelationWithExternalID(body: ItemRelations) {
-        // mandatory fields
-        if (body.CollectionName && body.ItemExternalID && body.RelatedItems) {
-            this.validateItemExternalID(body.ItemExternalID);
-            let collection = await this.upsertRelatedCollection({ "Name": body.CollectionName });
+            this.validateItemRelationScheme(body);
+            this.validateItemExternalID(body.ItemExternalID!);
+            const collection = await this.upsertRelatedCollection({ "Name": body.CollectionName! });
             if (collection) {
                 let item = await this.getRelationWithExternalIDByKey(body);
 
-                let itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
+                const itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
                 let numberOfItemsToAdd = itemsToAdd.length;
 
-                let notExistItems: string[] = [];
+                const notExistItems: string[] = [], dupicateItems: string[] = [];
                 let isTryToReferencItself = false;
-                let dupicateItems: string[] = [];
 
                 for (const itemToAdd of itemsToAdd) {
                     //Check if the related items exist in the user's items list
-                    let items = await this.getItemsFilteredByFields([itemToAdd], ['UUID']);
-                    if (items.length == 0) {
+                    const items = await this.getItemsFilteredByFields([itemToAdd], ['UUID']);
+                    if (items.length === 0) {
                         notExistItems.push(itemToAdd);
                     }
 
                     //Check if the item try to reference itself
-                    if (itemToAdd == body.ItemExternalID) {
+                    if (itemToAdd === body.ItemExternalID) {
                         isTryToReferencItself = true;
                     }
 
@@ -197,9 +221,9 @@ class RelatedItemsService {
 
                 //Delete items that should not be added
                 if (body.RelatedItems) {
-                    body.RelatedItems = body.RelatedItems.filter(item => !notExistItems.includes(item))
-                    body.RelatedItems = body.RelatedItems.filter(item => !dupicateItems.includes(item))
-                    body.RelatedItems = body.RelatedItems.filter(item => !(item == body.ItemExternalID))
+                    body.RelatedItems = body.RelatedItems.filter(relatedItem => !notExistItems.includes(relatedItem))
+                    body.RelatedItems = body.RelatedItems.filter(relatedItem => !dupicateItems.includes(relatedItem))
+                    body.RelatedItems = body.RelatedItems.filter(relatedItem => !(relatedItem === body.ItemExternalID))
 
                     numberOfItemsToAdd = numberOfItemsToAdd - dupicateItems.length;
                 }
@@ -209,7 +233,7 @@ class RelatedItemsService {
                     item = body;
                     item.RelatedItems = [];
                 }
-                let exceedingItems = await this.checkIfTheListIsFull(item, body.RelatedItems);
+                const exceedingItems = await this.checkIfTheListIsFull(item, body.RelatedItems);
 
                 return this.handleAddAns(dupicateItems, notExistItems, isTryToReferencItself, exceedingItems, numberOfItemsToAdd);
 
@@ -217,15 +241,12 @@ class RelatedItemsService {
             else {
                 throw new Error(`Collection does not exist`);
             }
-        }
-        else {
-            throw new Error(`One or more of the following fields are missing: CollectionName, ItemExternalID, RelatedItems`);
-        }
     }
+    /* eslint-enable */
 
     async validateItemExternalID(itemExternalID: string) {
         const primaryItem = await this.papiClient.items.find({ fields: ['UUID'], where: `ExternalID like '${itemExternalID}'` });
-        if (primaryItem.length == 0) {
+        if (primaryItem.length === 0) {
             throw new Error(`ExternalID does not exist`);
         }
     }
@@ -235,7 +256,7 @@ class RelatedItemsService {
         let exceededItems = [];
         item.RelatedItems = item.RelatedItems.concat(relatedItems ?? []);
         //limit the number of related items for each item to maximumNumberOfRelatedItems
-        let numberOfRelatedItems = item.RelatedItems.length;
+        const numberOfRelatedItems = item.RelatedItems.length;
         if (numberOfRelatedItems > this.maximumNumberOfRelatedItems) {
             //Save failed items for user message
             exceededItems = item.RelatedItems.slice(this.maximumNumberOfRelatedItems, numberOfRelatedItems)
@@ -245,10 +266,9 @@ class RelatedItemsService {
         await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item);
         return exceededItems;
     }
-
+/* eslint-disable */
     handleAddAns(dupicateItems, notExistItems, isTryToReferencItself, exceedingItems, numberOfItemsToAdd) {
         let returnMessage = "";
-
         if (exceedingItems.length > 0) {
             returnMessage = `The list is in full capacity. The following items were not added: ${exceedingItems}`;
         }
@@ -259,8 +279,8 @@ class RelatedItemsService {
             returnMessage = `An item cannot reference itself`;
         }
         else if (notExistItems.length > 0) {
-            let numberOfFailures = notExistItems.length;
-            let numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
+            const numberOfFailures = notExistItems.length;
+            const numberOfSuccess = numberOfItemsToAdd - numberOfFailures;
             if (numberOfSuccess > 0) {
                 returnMessage = `${numberOfSuccess} items were added. The following items failed: ${notExistItems}. Please verify the ids and that the items are not deleted”`;
             }
@@ -271,7 +291,6 @@ class RelatedItemsService {
                 else {
                     returnMessage = `The following items were not added: ${notExistItems}`;
                 }
-
             }
         }
         else {
@@ -281,12 +300,13 @@ class RelatedItemsService {
         }
         return returnMessage;
     }
+    /* eslint-enable */
 
     async removeItemsFromRelationWithExternalID(body: { 'CollectionName': string, 'ItemExternalID': string, 'itemsToRemove': string[] }) {
-        let itemsToRemove = body.itemsToRemove;
+        const itemsToRemove = body.itemsToRemove;
         if (itemsToRemove) {
             if (body.CollectionName && body.ItemExternalID) {
-                let item = await this.getRelationWithExternalIDByKey(body);
+                const item = await this.getRelationWithExternalIDByKey(body);
                 if (item) {
                     item.RelatedItems = await this.deleteItemsFromGivenArray(itemsToRemove, item.RelatedItems);
 
@@ -318,16 +338,15 @@ class RelatedItemsService {
 
     async getItemsFilteredByFields(itemsExternalIDs, fields) {
         if (itemsExternalIDs && itemsExternalIDs.length > 0) {
-            let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
-            let query = { fields: fields, where: `ExternalID IN ${externelIDsList}` }
+            const externelIDsList = `(${ itemsExternalIDs.map(id => `'${id}'`).join(',') })`;
+            const query = { fields: fields, where: `ExternalID IN ${externelIDsList}` }
             return await this.papiClient.items.find(query)
         }
         return [];
     }
 
     async getItems(query) {
-        let item:
-
+        const item:
             {
                 'PresentedItem': ItemWithImageURL,
                 'RelatedItems': ItemWithImageURL[]
@@ -338,11 +357,11 @@ class RelatedItemsService {
 
         item.PresentedItem = await this.getItemsFilteredByFields([query.ExternalID], ['Name', 'LongDescription', 'Image', 'ExternalID']).then(objs => objs[0]);
         item.PresentedItem.ImageURL = item.PresentedItem.Image?.URL;
-        let relation = await this.getRelationWithExternalIDByKey({ 'Key': `${query.CollectionName}_${query.ExternalID}` })
+        const relation = await this.getRelationWithExternalIDByKey({ 'Key': `${query.CollectionName}_${query.ExternalID}` })
 
         if (relation && relation.RelatedItems && relation.RelatedItems.length > 0) {
             item.RelatedItems = await this.getItemsFilteredByFields(relation.RelatedItems, ['Name', 'LongDescription', 'Image', 'ExternalID']);
-            item.RelatedItems.map(item => item.ImageURL = item.Image?.URL)
+            item.RelatedItems.map(relatedItem => relatedItem.ImageURL = relatedItem.Image?.URL)
         }
         return item;
     }
@@ -361,15 +380,15 @@ class RelatedItemsService {
     async deleteAtdFields(body) {
         const typeID = body.typeID ? Number(body.typeID) : -1;
         const url = `/meta_data/transaction_lines/types/${typeID}/fields`;
-        let fields: any[] = [];
-        for (let field of body.fields) {
+        const fields: any[] = [];
+        for (const field of body.fields) {
             const fieldID = field.FieldID ? field.FieldID : "";
             const apiField = await this.papiClient.get(`/meta_data/transaction_lines/types/${typeID}/fields/${fieldID}`)
             apiField.Hidden = true;
             if (await this.papiClient.post(url, apiField)) {
                 field.Hidden = true;
                 field.TypeID = typeID
-                let ans = await this.upsertItemsInFieldsTable(field);
+                const ans = await this.upsertItemsInFieldsTable(field);
                 fields.push(ans);
             }
         }
@@ -381,7 +400,7 @@ class RelatedItemsService {
         const fieldID = body.FieldID ? body.FieldID : "";
         const name = body.Name ? body.Name : "";
 
-        let field: ApiFieldObject =
+        const field: ApiFieldObject =
         {
             FieldID: fieldID,
             Label: name,
@@ -409,8 +428,8 @@ class RelatedItemsService {
     async importATDFields(body) {
         try {
             console.log('importATDFields is called, data got from call:', body);
-            if (body && body.Resource == 'transactions') {
-                let objectToimport = body.DataFromExport;
+            if (body && body.Resource === 'transactions') {
+                const objectToimport = body.DataFromExport;
                 objectToimport.forEach(async obj => {
                     obj.TypeID = body.InternalID;
                     await this.upsertItemsInFieldsTable(obj);
@@ -431,13 +450,13 @@ class RelatedItemsService {
     }
 
     async exportATDFields(query) {
-        let objectToReturn: exportAnswer = new exportAnswer(true, {});
+        const objectToReturn: exportAnswer = new exportAnswer(true, {});
         try {
             let fields;
             console.log('exportRelatedItems is called, data got from call:', query);
-            if (query && query.resource == 'transactions') {
+            if (query && query.resource === 'transactions') {
                 fields = await this.getItemsFromFieldsTable()
-                fields = fields.filter(field => field.TypeID == query.internal_id && field.Hidden == false);
+                fields = fields.filter(field => field.TypeID === query.internal_id && field.Hidden === false);
 
                 if (fields && fields.length > 0) {
                     objectToReturn.DataForImport = fields.map(field => {
