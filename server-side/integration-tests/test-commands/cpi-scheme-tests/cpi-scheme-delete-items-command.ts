@@ -21,12 +21,17 @@ export class CPSchemeDeleteItemsCommand extends CPISchemeCommand {
         return await this.resourceService.deleteItems(this.mockItemRelationsData);
     }
 
+    async processTestAction(testActionRes) {
+        return testActionRes;
+    }
+
     async test(res, data, expect) {
         this.resourceService.sleep(this.timeToWait);
-        this.mockItemRelationsData.map(async (item) => {
+        const ans = this.mockItemRelationsData.map(async (item) => {
             // get the corresponding item from the cpi_meta_data type scheme
             const cpiItem = await this.resourceService.getCPIItemsRelations(item);
             expect(cpiItem).to.equal([]);
         })
+        await Promise.all(ans).catch(err => console.log(err));
     }
 }

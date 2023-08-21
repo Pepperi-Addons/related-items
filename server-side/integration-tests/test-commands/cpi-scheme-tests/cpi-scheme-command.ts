@@ -40,6 +40,5 @@ export class CPISchemeCommand extends ImportBaseCommand {
             expect(dataItems).to.deep.equal(cpiItems);
         });
         await Promise.all(ans).catch(err => console.log(err));
-        return ans;
     }
 }

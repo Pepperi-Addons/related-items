@@ -2,7 +2,7 @@ import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchD
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, ItemRelations, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from 'shared'
 import { DimxValidator } from './dimx/dimx-validator'
-import { Item } from '@pepperi-addons/cpi-node';
+import { RelatedItemsValidator } from './related-items-validator';
 
 class RelatedItemsService {
 
@@ -140,9 +140,14 @@ class RelatedItemsService {
             return await this.deleteRelations([body]);
         }
         else {
-            await this.addItemsToRelationWithExternalID(body);
-            // The key was updated when inserting the item into the table
-            return await this.getItemRelationEntity(body.Key!);
+            const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this, [body]);
+            await relatedItemsValidator.loadData();
+            const validatedItem = relatedItemsValidator.validate(body);
+            if (!validatedItem.success) {
+                throw new Error(`failed with the following error: ${validatedItem.message!}`);
+            }
+            
+            return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(validatedItem.relationItem);
         }
     }
 
