@@ -1,7 +1,7 @@
 import { Client, Request } from '@pepperi-addons/addon-testing-framework/dist/index';
 import * as Commands from '../server-side/integration-tests/index';
 import { BaseTest, TestRunner } from '@pepperi-addons/addon-testing-framework';
-
+/* eslint-disable */
 export async function tests(client: Client, request: Request): Promise<any>{
 
     if (request.method === 'GET') {

@@ -1,15 +1,10 @@
-import { DIMXObject, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
-import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
-import { Collection, ItemRelations } from 'shared'
-import { RelatedItemsValidator } from '../related-items-validator';
+import { DIMXObject, PapiClient } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from '../related-items.service';
+import { ItemRelations } from 'shared'
+import { RelatedItemsValidator } from '../related-items-validator';
 import { ItemRelationValidate } from 'shared/entities';
 
 export class DimxValidator {
-    maxNumOfRelatedItems = 25;
-    maxChunkSize = 500;
-    existingItemsMap: Map<string, Boolean> = new Map<string, Boolean>();
-
     constructor(private papiClient: PapiClient, private relatedItemsService: RelatedItemsService, private dimxObjects) {
     }
 
@@ -22,8 +17,8 @@ export class DimxValidator {
         const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this.relatedItemsService, itemsRelations);
 
         await relatedItemsValidator.loadData();
-        await this.dimxObjects.map(async obj => {
-            const valid: ItemRelationValidate = await relatedItemsValidator.validate(obj.Object);
+        this.dimxObjects.map(obj => {
+            const valid: ItemRelationValidate = relatedItemsValidator.validate(obj.Object);
             const dimxObj = {
                 Object: valid.relationItem,
                 OverwriteObject: true

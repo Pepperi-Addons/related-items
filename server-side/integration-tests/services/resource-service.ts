@@ -1,7 +1,7 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
 import { Collection, DataImportInput, FileImportInput, FindOptions } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server/dist';
-import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from '../../../shared/entities';
+import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME } from '../../../shared/entities';
 
 export class ResourceService {
 
@@ -28,9 +28,10 @@ export class ResourceService {
     }
 
     async deleteItems(itemsToDelete: ItemRelations[]) {
-        itemsToDelete.map(async (item) => {
+        const arr = itemsToDelete.map(async (item) => {
             return item.Hidden = true;
         });
+        Promise.all(arr);
         const dimxObj: DataImportInput = {
             "Objects": itemsToDelete
         }
@@ -58,8 +59,8 @@ export class ResourceService {
 
     async getItemsUUID(itemsExternalIDs) {
         if (itemsExternalIDs && itemsExternalIDs.length > 0) {
-            let externelIDsList = '(' + itemsExternalIDs.map(id => `'${id}'`).join(',') + ')';
-            let query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
+            const externelIDsList = `(${ itemsExternalIDs.map(id => `'${id}'`).join(',') })`;
+            const query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
             return await this.papiClient.items.find(query)
         }
         return [];
@@ -73,7 +74,7 @@ export class ResourceService {
     }
 
     async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 60, validate = (res) => {
-        return res != null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
+        return res = null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
     }) {
         let attempts = 0;
 

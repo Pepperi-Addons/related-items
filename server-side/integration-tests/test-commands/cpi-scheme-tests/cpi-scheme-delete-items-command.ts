@@ -3,7 +3,7 @@ import { CPISchemeCommand } from "./cpi-scheme-command";
 import { DataImportInput } from "@pepperi-addons/papi-sdk";
 
 export class CPSchemeDeleteItemsCommand extends CPISchemeCommand {
-    
+
     constructor(client: Client){
         super(client)
         this.numberOfEntities = 5;

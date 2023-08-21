@@ -29,8 +29,8 @@ export class NotExistingItemSingleEntityCommand extends BaseCommand {
         try {
             return await this.resourceService.upsertSingleEntity(this.mockItemRelationsData[0]);
         }
-        catch(e) {
-            console.log("upsert of not existing item failed with error:",e)
+        catch (e) {
+            console.log("upsert of not existing item failed with error:", e)
             return [];
         }
      }
