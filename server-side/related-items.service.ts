@@ -2,7 +2,8 @@ import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchD
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, ItemRelations, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from 'shared'
 import { DimxValidator } from './dimx/dimx-validator'
-import { Item } from '@pepperi-addons/cpi-node';
+import { RelatedItemsValidator } from './related-items-validator';
+import { CPISideHanler } from './cpi-side-handler/CPISideHandler';
 
 class RelatedItemsService {
 
@@ -26,40 +27,11 @@ class RelatedItemsService {
     //Updates RELATED_ITEM_CPI_META_DATA_TABLE_NAME Table to be identical to RELATED_ITEM_META_DATA_TABLE_NAME Table
     async trigeredByPNS(body) {
         console.log(`@@@trigeredByPNS was called with body: ${JSON.stringify(body)}`);
-        const itemsRelations: ItemRelations[] = await this.papiClient.addons.data.search.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: body.Message.ModifiedObjects}) as any;
-        console.log("@@@Inside PNS, itemsRelations: ", itemsRelations);
-         // creates an string array of all the items external ids and related items external ids
-        const externalIdsArray = this.getDistinctExternalIDsArray(itemsRelations as ItemRelations[]);
-        console.log(`@@@trigeredByPNS externalIdsArray: ${externalIdsArray}`);
-        // get all items
-        const items = await this.getItemsFilteredByFields(externalIdsArray, ['ExternalID', 'UUID']);
-
-        const arr = itemsRelations.map(async itemRelation => {
-        // get primary item uuid
-            const itemUUID = items.find(item => item.ExternalID === itemRelation.ItemExternalID)?.UUID;
-            // get related items uuids
-            const relatedItemsUUIDs: any = itemRelation.RelatedItems?.map(relatedItem => items.find(item => item.ExternalID === relatedItem)?.UUID);
-            console.log(`@@@trigeredByPNS relatedItemsUUIDs: ${relatedItemsUUIDs}`);
-            console.log(`@@@trigeredByPNS itemRelation.RelatedItems: ${itemRelation.RelatedItems}`);
-            const key = `${itemRelation.CollectionName}_${itemUUID}`;
-            const cpiRelationItem = { 'Key': key, 'Hidden': itemRelation.Hidden, RelatedItems: relatedItemsUUIDs }
-            console.log(`@@@cpiRelationItem ${cpiRelationItem.Key} was created`);
-            await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(cpiRelationItem)
-        });
-
-         await Promise.all(arr);
+        const cpiSideHandler = new CPISideHanler(this.papiClient);
+        const res = await cpiSideHandler.handlePNS(body);
+        console.log(`@@@trigeredByPNS was called with res: ${JSON.stringify(res)}`);
+        return res;
     }
-
-        // creates an string array of all the items external ids and related items external ids
-        private getDistinctExternalIDsArray(itemsRelation: ItemRelations[]): string[] {
-            const itemsMap: Map<string, boolean> = new Map<string, boolean>();
-            // add the primary item
-            itemsRelation.forEach(item => {
-                itemsMap.set(item.ItemExternalID!, true);
-                item.RelatedItems?.forEach(relatedItem => itemsMap.set(relatedItem, true));
-            });
-            return Array.from(itemsMap.keys());
-        }
 
     //Collection table functions
     async getCollections(query): Promise<any> {
@@ -140,9 +112,14 @@ class RelatedItemsService {
             return await this.deleteRelations([body]);
         }
         else {
-            await this.addItemsToRelationWithExternalID(body);
-            // The key was updated when inserting the item into the table
-            return await this.getItemRelationEntity(body.Key!);
+            const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this, [body]);
+            await relatedItemsValidator.loadData();
+            const validatedItem = relatedItemsValidator.validate(body);
+            if (!validatedItem.success) {
+                throw new Error(`failed with the following error: ${validatedItem.message!}`);
+            }
+
+            return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(validatedItem.relationItem);
         }
     }
 
@@ -335,7 +312,6 @@ class RelatedItemsService {
     }
 
     // Items functions
-
     async getItemsFilteredByFields(itemsExternalIDs, fields) {
         if (itemsExternalIDs && itemsExternalIDs.length > 0) {
             const externelIDsList = `(${ itemsExternalIDs.map(id => `'${id}'`).join(',') })`;
