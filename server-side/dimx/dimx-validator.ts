@@ -12,7 +12,7 @@ export class DimxValidator {
         // get the dimxobject and return object that meets the restriction :
         // * the main item and all the related items are exist
         // * no more than 25 related items
-        // * not pointing to itself 
+        // * not pointing to itself
         const itemsRelations: ItemRelations[] = this.dimxObjects.map(dimxObj => dimxObj.Object);
         const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this.relatedItemsService, itemsRelations);
 
@@ -26,7 +26,7 @@ export class DimxValidator {
             if (!valid.success) {
                 this.markItemAsError(dimxObj, valid.message!);
             }
-            
+
             return dimxObj
         });
         return this.dimxObjects;
