@@ -29,6 +29,7 @@ export class InstallationService {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme();
             if (ansFromCreateSchemes.success === true) {
                 await this.createPNSSubscription();
+                await this.createPFSResource();
                 await this.handleSchemeData(); // export from the old scheme and import to the new one
             }
             else {
