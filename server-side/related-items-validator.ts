@@ -1,13 +1,13 @@
-import { SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
-import { PapiClient, AddonData } from '@pepperi-addons/papi-sdk'
+import { PapiClient, AddonData, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from './related-items.service';
 import { Collection, ItemRelations } from 'shared'
 import { ItemRelationValidate } from 'shared/entities';
+import { ItemsService } from './items-service';
 
 export class RelatedItemsValidator {
     maxNumOfRelatedItems = 25;
     maxChunkSize = 500;
-    existingItemsMap: Map<string, Boolean> = new Map<string, Boolean>();
+    existingItemsMap: Map<string, boolean> = new Map<string, boolean>();
 
     constructor(private papiClient: PapiClient, private relatedItemsService: RelatedItemsService, private itemsRelations: ItemRelations[]) {
     }
@@ -19,7 +19,7 @@ export class RelatedItemsValidator {
         // get the dimxobject and return object that meets the restriction :
         // * the main item and all the related items are exist
         // * no more than 25 related items
-        // * not pointing to itself 
+        // * not pointing to itself
         return this.handleItemRelation(itemRelation);
     }
 
@@ -31,7 +31,7 @@ export class RelatedItemsValidator {
 
     private handleItemRelation(itemRelation: ItemRelations): ItemRelationValidate {
         let msgError: string | undefined = undefined;
-        let schemeValidation = this.validateItemRelationScheme(itemRelation)
+        const schemeValidation = this.validateItemRelationScheme(itemRelation)
 
         if (schemeValidation.sucess == true) {
             if (this.isItemExist(itemRelation.ItemExternalID)) {
@@ -43,7 +43,7 @@ export class RelatedItemsValidator {
             }
         }
         else {
-            msgError =  schemeValidation.error;
+            msgError = schemeValidation.error;
         }
 
         return {
@@ -59,8 +59,8 @@ export class RelatedItemsValidator {
         if (itemRelation.RelatedItems != undefined) {
             itemRelation.RelatedItems.forEach((item, index) => {
                 ////Check if the item try to reference itself
-                if (item === itemRelation.ItemExternalID) itemRelation.RelatedItems!.splice(index, 1);
-                // if the user does not have the item, delete it from the list 
+                if (item === itemRelation.ItemExternalID) { itemRelation.RelatedItems!.splice(index, 1); }
+                // if the user does not have the item, delete it from the list
                 if (!this.isItemExist(item)) {
                     itemRelation.RelatedItems!.splice(index, 1);
                 }
@@ -86,14 +86,14 @@ export class RelatedItemsValidator {
             return {sucess: false,
                     error: `Validation failed. Missing properties: ${missingProperties}`};
         }
-        return {sucess:true};
+        return {sucess: true};
     }
 
     // MARK: items functions
 
         // call items api, and set in a map if item is exist or not
         private async loadItems() {
-            //array to save all items in the list in order to search if they exist 
+            //array to save all items in the list in order to search if they exist
             const allItems = this.getItemsArray();
             console.log("number of items in the recived csv: ", allItems.length);
             // to ensure that duplicated items will be removed.
@@ -101,47 +101,39 @@ export class RelatedItemsValidator {
             // a map to save all the items in the dimx object that existing in the user stock
             return await this.validateItemsAvailablitiy();
         }
-    
+
         // creates an array of all the items that arrived in itemsRelations
         private getItemsArray(): string[] {
             const items: string[] = [];
-            // add the primary item  
+            // add the primary item
             const itemExternalIDs: string[] = this.itemsRelations.map(obj => obj.ItemExternalID!);
             const relatedItems: string[] = this.itemsRelations.flatMap(obj => obj.RelatedItems!);
             items.push(...itemExternalIDs, ...relatedItems);
-    
+
             return items;
         }
-    
+
         private initItemsMap(allItems: string[]) {
             allItems.map(item => {
                 this.existingItemsMap.set(item, false);
             });
             console.log("number of distinct items : ", this.existingItemsMap.size);
         }
-    
+
         private async validateItemsAvailablitiy() {
             // convert items map into array in order to split to chunk and search
-            let allItems = Array.from(this.existingItemsMap.keys());
-            // split array into chunks in order to call multiple searches simultaneously
-            const chunks = this.splitToChunks(allItems, this.maxChunkSize);
-            await Promise.all(chunks.map(async chunk => {
-                let searchBody: SearchBody = {
-                    Fields: [
-                        "ExternalID"
-                    ],
-                    UniqueFieldID: "ExternalID",
-                    UniqueFieldList: [...chunk]
-                }
-                const items = await this.search('items', searchBody)
-                for (var item of items.Objects) {
-                    this.existingItemsMap.set(item.ExternalID, true)
-                }
-            }))
+            const allItemsExternalIDs = Array.from(this.existingItemsMap.keys());
+            const itemsService = new ItemsService(this.papiClient);
+            const itemsMap = await itemsService.getItemsByExternalID(allItemsExternalIDs, ['ExternalID'], 'ExternalID');
+
+            // set the value of the map to true if the item exist
+            itemsMap.forEach((value, key) => {
+                this.existingItemsMap.set(key, true);
+            });
         }
 
         private isItemExist(item) {
-            return this.existingItemsMap.get(item) == true
+            return this.existingItemsMap.get(item) === true
         }
 
 
@@ -152,23 +144,23 @@ export class RelatedItemsValidator {
         await this.createCollection(collections);
     }
 
-    // // creates an array of all the collections that arrived 
+    // // creates an array of all the collections that arrived
     private getDistinctCollections(): string[] {
-        let collectionsMap: Map<string, Boolean> = new Map<string, Boolean>();
+        const collectionsMap: Map<string, boolean> = new Map<string, boolean>();
         // we pass them into a map in order to return only distinct collections
         this.itemsRelations.map(obj => {
             const collectionName = obj.CollectionName
-            if(collectionName != undefined) {
+            if (collectionName != undefined) {
                 collectionsMap.set(collectionName, true);
             }
         });
-        const collectionsArray =  Array.from(collectionsMap.keys());
+        const collectionsArray = Array.from(collectionsMap.keys());
         return collectionsArray;
     }
 
     private async createCollection(collections: string []) {
         collections.map(async collection => {
-            let newCollection: Collection = {
+            const newCollection: Collection = {
                 Name: collection,
                 Description: "",
                 Hidden: false
@@ -180,10 +172,10 @@ export class RelatedItemsValidator {
 
     // MARK: Helpers functions
 
-        // get list of all items and returns the existing items it Items resource
-        private async search(resourceName: string, params: SearchBody): Promise<SearchData<AddonData>> {
-            return (await this.papiClient.resources.resource(resourceName).search(params));
-        }
+    // get list of all items and returns the existing items it Items resource
+    private async search(resourceName: string, params: SearchBody): Promise<SearchData<AddonData>> {
+        return (await this.papiClient.resources.resource(resourceName).search(params));
+    }
 
     // gets an array of items and max chuck size and splits the array of items to chunks according to the max chunk size
     private splitToChunks<T>(items: T[], maxKeysInChunk: number): T[][] {

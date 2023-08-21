@@ -37,6 +37,7 @@
         "@pepperi-addons/addon-testing-framework": "^0.0.19",
         "@pepperi-addons/debug-server": "0.0.32",
         "@pepperi-addons/papi-sdk": "^1.53.0",
+        "just-split": "^3.2.0",
         "shared": "file:../shared"
     }
 }
