@@ -33,7 +33,7 @@ export class RelatedItemsValidator {
         let msgError: string | undefined = undefined;
         const schemeValidation = this.validateItemRelationScheme(itemRelation)
 
-        if (schemeValidation.sucess == true) {
+        if (schemeValidation.sucess === true) {
             if (this.isItemExist(itemRelation.ItemExternalID)) {
                 this.handlePrimaryItem(itemRelation);
                 this.validateRelatedItems(itemRelation);
@@ -47,7 +47,7 @@ export class RelatedItemsValidator {
         }
 
         return {
-            success: msgError == undefined,
+            success: msgError === undefined,
             message: msgError,
             relationItem: itemRelation
         }
@@ -56,7 +56,7 @@ export class RelatedItemsValidator {
     private validateRelatedItems(itemRelation: ItemRelations) {
         console.log("***itemRelation inside validateRelatedItems: ", itemRelation);
         // handeling restriction on related items list
-        if (itemRelation.RelatedItems != undefined) {
+        if (itemRelation.RelatedItems !== undefined) {
             itemRelation.RelatedItems.forEach((item, index) => {
                 ////Check if the item try to reference itself
                 if (item === itemRelation.ItemExternalID) { itemRelation.RelatedItems!.splice(index, 1); }
@@ -150,7 +150,7 @@ export class RelatedItemsValidator {
         // we pass them into a map in order to return only distinct collections
         this.itemsRelations.map(obj => {
             const collectionName = obj.CollectionName
-            if (collectionName != undefined) {
+            if (collectionName !== undefined) {
                 collectionsMap.set(collectionName, true);
             }
         });
@@ -168,32 +168,5 @@ export class RelatedItemsValidator {
             await this.relatedItemsService.upsertRelatedCollection(newCollection);
         });
         Promise.all(collections);
-    }
-
-    // MARK: Helpers functions
-
-    // get list of all items and returns the existing items it Items resource
-    private async search(resourceName: string, params: SearchBody): Promise<SearchData<AddonData>> {
-        return (await this.papiClient.resources.resource(resourceName).search(params));
-    }
-
-    // gets an array of items and max chuck size and splits the array of items to chunks according to the max chunk size
-    private splitToChunks<T>(items: T[], maxKeysInChunk: number): T[][] {
-        const numberOfKeys = items.length;
-        const res: T[][] = []
-
-        // get the number of chunks with no more than max keys in chunk
-        const numberOfChunks = Math.ceil(numberOfKeys / maxKeysInChunk);
-
-        // calculating equally the number of keys in every chunk
-        const keysInChunk = Math.ceil(numberOfKeys / numberOfChunks)
-
-        // splitting the array of keys to the desired chunks
-        for (let i = 0; i < numberOfKeys; i += keysInChunk) {
-            res.push(items.slice(i, i + keysInChunk));
-        }
-
-        console.log(`sliceKeysToChunks from ${items.length} keys to ${res.length} chunks`)
-        return res;
     }
 }
