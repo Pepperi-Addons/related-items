@@ -142,7 +142,7 @@ class RelatedItemsService {
         else {
             const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this, [body]);
             await relatedItemsValidator.loadData();
-            const validatedItem =  await relatedItemsValidator.validate(body);
+            const validatedItem = relatedItemsValidator.validate(body);
             if (!validatedItem.success) {
                 throw new Error(`failed with the following error: ${validatedItem.message!}`);
             }

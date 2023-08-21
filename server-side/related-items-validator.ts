@@ -15,7 +15,7 @@ export class RelatedItemsValidator {
     async loadData(){
         await Promise.all([this.loadItems(), this.loadColllections()]);
     }
-    async validate(itemRelation: ItemRelations): Promise<ItemRelationValidate> {
+    validate(itemRelation: ItemRelations): ItemRelationValidate {
         // get the dimxobject and return object that meets the restriction :
         // * the main item and all the related items are exist
         // * no more than 25 related items
