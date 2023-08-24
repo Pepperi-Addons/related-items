@@ -29,4 +29,9 @@ export class ImportFileBaseCommand extends ImportBaseCommand {
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
         expect(data).to.equal(this.numberOfEntities);
     }
+
+    async cleanup(): Promise<any> {
+        // delete the collection
+        return await this.resourceService.deleteCollections([{"Name": this.collectionName}]);
+     }
 }
