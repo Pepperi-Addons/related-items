@@ -10,8 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm version patch",
     "build:debug": "tsc && rollup -c debug.rollup.config.js",
-    "lint": "eslint './**/*.ts'",
-    "fix-lint": "eslint --fix './**/*.ts'"
+    "lint": "eslint --ext .ts .",
+    "fix-lint": "eslint --ext .ts . --fix"
   },
   "author": "",
   "license": "ISC",
