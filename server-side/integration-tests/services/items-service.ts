@@ -27,7 +27,7 @@ export class ItemsService {
         // for huge test we need the stock to be with 100000 items but the file only contain 4K enteries
         // for small test we need 500 entieries
         const itemsToAddCounter: number = this.numberOfItems === 100000 ? 4003 : this.numberOfItems;
-        while(items.length < itemsToAddCounter) {
+        while (items.length < itemsToAddCounter) {
             const searchRes = await this.papiClient.resources.resource("items").search({
                 Fields: ['ExternalID'],
                 PageSize: 1000,
@@ -75,21 +75,16 @@ export class ItemsService {
          private splitToChunks<T>(items: T[], maxKeysInChunk: number): T[][] {
             const numberOfKeys = items.length;
             const res: T[][] = []
-    
             // get the number of chunks with no more than max keys in chunk
             const numberOfChunks = Math.ceil(numberOfKeys / maxKeysInChunk);
-    
             // calculating equally the number of keys in every chunk
             const keysInChunk = Math.ceil(numberOfKeys / numberOfChunks)
-    
             // splitting the array of keys to the desired chunks
             for (let i = 0; i < numberOfKeys; i += keysInChunk) {
                 res.push(items.slice(i, i + keysInChunk));
             }
-    
             console.log(`sliceKeysToChunks from ${items.length} keys to ${res.length} chunks`)
             return res;
         }
     }
-    
 

@@ -18,12 +18,6 @@ export class HugeFileCommand extends ImportFileBaseCommand {
     }
 
     async cleanup(): Promise<any> {
-         this.mockItemRelationsData.map(item => {
-            item.RelatedItems = [];
-            return item.Hidden = true;
-        });
-        const file = await this.pfsService.generateFileToImport(this.mockItemRelationsData);
-        await this.resourceService.importFile(file);
         return await this.resourceService.deleteCollections([{"Name": this.collectionName}]);
      }
 }
