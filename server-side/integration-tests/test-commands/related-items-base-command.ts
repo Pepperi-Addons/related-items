@@ -35,7 +35,8 @@ export class BaseCommand extends BaseTest {
 
         describe(this.title, () => {
             it('prepareUserItems', async () => {
-               this.items = await itemsService.prepareUserItems();
+            // 500 items for big data entities, 3 items for the related items of the last entity  because we add next 3 items
+               this.items = await itemsService.prepareUserItems(503);
             })
             it("initData", async () => {
                this.mockItemRelationsData = await this.initData(this.items);
