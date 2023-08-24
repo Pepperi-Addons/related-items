@@ -71,10 +71,13 @@ export class ResourceService {
         if (ansFromAuditLog.success === true) {
             return ansFromAuditLog.resultObject;
         }
+        else {
+            throw new Error(`Audit log failed: ${ansFromAuditLog.errorCode}`);
+        }
     }
 
     async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 60, validate = (res) => {
-        return res = null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
+        return res !== null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
     }) {
         let attempts = 0;
 
