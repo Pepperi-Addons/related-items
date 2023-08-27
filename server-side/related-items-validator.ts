@@ -26,7 +26,8 @@ export class RelatedItemsValidator {
     // add key and hidden state for the primary item
     private handlePrimaryItem(itemRelation: ItemRelations) {
         itemRelation.Hidden = itemRelation.Hidden ? itemRelation.Hidden : false
-        itemRelation.Key = `${itemRelation.CollectionName}_${itemRelation.ItemExternalID}`;
+        const key = `${itemRelation.CollectionName}_${itemRelation.ItemExternalID}`;
+        itemRelation.Key = key.replace(/\s/g, '_');;
     }
 
     private handleItemRelation(itemRelation: ItemRelations): ItemRelationValidate {

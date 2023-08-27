@@ -37,6 +37,17 @@ export class InstallationService {
             }
         }
     }
+    // replace white spaces of the existing Item Relation Key with underscore
+    private async removeWhiteSpacesFromItemRelationsKeys() {
+
+    // export data from RELATED_ITEM_META_DATA_TABLE_NAME scheme
+
+    // for each row in the exported data add key with underscore instead of white spaces
+
+    // import the data to RELATED_ITEM_META_DATA_TABLE_NAME scheme
+        
+        //str.replace(/\s/g, '_');
+    }
     createPNSSubscription() {
         return this.papiClient.notification.subscriptions.upsert({
             AddonUUID: config.AddonUUID,
@@ -136,7 +147,6 @@ export class InstallationService {
         }
         const auditLog = await this.papiClient.post(`/addons/data/export/file/${config.AddonUUID}/${this.oldTableName}`, body);
         return this.getURIFromAuditLog(auditLog);
-
     }
 
     private async importFileToRelatedItems(fileURI) {
