@@ -72,7 +72,7 @@ export class ResourceService {
             return ansFromAuditLog.resultObject;
         }
         else {
-            throw new Error("Audit log failed");
+            throw new Error(`Audit log failed: ${ansFromAuditLog.errorCode}`);
         }
     }
 
