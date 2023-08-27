@@ -76,7 +76,9 @@ class RelatedItemsService {
     async deleteCollections(body: [Collection]) {
         for (const collectionToDelete of body) {
             collectionToDelete.Hidden = true;
+            // delete all the inside relations of the collection
             await this.deleteCollectionRelations(collectionToDelete);
+            // delete the collection
             await this.upsertRelatedCollection(collectionToDelete);
         }
         return body;
@@ -166,11 +168,16 @@ class RelatedItemsService {
         const dimxResultObjs = await Promise.all(arr) as any;
         //throw an error if at least one import failed
         dimxResultObjs.some(dimxResultObj => {
+            let faildItems: string = "";
             dimxResultObj.forEach(obj => {
                 if (obj.Status === "Error") {
-                    throw new Error(`Failed to delete relations`)
+                    faildItems = faildItems + obj.Key + ", ";
+                    //throw new Error(`Failed to delete relations`)
                 }
-            });
+                });
+                if (faildItems !== "") {
+                    throw new Error(`Failed to delete relations: ${faildItems}`);
+                }
         });
     }
 
