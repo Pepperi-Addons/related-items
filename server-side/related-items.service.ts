@@ -89,7 +89,8 @@ class RelatedItemsService {
 
     async getRelationWithExternalIDByKey(body: ItemRelations) {
         if (body.Key === undefined) {
-            body.Key = `${body.CollectionName}_${body.ItemExternalID}`;
+            const key = this.replaceWhiteSpacesWithUnderscore(`${body.CollectionName}_${body.ItemExternalID}`);
+            body.Key = this.replaceWhiteSpacesWithUnderscore(key);
         }
         try {
             return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(body.Key).get();
@@ -97,6 +98,11 @@ class RelatedItemsService {
         catch (error) {
 
         }
+    }
+
+    // replace white spaces with underscore
+    replaceWhiteSpacesWithUnderscore(str: string) {
+        return str.replace(/\s/g, '_');
     }
 
     async getRelatedItems(query) {
@@ -128,7 +134,8 @@ class RelatedItemsService {
             throw new Error(`CollectionName is required`);
         }
         if (!body.ItemExternalID) {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key like '${body.CollectionName}_%'`, page_size: -1 });
+            const colletionName = this.replaceWhiteSpacesWithUnderscore(body.CollectionName);
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key like '${colletionName}_%'`, page_size: -1 });
         }
         else {
             return await this.getRelationWithExternalIDByKey(body)
@@ -333,7 +340,8 @@ class RelatedItemsService {
 
         item.PresentedItem = await this.getItemsFilteredByFields([query.ExternalID], ['Name', 'LongDescription', 'Image', 'ExternalID']).then(objs => objs[0]);
         item.PresentedItem.ImageURL = item.PresentedItem.Image?.URL;
-        const relation = await this.getRelationWithExternalIDByKey({ 'Key': `${query.CollectionName}_${query.ExternalID}` })
+        const key = this.replaceWhiteSpacesWithUnderscore(`${query.CollectionName}_${query.ExternalID}`);
+        const relation = await this.getRelationWithExternalIDByKey({ 'Key': key })
 
         if (relation && relation.RelatedItems && relation.RelatedItems.length > 0) {
             item.RelatedItems = await this.getItemsFilteredByFields(relation.RelatedItems, ['Name', 'LongDescription', 'Image', 'ExternalID']);
