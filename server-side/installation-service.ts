@@ -1,13 +1,17 @@
 
-import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, AddonDataScheme, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
 import semver from 'semver';
 import config from '../addon.config.json';
-import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME } from 'shared';
+import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME, TEMPORARY_MIGRATION_SCHEME } from 'shared';
+import { SchemeBuildOperaton } from './migration/scheme-build-operation';
+import { RemoveWhiteSpacesBuildOperaton } from './migration/remove-spaces-build-operation';
+import { PageNumberBuildOperations, PageNumberBuilder } from '@pepperi-addons/modelsdk';
 
 export class InstallationService {
 
     oldTableName = "RelationsWithExternalID";
     newTableName = "related_items"
+    pageSize = 500;
 
     constructor(private papiClient: PapiClient) {
     }
@@ -15,7 +19,9 @@ export class InstallationService {
     // migrate from the old ADAL schema RelationsWithExternalID the the new one
     async performMigration(fromVersion): Promise<{ success: boolean, resultObject: any}> {
         try {
+            // change RELATED_ITEM_META_DATA_TABLE_NAME name for generic resource
             await this.migrateToV1_1_x(fromVersion);
+            await this.migrateToV1_2_x(fromVersion);
             return { success: true, resultObject: {} };
         }
         catch (e) {
@@ -26,7 +32,7 @@ export class InstallationService {
     // eslint-disable-next-line
     private async migrateToV1_1_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
-            const ansFromCreateSchemes = await this.createRelatedItemsScheme();
+            const ansFromCreateSchemes = await this.createRelatedItemsScheme(this.newTableName);
             if (ansFromCreateSchemes.success === true) {
                 await this.createPNSSubscription();
                 await this.createPFSResource();
@@ -37,17 +43,40 @@ export class InstallationService {
             }
         }
     }
-    // replace white spaces of the existing Item Relation Key with underscore
-    private async removeWhiteSpacesFromItemRelationsKeys() {
-
-    // export data from RELATED_ITEM_META_DATA_TABLE_NAME scheme
-
-    // for each row in the exported data add key with underscore instead of white spaces
-
-    // import the data to RELATED_ITEM_META_DATA_TABLE_NAME scheme
-        
-        //str.replace(/\s/g, '_');
+    private async migrateToV1_2_x(fromVersion) {
+        if (fromVersion && semver.lt(fromVersion, '1.2.0')) {
+            await this.removeWhiteSpacesFromItemRelationsKeys();
+        }
     }
+    // replace white spaces of the existing Item Relation Key with underscore usinf PageNumberBuildOperations
+    private async removeWhiteSpacesFromItemRelationsKeys() {
+        // create temporary scheme to save data
+        await this.createRelatedItemsScheme(TEMPORARY_MIGRATION_SCHEME);
+        // create calsses to help with the migration(using modelSDK)
+        const toTemporarySchemeBuildOperation = new SchemeBuildOperaton(this.papiClient, RELATED_ITEM_META_DATA_TABLE_NAME);
+        const fromTemporarySchemeBuildOperaton = new RemoveWhiteSpacesBuildOperaton(this.papiClient, TEMPORARY_MIGRATION_SCHEME);
+
+        await this.copyDataToScheme(TEMPORARY_MIGRATION_SCHEME, toTemporarySchemeBuildOperation);
+        // remove all data from 'related_items' scheme
+        let truncateAns = await this.papiClient.post(`/addons/data/schemes/${RELATED_ITEM_META_DATA_TABLE_NAME}/truncate`, {});
+       if (truncateAns.Done === true) {
+        // move data from temporary scheme to "related_items_scheme"
+        await this.copyDataToScheme(RELATED_ITEM_META_DATA_TABLE_NAME, fromTemporarySchemeBuildOperaton);
+        // purge temporary scheme
+        await this.purgeScheme(TEMPORARY_MIGRATION_SCHEME);
+       }
+       else {
+           throw new Error("Failed to truncate related_items scheme");
+            
+       }
+    }
+
+    async copyDataToScheme(scheme: string, buildOperation: PageNumberBuildOperations<AddonData,AddonData,any>) {
+        const buildBody: any = {};
+        const copyService = new PageNumberBuilder(scheme, buildOperation);
+		return await copyService.buildTable(buildBody);
+    }
+
     createPNSSubscription() {
         return this.papiClient.notification.subscriptions.upsert({
             AddonUUID: config.AddonUUID,
@@ -83,8 +112,8 @@ export class InstallationService {
         }
     }
 
-    async createRelatedItemsScheme() {
-        const relatedItemsScheme: AddonDataScheme = this.getRelatedItemsScheme();
+    async createRelatedItemsScheme(schemeName: string) {
+        const relatedItemsScheme: AddonDataScheme = this.getRelatedItemsScheme(schemeName);
         try {
             await this.papiClient.addons.data.schemes.post(relatedItemsScheme);
             return {
@@ -101,9 +130,9 @@ export class InstallationService {
         }
     }
 
-    private getRelatedItemsScheme(): AddonDataScheme {
+    private getRelatedItemsScheme(schemeName: string): AddonDataScheme {
         return {
-            Name: this.newTableName,
+            Name: schemeName,
             Type: 'data',
             GenericResource: true,
             Fields: {
@@ -129,7 +158,7 @@ export class InstallationService {
             const ansFromImport = await this.importFileToRelatedItems(fileURI);
             const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
             if (ansFromAuditLog.success === true) {
-                this.purgeOldScheme();
+                this.purgeScheme(this.oldTableName);
             }
         }
         else {
@@ -189,7 +218,7 @@ export class InstallationService {
         return new Promise<any>(executePoll);
     }
 
-    private async purgeOldScheme() {
-        return await this.papiClient.post(`/addons/data/schemes/${this.oldTableName}/purge`, {});
+    private async purgeScheme(scheme: string) {
+        return await this.papiClient.post(`/addons/data/schemes/${scheme}/purge`, {});
     }
 }

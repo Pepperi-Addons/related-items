@@ -182,7 +182,7 @@ async function create_adal_schemes(papiClient: PapiClient) {
         await papiClient.addons.data.schemes.post(collectionsScheme);
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
-        await installationService.createRelatedItemsScheme()
+        await installationService.createRelatedItemsScheme(RELATED_ITEM_META_DATA_TABLE_NAME)
         await installationService.createPFSResource()
 
         return {
