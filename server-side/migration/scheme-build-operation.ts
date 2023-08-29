@@ -4,14 +4,14 @@ import config from '../../addon.config.json';
 import { ItemRelations } from 'shared/entities';
 
 // this class is used for the  transition from temporary scheme to related_items scheme
-export class SchemeBuildOperaton implements PageNumberBuildOperations<AddonData,AddonData,any> {
+export class SchemeBuildOperaton implements PageNumberBuildOperations<AddonData, AddonData, any> {
 
     constructor(private papiClient: PapiClient, private schemeName: string) {}
 
     // get items from temporary scheme
     async searchObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>> {
         const searchBody: SearchBody = {
-			PageSize: pageSize, 
+			PageSize: pageSize,
             Page: page
 		}
 		return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(this.schemeName).post(searchBody) as any;
@@ -23,7 +23,7 @@ export class SchemeBuildOperaton implements PageNumberBuildOperations<AddonData,
 
     // add the items to the temporary scheme
     async batchUpsert(resourceName: string, objects: AddonData[]): Promise<any[]> {
-        const body = { 
+        const body = {
             Objects: objects
         };
         return await this.papiClient.apiCall('POST', `/addons/data/batch/${config.AddonUUID}/${resourceName}`, body);

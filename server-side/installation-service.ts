@@ -43,6 +43,7 @@ export class InstallationService {
             }
         }
     }
+    // eslint-disable-next-line
     private async migrateToV1_2_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.2.0')) {
             await this.removeWhiteSpacesFromItemRelationsKeys();
@@ -58,7 +59,7 @@ export class InstallationService {
 
         await this.copyDataToScheme(TEMPORARY_MIGRATION_SCHEME, toTemporarySchemeBuildOperation);
         // remove all data from 'related_items' scheme
-        let truncateAns = await this.papiClient.post(`/addons/data/schemes/${RELATED_ITEM_META_DATA_TABLE_NAME}/truncate`, {});
+        const truncateAns = await this.papiClient.post(`/addons/data/schemes/${RELATED_ITEM_META_DATA_TABLE_NAME}/truncate`, {});
        if (truncateAns.Done === true) {
         // move data from temporary scheme to "related_items_scheme"
         await this.copyDataToScheme(RELATED_ITEM_META_DATA_TABLE_NAME, fromTemporarySchemeBuildOperaton);
@@ -67,11 +68,11 @@ export class InstallationService {
        }
        else {
            throw new Error("Failed to truncate related_items scheme");
-            
+
        }
     }
 
-    async copyDataToScheme(scheme: string, buildOperation: PageNumberBuildOperations<AddonData,AddonData,any>) {
+    async copyDataToScheme(scheme: string, buildOperation: PageNumberBuildOperations<AddonData, AddonData, any>) {
         const buildBody: any = {};
         const copyService = new PageNumberBuilder(scheme, buildOperation);
 		return await copyService.buildTable(buildBody);
