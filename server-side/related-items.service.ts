@@ -54,7 +54,8 @@ class RelatedItemsService {
         }
         else {
             const array = collectionArray.map(async collection => {
-                const items = await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({fields: ['ItemExternalID'], where: `Key like '${collection.Name}_%'`, page_size: -1 })
+                    const collectionName = this.replaceWhiteSpacesWithUnderscore(collection.Name);
+                const items = await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({fields: ['ItemExternalID'], where: `Key like '${collectionName}_%'`, page_size: -1 })
                 collection.Count = items.length;
             })
             await Promise.all(array);

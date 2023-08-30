@@ -35,8 +35,13 @@ export class InstallationService {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme(this.newTableName);
             if (ansFromCreateSchemes.success === true) {
                 await this.createPNSSubscription();
-                await this.createPFSResource();
-                await this.handleSchemeData(); // export from the old scheme and import to the new one
+                const ans = await this.createPFSResource();
+                if (ans.success === true) {
+                    return await this.handleSchemeData(); // export from the old scheme and import to the new one
+                }
+                else {
+                    throw new Error("Failed to create PFS resource");
+                }
             }
             else {
                 throw new Error(`Failed to create related_items scheme`);
@@ -159,7 +164,10 @@ export class InstallationService {
             const ansFromImport = await this.importFileToRelatedItems(fileURI);
             const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
             if (ansFromAuditLog.success === true) {
-                this.purgeScheme(this.oldTableName);
+                await this.purgeScheme(this.oldTableName);
+            }
+            else {
+                throw new Error(`Failed to import data to related_items scheme`);
             }
         }
         else {
@@ -200,7 +208,6 @@ export class InstallationService {
         return res !== null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
     }) {
         let attempts = 0;
-
         const executePoll = async (resolve, reject) => {
             const result = await papiClient.get(`/audit_logs/${ExecutionUUID}`);
             attempts++;
