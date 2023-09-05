@@ -73,15 +73,17 @@ class RelatedItemsService {
         }
     }
 
-    async deleteCollections(body: [Collection]) {
-        for (const collectionToDelete of body) {
+    async deleteCollections(collectionsToDelete: [Collection]) {
+        const arr = collectionsToDelete.map(async collectionToDelete => {
             collectionToDelete.Hidden = true;
             // delete all the inside relations of the collection
             await this.deleteCollectionRelations(collectionToDelete);
             // delete the collection
             await this.upsertRelatedCollection(collectionToDelete);
-        }
-        return body;
+        });
+        Promise.all(arr);
+
+        return collectionsToDelete;
     }
 
     // delete all the relations of the collection
@@ -151,14 +153,14 @@ class RelatedItemsService {
     }
 
     // delete relations with dimx-import-data
-    async deleteRelations(body: ItemRelations[]) {
+    async deleteRelations(ItemRelations: ItemRelations[]) {
         // set the hidden flag to true and remove related items
-        body.forEach(relationToDelete => {
+        ItemRelations.forEach(relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true
         });
         // if the relation size grater than 500, split it to chunks of 500 because of dimx limitation
-        const chunks = split(body, 500);
+        const chunks = split(ItemRelations, 500);
         const arr = chunks.map(async chunk => {
             const dataImportInput = {
                 "Objects": chunk
@@ -166,19 +168,18 @@ class RelatedItemsService {
             return await this.papiClient.resources.resource(RELATED_ITEM_META_DATA_TABLE_NAME).import.data(dataImportInput);
         });
         const dimxResultObjs = await Promise.all(arr) as any;
+        let faildItems: string = "";
         //throw an error if at least one import failed
         dimxResultObjs.some(dimxResultObj => {
-            let faildItems: string = "";
             dimxResultObj.forEach(obj => {
                 if (obj.Status === "Error") {
                     faildItems = faildItems + obj.Key + ", ";
-                    //throw new Error(`Failed to delete relations`)
                 }
                 });
-                if (faildItems !== "") {
-                    throw new Error(`Failed to delete relations: ${faildItems}`);
-                }
         });
+        if (faildItems !== "") {
+            throw new Error(`Failed to delete relations: ${faildItems}`);
+        }
     }
 
     async validateItemRelationScheme(itemRelation: ItemRelations) {
