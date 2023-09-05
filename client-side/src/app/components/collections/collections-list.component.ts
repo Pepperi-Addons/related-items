@@ -225,7 +225,7 @@ export class CollectionsListComponent implements OnInit {
           this.dimxService?.export({
             DIMXExportFormat: "csv",
             DIMXExportIncludeDeleted: false,
-            DIMXExportFileName: "export",
+            DIMXExportFileName: "items_collections_export",
             DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems",
             DIMXExportDelimiter: ","
           });
