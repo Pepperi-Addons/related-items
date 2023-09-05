@@ -4,52 +4,34 @@ import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
 import split from 'just-split';
 
 export class ItemsService {
-    numberOfItems;
+    numberOfItemsToCreate;
+    numberOfItemsForTest;
 
     constructor(private papiClient: PapiClient) {
     }
 
-    async prepareUserItems(numberOfItems: number): Promise<ItemRelations[]> {
-        this.numberOfItems = numberOfItems;
-        let items: ItemRelations[] = await this.getUsersItems();
-        const itemsCount = await this.getItemsCount();
+    async prepareUserItems(numberOfItemsToCreate: number, numberOfItemsForTest: number): Promise<ItemRelations[]> {
+        this.numberOfItemsToCreate = numberOfItemsToCreate;
+        this.numberOfItemsForTest = numberOfItemsForTest;
+        let items: ItemRelations[] = await this.getUsersItems(['ExternalID']);
         // generating items if there are not enough items for the tests
-        if (itemsCount < this.numberOfItems) {
-            await this.createNewItems(items.length);
+        if (items.length < this.numberOfItemsToCreate) {
+            await this.createItemsUntilStockReached(items.length);
             // get list with the new items
-            items = await this.getUsersItems();
+            items = await this.getUsersItems(['ExternalID']);
         }
         return items;
     }
 
-    // resource search return 1000 items per page, we need list of 4000 items for huge test so we need to get 4 pages
-    async getUsersItems(): Promise<ItemRelations[]> {
-        let items: ItemRelations[] = [];
-        // for huge test we need the stock to be with 100000 items but the file only contain 4K enteries
-        // for small test we need 500 entieries
-        const itemsToAddCounter: number = this.numberOfItems === 100000 ? 4003 : this.numberOfItems;
-        while (items.length < itemsToAddCounter) {
-            const searchRes = await this.papiClient.resources.resource("items").search({
-                Fields: ['ExternalID'],
-                PageSize: 1000,
-                Page: items.length / 1000 + 1
-            });
-            items = items.concat(searchRes.Objects);
-        }
-        return items;
+    async getUsersItems(fields: string[]): Promise<ItemRelations[]> {
+        return await this.papiClient.items.find({ fields: fields, page_size: -1 });
     }
-
-    async getItemsCount(): Promise<number> {
-        return (await this.papiClient.resources.resource("items").search({
-            PageSize: 1,
-            IncludeCount: true
-        })).Count as number;
-    }
-
-
-    async createNewItems(itemsCounter: number) {
+   
+    // Get as parameter the current count of existing items and generate new items until the desired stock level,
+    // specified by numberOfItemsToCreate, is reached.
+    async createItemsUntilStockReached(itemsCounter: number) {
         const itemsToAdd: itemsResourceObject[] = [];
-        while (itemsCounter <= this.numberOfItems) {
+        while (itemsCounter <= this.numberOfItemsToCreate) {
             itemsToAdd.push({
                 "ExternalID": `Test${itemsCounter}`,
                 "MainCategoryID": 1,
