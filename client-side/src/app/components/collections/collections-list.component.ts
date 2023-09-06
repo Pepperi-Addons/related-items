@@ -12,6 +12,7 @@ import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { ViewContainerRef } from "@angular/core";
 import { DIMXHostObject, PepDIMXHelperService } from '@pepperi-addons/ngx-composite-lib';
 import { config } from '../../addon.config';
+import { Collection } from 'shared';
 
 
 @Component({
@@ -38,6 +39,8 @@ export class CollectionsListComponent implements OnInit {
   pager: IPepGenericListPager = {
     type: 'scroll',
   };
+
+  collectionsList: Collection[] = [];
 
   constructor(
     public addonService: AddonService,
@@ -70,11 +73,11 @@ export class CollectionsListComponent implements OnInit {
       this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
       return {
         init: async (params: any) => {
-          let res = await this.relatedItemsService.getCollections();
-          console.log("Collection after refresh:", res);
+          this.collectionsList = await this.relatedItemsService.getCollections();
+          console.log("Collection after refresh:", this.collectionsList);
            this.noDataMessage = this.translate.instant("No_Related_Collection_Error")
           if (params.searchString != undefined && params.searchString != "") {
-            res = res.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
+            this.collectionsList = this.collectionsList.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
              this.noDataMessage = this.translate.instant("No_Results_Error")
           }
           return Promise.resolve({
@@ -123,8 +126,8 @@ export class CollectionsListComponent implements OnInit {
               FrozenColumnsCount: 0,
               MinimumColumnWidth: 0
             },
-            totalCount: res.length,
-            items: res
+            totalCount: this.collectionsList.length,
+            items: this.collectionsList
           });
         },
         inputs: 
@@ -164,16 +167,36 @@ export class CollectionsListComponent implements OnInit {
           });
         }
         if (data.rows.length >= 1 || data?.selectionType === 0) {
+          // if selectAll button was clicked configure the collection to delete
+          let collectionsToDelete = this.getCollectionsToDelete(data);
+          //  if selectAll button wasn'r clicked the 'collectionsToDelete' will be undefined and we need to delete the selected collections(objs)
+          collectionsToDelete = collectionsToDelete ? collectionsToDelete : objs;
           actions.push({
             title: this.translate.instant("Delete"),
             handler: async (data) => {
-              this.deleteCollections(objs);
+              this.deleteCollections(collectionsToDelete);
             }
           });
         }
         return actions;
       }
     }
+
+  getCollectionsToDelete(data: PepSelectionData, objs?: any[]) {
+    // selectAll button was clicked
+    if (data.selectionType === 0) {
+      // when selectAll button is clicked the getSelectedItems return the unselected items
+      const items = this.glist1.getSelectedItems();
+      let collectionsToDelete = this.collectionsList;
+      items.rows.forEach(row => {
+        let item = this.glist1.getItemById(row);
+        collectionsToDelete = collectionsToDelete.filter(collection => collection.Name !== item.Fields[0]?.FormattedValue);
+        
+      });
+        return collectionsToDelete
+    }
+    return undefined;
+  }
 
   async deleteCollections(objs) {
       const message = this.translate.instant("Delete_Collection_Validate");
