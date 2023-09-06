@@ -87,8 +87,8 @@ class RelatedItemsService {
     }
 
     // delete all the relations of the collection
-    async deleteCollectionRelations(body: Collection) {
-        const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': body.Name });
+    async deleteCollectionRelations(collection: Collection) {
+        const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name });
         if (relatedItems) {
             await this.deleteRelations(relatedItems as any);
         }
