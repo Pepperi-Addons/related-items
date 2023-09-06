@@ -25,7 +25,7 @@ export class ItemsService {
         return await this.papiClient.items.find({ fields: fields, page_size: -1 });
     }
    
-    // Get as parameter the current count of existing items and generate new items until the desired stock level,
+    // Get as parameter the current count of existing items and generate new items until the desired stock count,
     // specified by numberOfItemsToCreate, is reached.
     async createItemsUntilStockReached(itemsCounter: number) {
         const itemsToAdd: itemsResourceObject[] = [];
