@@ -5,14 +5,12 @@ import split from 'just-split';
 
 export class ItemsService {
     numberOfItemsToCreate;
-    numberOfItemsForTest;
 
     constructor(private papiClient: PapiClient) {
     }
 
-    async prepareUserItems(numberOfItemsToCreate: number, numberOfItemsForTest: number): Promise<ItemRelations[]> {
+    async prepareUserItems(numberOfItemsToCreate: number): Promise<ItemRelations[]> {
         this.numberOfItemsToCreate = numberOfItemsToCreate;
-        this.numberOfItemsForTest = numberOfItemsForTest;
         let items: ItemRelations[] = await this.getUsersItems(['ExternalID']);
         // generating items if there are not enough items for the tests
         if (items.length < this.numberOfItemsToCreate) {

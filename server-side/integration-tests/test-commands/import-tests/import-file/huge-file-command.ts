@@ -14,7 +14,7 @@ export class HugeFileCommand extends ImportFileBaseCommand {
     // for huge file test we need to create 100k items
     async initData() {
         const itemsService = new ItemsService(this.papiClient);
-        this.items = await itemsService.prepareUserItems(100000, this.numberOfEntities);
+        this.items = await itemsService.prepareUserItems(100000);
         return await super.initData();
     }
 
