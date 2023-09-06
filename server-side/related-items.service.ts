@@ -1,9 +1,10 @@
-import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
+import { PapiClient, ApiFieldObject, AddonData, FindOptions, SearchBody, SearchData, AddonAPIAsyncResult } from '@pepperi-addons/papi-sdk'
 import { Client } from '@pepperi-addons/debug-server';
 import { Collection, ItemRelations, ItemWithImageURL, COLLECTION_TABLE_NAME, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME, RELATED_ITEM_ATD_FIELDS_TABLE_NAME, exportAnswer } from 'shared'
 import { DimxValidator } from './dimx/dimx-validator'
 import { RelatedItemsValidator } from './related-items-validator';
 import { CPISideHanler } from './cpi-side-handler/CPISideHandler';
+import split from 'just-split';
 
 class RelatedItemsService {
 
@@ -63,27 +64,35 @@ class RelatedItemsService {
         }
     }
 
-    upsertRelatedCollection(body: Collection) {
-        if (body.Name) {
-            body.Key = body.Name;
-            return this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).upsert(body);
+    upsertRelatedCollection(collection: Collection) {
+        if (collection.Name) {
+            collection.Key = collection.Name;
+            return this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).upsert(collection);
         }
         else {
             throw new Error(`Name is required`);
         }
     }
 
-    async deleteCollections(body: [Collection]) {
-        for (const collectionToDelete of body) {
+    async deleteCollections(collectionsToDelete: [Collection]) {
+        const arr = collectionsToDelete.map(async collectionToDelete => {
             collectionToDelete.Hidden = true;
-
-            const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': collectionToDelete.Name });
-            if (relatedItems) {
-                this.deleteRelations(relatedItems as any);
-            }
+            // delete all the inside relations of the collection
+            await this.deleteCollectionRelations(collectionToDelete);
+            // delete the collection
             await this.upsertRelatedCollection(collectionToDelete);
+        });
+        Promise.all(arr);
+
+        return collectionsToDelete;
+    }
+
+    // delete all the relations of the collection
+    async deleteCollectionRelations(collection: Collection) {
+        const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name });
+        if (relatedItems) {
+            await this.deleteRelations(relatedItems as any);
         }
-        return body;
     }
 
     // RELATED_ITEM_META_DATA_TABLE_NAME endpoints
@@ -114,14 +123,14 @@ class RelatedItemsService {
         }
     }
 
-    async upsertItemRelations(body: ItemRelations) {
-        if (body.Hidden === true) {
-            return await this.deleteRelations([body]);
+    async upsertItemRelations(itemsRelations: ItemRelations) {
+        if (itemsRelations.Hidden === true) {
+            return await this.deleteRelations([itemsRelations]);
         }
         else {
-            const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this, [body]);
+            const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this, [itemsRelations]);
             await relatedItemsValidator.loadData();
-            const validatedItem = relatedItemsValidator.validate(body);
+            const validatedItem = relatedItemsValidator.validate(itemsRelations);
             if (!validatedItem.success) {
                 throw new Error(`failed with the following error: ${validatedItem.message!}`);
             }
@@ -151,14 +160,35 @@ class RelatedItemsService {
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(key).get();
     }
 
-    async deleteRelations(body: ItemRelations[]) {
-        const relations = body.map(async relationToDelete => {
+    // delete relations with dimx-import-data
+    async deleteRelations(ItemRelations: ItemRelations[]) {
+        // set the hidden flag to true and remove related items
+        ItemRelations.forEach(relationToDelete => {
             relationToDelete.RelatedItems = [];
-            relationToDelete.Hidden = true;
-            return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(relationToDelete);
-        })
-        const p = await Promise.all(relations);
-        return p
+            relationToDelete.Hidden = true
+        });
+        // if the relation size grater than 500, split it to chunks of 500 because of dimx limitation
+        const chunks = split(ItemRelations, 500);
+        const arr = chunks.map(async chunk => {
+            const dataImportInput = {
+                "Objects": chunk
+            }
+            return await this.papiClient.resources.resource(RELATED_ITEM_META_DATA_TABLE_NAME).import.data(dataImportInput);
+        });
+        const dimxResultObjs = await Promise.all(arr) as any;
+        const faildItems: any[] = [];
+        //throw an error if at least one import failed
+        // collect all the failed items
+        dimxResultObjs.forEach(dimxResultObj => {
+            dimxResultObj.forEach(obj => {
+                if (obj.Status === "Error") {
+                    faildItems.push(obj);
+                }
+            });
+        });
+        if (faildItems.length > 0) {
+            throw new Error(`Failed to delete relations: ${JSON.stringify(faildItems)}`);
+        }
     }
 
     async validateItemRelationScheme(itemRelation: ItemRelations) {

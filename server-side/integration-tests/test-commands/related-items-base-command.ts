@@ -6,6 +6,10 @@ import { ItemsService } from '../services/items-service';
 
 
 export class BaseCommand extends BaseTest {
+    // default number of items the user needs for the tests
+    // 500 items for big data entities, 3 items for the related items of the last entity  because we add next 3 items
+    NUMBER_OF_ITEMS = 503;
+
     title = 'Test Title'
     items; // distribut items
     mockItemRelationsData: ItemRelations[] = [];
@@ -35,7 +39,8 @@ export class BaseCommand extends BaseTest {
 
         describe(this.title, () => {
             it('prepareUserItems', async () => {
-               this.items = await itemsService.prepareUserItems();
+            // 500 items for big data entities, 3 items for the related items of the last entity  because we add next 3 items
+               this.items = await itemsService.prepareUserItems(this.NUMBER_OF_ITEMS);
             })
             it("initData", async () => {
                this.mockItemRelationsData = await this.initData(this.items);

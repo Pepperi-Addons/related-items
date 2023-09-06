@@ -103,19 +103,7 @@ export class InstallationService {
             "Name": PFS_TABLE_NAME,
             "Type": 'pfs'
         }
-        try {
-            await this.papiClient.addons.data.schemes.post(pfsScheme);
-            return {
-                success: true,
-                errorMessage: ""
-            }
-        }
-        catch (err) {
-            return {
-                success: false,
-                errorMessage: err ? err : 'Unknown Error Occurred',
-            }
-        }
+        await this.papiClient.addons.data.schemes.post(pfsScheme);
     }
 
     async createRelatedItemsScheme(schemeName: string) {
