@@ -168,17 +168,18 @@ class RelatedItemsService {
             return await this.papiClient.resources.resource(RELATED_ITEM_META_DATA_TABLE_NAME).import.data(dataImportInput);
         });
         const dimxResultObjs = await Promise.all(arr) as any;
-        let faildItems: string = "";
+        const faildItems: any[] = [];
         //throw an error if at least one import failed
-        dimxResultObjs.some(dimxResultObj => {
+        // collect all the failed items
+        dimxResultObjs.forEach(dimxResultObj => {
             dimxResultObj.forEach(obj => {
                 if (obj.Status === "Error") {
-                    faildItems = faildItems + obj.Key + ", ";
+                    faildItems.push(obj);
                 }
-                });
+            });
         });
-        if (faildItems !== "") {
-            throw new Error(`Failed to delete relations: ${faildItems}`);
+        if (faildItems.length > 0) {
+            throw new Error(`Failed to delete relations: ${JSON.stringify(faildItems)}`);
         }
     }
 
