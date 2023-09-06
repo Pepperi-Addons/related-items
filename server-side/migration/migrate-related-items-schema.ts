@@ -1,6 +1,5 @@
-import { TEMPORARY_MIGRATION_SCHEME } from "shared/entities";
+import { TEMPORARY_MIGRATION_SCHEME, RELATED_ITEM_META_DATA_TABLE_NAME } from "shared"
 import { InstallationService } from "../installation-service";
-import { RELATED_ITEM_META_DATA_TABLE_NAME } from "shared";
 import { BaseSchemeTrasferDataDelegete } from "./scheme-build-operation";
 import { RemoveWhiteSpacesBuildOperaton as RemoveWhiteSpacesDelegate } from "./remove-spaces-build-operation";
 import { AddonData, PapiClient } from "@pepperi-addons/papi-sdk";
@@ -30,6 +29,7 @@ export class MigrateRelatedItemsSchema {
         await this.TruncateRelatedItemsScheme();
         // move data from temporary scheme to "related_items" scheme
         await this.copyDataToScheme(RELATED_ITEM_META_DATA_TABLE_NAME, fromTemporaryDelegate);
+        debugger
         // purge temporary scheme
         await this.installtionSerivce.purgeScheme(TEMPORARY_MIGRATION_SCHEME);
 

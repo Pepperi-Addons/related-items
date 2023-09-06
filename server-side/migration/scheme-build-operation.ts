@@ -1,7 +1,6 @@
 import { AddonData, PapiClient, SearchBody, SearchData } from '@pepperi-addons/papi-sdk';
 import { PageNumberBuildOperations } from '@pepperi-addons/modelsdk';
 import config from '../../addon.config.json';
-import { ItemRelations } from 'shared/entities';
 
 // this class is used for the  transition from temporary scheme to related_items scheme
 export class BaseSchemeTrasferDataDelegete implements PageNumberBuildOperations<AddonData, AddonData, any> {
