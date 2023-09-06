@@ -19,7 +19,7 @@ export class MigrateRelatedItemsSchema {
     private async removeWhiteSpacesFromItemRelationsKeys() {
         // create temporary scheme to save data
         await this.installtionSerivce.createRelatedItemsScheme(TEMPORARY_MIGRATION_SCHEME);
-        
+
         // create delegate calsses to help with the migration(using modelSDK)
         const toTemporarySchemeDelegete = new BaseSchemeTrasferDataDelegete(this.papiClient, RELATED_ITEM_META_DATA_TABLE_NAME);
         const fromTemporaryDelegate = new RemoveWhiteSpacesDelegate(this.papiClient, TEMPORARY_MIGRATION_SCHEME);
