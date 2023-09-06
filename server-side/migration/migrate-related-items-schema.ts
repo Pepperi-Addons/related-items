@@ -29,7 +29,6 @@ export class MigrateRelatedItemsSchema {
         await this.TruncateRelatedItemsScheme();
         // move data from temporary scheme to "related_items" scheme
         await this.copyDataToScheme(RELATED_ITEM_META_DATA_TABLE_NAME, fromTemporaryDelegate);
-        debugger
         // purge temporary scheme
         await this.installtionSerivce.purgeScheme(TEMPORARY_MIGRATION_SCHEME);
 
