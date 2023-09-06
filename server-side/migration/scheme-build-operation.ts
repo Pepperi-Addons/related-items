@@ -4,7 +4,7 @@ import config from '../../addon.config.json';
 import { ItemRelations } from 'shared/entities';
 
 // this class is used for the  transition from temporary scheme to related_items scheme
-export class SchemeBuildOperaton implements PageNumberBuildOperations<AddonData, AddonData, any> {
+export class BaseSchemeTrasferDataDelegete implements PageNumberBuildOperations<AddonData, AddonData, any> {
 
     constructor(private papiClient: PapiClient, private schemeName: string) {}
 
@@ -21,7 +21,7 @@ export class SchemeBuildOperaton implements PageNumberBuildOperations<AddonData,
             return objects;
         }
 
-    // add the items to the temporary scheme
+    // add the items to the resource scheme
     async batchUpsert(resourceName: string, objects: AddonData[]): Promise<any[]> {
         const body = {
             Objects: objects

@@ -2,10 +2,8 @@
 import { AddonData, AddonDataScheme, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
 import semver from 'semver';
 import config from '../addon.config.json';
-import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME, TEMPORARY_MIGRATION_SCHEME } from 'shared';
-import { SchemeBuildOperaton } from './migration/scheme-build-operation';
-import { RemoveWhiteSpacesBuildOperaton } from './migration/remove-spaces-build-operation';
-import { PageNumberBuildOperations, PageNumberBuilder } from '@pepperi-addons/modelsdk';
+import { RELATED_ITEM_META_DATA_TABLE_NAME, PFS_TABLE_NAME } from 'shared';
+import { MigrateRelatedItemsSchema } from './migration/migrate-related-items-schema';
 
 export class InstallationService {
 
@@ -34,14 +32,10 @@ export class InstallationService {
         if (fromVersion && semver.lt(fromVersion, '1.1.0')) {
             const ansFromCreateSchemes = await this.createRelatedItemsScheme(this.newTableName);
             if (ansFromCreateSchemes.success === true) {
+                // create PNS subscription for the new scheme
                 await this.createPNSSubscription();
-                const ans = await this.createPFSResource();
-                if (ans.success === true) {
-                    return await this.handleSchemeData(); // export from the old scheme and import to the new one
-                }
-                else {
-                    throw new Error("Failed to create PFS resource");
-                }
+                await this.createPFSScheamForTest();
+                await this.transferDataFromOldSchema(); // export from the old scheme and import to the new one
             }
             else {
                 throw new Error(`Failed to create related_items scheme`);
@@ -51,36 +45,8 @@ export class InstallationService {
     // eslint-disable-next-line
     private async migrateToV1_2_x(fromVersion) {
         if (fromVersion && semver.lt(fromVersion, '1.2.0')) {
-            await this.removeWhiteSpacesFromItemRelationsKeys();
+            await new MigrateRelatedItemsSchema(this, this.papiClient).migrateToV1_2_X();
         }
-    }
-    // replace white spaces of the existing Item Relation Key with underscore usinf PageNumberBuildOperations
-    private async removeWhiteSpacesFromItemRelationsKeys() {
-        // create temporary scheme to save data
-        await this.createRelatedItemsScheme(TEMPORARY_MIGRATION_SCHEME);
-        // create calsses to help with the migration(using modelSDK)
-        const toTemporarySchemeBuildOperation = new SchemeBuildOperaton(this.papiClient, RELATED_ITEM_META_DATA_TABLE_NAME);
-        const fromTemporarySchemeBuildOperaton = new RemoveWhiteSpacesBuildOperaton(this.papiClient, TEMPORARY_MIGRATION_SCHEME);
-
-        await this.copyDataToScheme(TEMPORARY_MIGRATION_SCHEME, toTemporarySchemeBuildOperation);
-        // remove all data from 'related_items' scheme
-        const truncateAns = await this.papiClient.post(`/addons/data/schemes/${RELATED_ITEM_META_DATA_TABLE_NAME}/truncate`, {});
-       if (truncateAns.Done === true) {
-        // move data from temporary scheme to "related_items_scheme"
-        await this.copyDataToScheme(RELATED_ITEM_META_DATA_TABLE_NAME, fromTemporarySchemeBuildOperaton);
-        // purge temporary scheme
-        await this.purgeScheme(TEMPORARY_MIGRATION_SCHEME);
-       }
-       else {
-           throw new Error("Failed to truncate related_items scheme");
-
-       }
-    }
-
-    async copyDataToScheme(scheme: string, buildOperation: PageNumberBuildOperations<AddonData, AddonData, any>) {
-        const buildBody: any = {};
-        const copyService = new PageNumberBuilder(scheme, buildOperation);
-		return await copyService.buildTable(buildBody);
     }
 
     createPNSSubscription() {
@@ -98,12 +64,12 @@ export class InstallationService {
     }
 
     // PFS Scheme - for import file test
-    async createPFSResource() {
+    async createPFSScheamForTest() {
         const pfsScheme: AddonDataScheme = {
             "Name": PFS_TABLE_NAME,
             "Type": 'pfs'
         }
-        await this.papiClient.addons.data.schemes.post(pfsScheme);
+        return await this.papiClient.addons.data.schemes.post(pfsScheme);
     }
 
     async createRelatedItemsScheme(schemeName: string) {
@@ -146,12 +112,16 @@ export class InstallationService {
         }
     }
 
-    private async handleSchemeData() {
+    private async transferDataFromOldSchema() {
+        // export data from the old scheme
         const fileURI = await this.exportRelationsWithExternalID();
         if (fileURI) {
+            // import data to the new scheme
             const ansFromImport = await this.importFileToRelatedItems(fileURI);
+            // wait for the import to finish
             const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
             if (ansFromAuditLog.success === true) {
+                // purge the old scheme
                 await this.purgeScheme(this.oldTableName);
             }
             else {
@@ -214,7 +184,7 @@ export class InstallationService {
         return new Promise<any>(executePoll);
     }
 
-    private async purgeScheme(scheme: string) {
+    async purgeScheme(scheme: string) {
         return await this.papiClient.post(`/addons/data/schemes/${scheme}/purge`, {});
     }
 }
