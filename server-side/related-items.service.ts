@@ -73,18 +73,22 @@ class RelatedItemsService {
         }
     }
 
-    async deleteCollections(body: [Collection]) {
-        for (const collectionToDelete of body) {
+    async deleteCollections(collectionsToDelete: [Collection]) {
+        const arr = collectionsToDelete.map(async collectionToDelete => {
             collectionToDelete.Hidden = true;
+            // delete all the inside relations of the collection
             await this.deleteCollectionRelations(collectionToDelete);
+            // delete the collection
             await this.upsertRelatedCollection(collectionToDelete);
-        }
-        return body;
+        });
+        Promise.all(arr);
+
+        return collectionsToDelete;
     }
 
     // delete all the relations of the collection
-    async deleteCollectionRelations(body: Collection) {
-        const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': body.Name });
+    async deleteCollectionRelations(collection: Collection) {
+        const relatedItems = await this.getRelationsItemsWithExternalID({ 'CollectionName': collection.Name });
         if (relatedItems) {
             await this.deleteRelations(relatedItems as any);
         }
@@ -149,14 +153,14 @@ class RelatedItemsService {
     }
 
     // delete relations with dimx-import-data
-    async deleteRelations(body: ItemRelations[]) {
+    async deleteRelations(ItemRelations: ItemRelations[]) {
         // set the hidden flag to true and remove related items
-        body.forEach(relationToDelete => {
+        ItemRelations.forEach(relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true
         });
         // if the relation size grater than 500, split it to chunks of 500 because of dimx limitation
-        const chunks = split(body, 500);
+        const chunks = split(ItemRelations, 500);
         const arr = chunks.map(async chunk => {
             const dataImportInput = {
                 "Objects": chunk
@@ -164,14 +168,19 @@ class RelatedItemsService {
             return await this.papiClient.resources.resource(RELATED_ITEM_META_DATA_TABLE_NAME).import.data(dataImportInput);
         });
         const dimxResultObjs = await Promise.all(arr) as any;
+        const faildItems: any[] = [];
         //throw an error if at least one import failed
-        dimxResultObjs.some(dimxResultObj => {
+        // collect all the failed items
+        dimxResultObjs.forEach(dimxResultObj => {
             dimxResultObj.forEach(obj => {
                 if (obj.Status === "Error") {
-                    throw new Error(`Failed to delete relations`)
+                    faildItems.push(obj);
                 }
             });
         });
+        if (faildItems.length > 0) {
+            throw new Error(`Failed to delete relations: ${JSON.stringify(faildItems)}`);
+        }
     }
 
     async validateItemRelationScheme(itemRelation: ItemRelations) {
