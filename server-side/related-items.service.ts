@@ -153,14 +153,14 @@ class RelatedItemsService {
     }
 
     // delete relations with dimx-import-data
-    async deleteRelations(ItemRelations: ItemRelations[]) {
+    async deleteRelations(itemRelations: ItemRelations[]) {
         // set the hidden flag to true and remove related items
-        ItemRelations.forEach(relationToDelete => {
+        itemRelations.forEach(relationToDelete => {
             relationToDelete.RelatedItems = [];
             relationToDelete.Hidden = true
         });
         // if the relation size grater than 500, split it to chunks of 500 because of dimx limitation
-        const chunks = split(ItemRelations, 500);
+        const chunks = split(itemRelations, 500);
         const arr = chunks.map(async chunk => {
             const dataImportInput = {
                 "Objects": chunk
