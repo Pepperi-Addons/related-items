@@ -38,7 +38,7 @@ export async function collections(client: Client, request: Request): Promise<any
         return service.getCollections(request.query);
     }
     else if (request.method === 'POST') {
-        return service.upsertRelatedCollection(request.body)
+        return await service.upsertRelatedCollection(request.body)
     }
     else {
         throw new Error(`Method ${request.method} not supported`);

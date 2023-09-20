@@ -63,10 +63,10 @@ class RelatedItemsService {
         }
     }
 
-    upsertRelatedCollection(collection: Collection) {
+    async upsertRelatedCollection(collection: Collection) {
         if (collection.Name) {
             collection.Key = collection.Name;
-            return this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).upsert(collection);
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(COLLECTION_TABLE_NAME).upsert(collection);
         }
         else {
             throw new Error(`Name is required`);
