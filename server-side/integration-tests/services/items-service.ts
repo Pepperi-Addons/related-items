@@ -1,50 +1,55 @@
 import { v4 as uuid } from 'uuid';
 import { ItemRelations, itemsResourceObject } from 'shared';
 import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
+import split from 'just-split';
 
 export class ItemsService {
-    
-    // number of items the user needs for the tests 
-    // 500 items for big data entities, 3 items for the related items of the last entity  because we add next 3 items
-    NUMBER_OF_ITEMS: number = 503; 
+    numberOfItemsToCreate;
 
     constructor(private papiClient: PapiClient) {
     }
 
-    // gets distributers items and if there are not enough items generates new ones
-    async prepareUserItems(): Promise<ItemRelations[]> {
-        var items: ItemRelations[] = await this.getUsersItems()
+    async prepareUserItems(numberOfItemsToCreate: number): Promise<ItemRelations[]> {
+        this.numberOfItemsToCreate = numberOfItemsToCreate;
+        let items: ItemRelations[] = await this.getUsersItems(['ExternalID']);
         // generating items if there are not enough items for the tests
-        if (items.length < this.NUMBER_OF_ITEMS) {
-            this.createNewItems(items.length);
+        if (items.length < this.numberOfItemsToCreate) {
+            await this.createItemsUntilStockReached(items.length);
             // get list with the new items
-            items = await this.getUsersItems();
+            items = await this.getUsersItems(['ExternalID']);
         }
         return items;
     }
 
-    async getUsersItems(): Promise<ItemRelations[]> {
-        return (await this.papiClient.resources.resource("items").search({
-            Fields: ['ExternalID'],
-            PageSize: this.NUMBER_OF_ITEMS,
-        })).Objects as ItemRelations[];
+    async getUsersItems(fields: string[]): Promise<ItemRelations[]> {
+        return await this.papiClient.items.find({ fields: fields, page_size: -1 });
     }
 
-
-    createNewItems(itemsCounter) {
-        var itemsToAdd: itemsResourceObject[] = [];
-        var i = 0;
-        while (itemsCounter.length < this.NUMBER_OF_ITEMS) {
+    // Get as parameter the current count of existing items and generate new items until the desired stock count,
+    // specified by numberOfItemsToCreate, is reached.
+    async createItemsUntilStockReached(itemsCounter: number) {
+        const itemsToAdd: itemsResourceObject[] = [];
+        while (itemsCounter <= this.numberOfItemsToCreate) {
             itemsToAdd.push({
-                "ExternalID": `Test${i}`,
+                "ExternalID": `Test${itemsCounter}`,
                 "MainCategoryID": 1,
                 "Key": uuid()
             });
-            i++;
+            itemsCounter++;
         }
-        const dataImportInput = {
-            "Objects" : itemsToAdd
-        }
-        this.papiClient.resources.resource("items").import.data(dataImportInput);
+        await this.importItems(itemsToAdd);
     }
-}
+
+     // divide the items to chunks of 500 items and import every chunk separately
+    async importItems(items: ItemRelations[]) {
+        const chunks = split(items, 500);
+        const arr = chunks.map(async (chunk) => {
+            const dataImportInput = {
+                "Objects": chunk
+            }
+            return await this.papiClient.resources.resource("items").import.data(dataImportInput);
+        });
+        return Promise.all(arr);
+    }
+    }
+

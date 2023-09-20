@@ -1,7 +1,7 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk/dist/papi-client';
-import { Collection, DataImportInput, FileImportInput } from '@pepperi-addons/papi-sdk';
+import { Collection, DataImportInput, FileImportInput, FindOptions } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server/dist';
-import { ItemRelations } from '../../../shared/entities';
+import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME } from '../../../shared/entities';
 
 export class ResourceService {
 
@@ -10,6 +10,10 @@ export class ResourceService {
     constructor(private papiClient: PapiClient, client: Client) {
         this.addonUUID = client.AddonUUID;
     }
+
+    sleep = (milliseconds) => {
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    };
 
     async importData(body: DataImportInput) {
         return await this.papiClient.resources.resource("related_items").import.data(body);
@@ -23,12 +27,43 @@ export class ResourceService {
         return await this.papiClient.post(`/addons/api/${this.addonUUID}/api/delete_collections`, body);
     }
 
+    async deleteItems(itemsToDelete: ItemRelations[]) {
+        const arr = itemsToDelete.map(async (item) => {
+            return item.Hidden = true;
+        });
+        Promise.all(arr);
+        const dimxObj: DataImportInput = {
+            "Objects": itemsToDelete
+        }
+        return await this.importData(dimxObj);
+    }
+
     async upsertSingleEntity(body: ItemRelations) {
         return await this.papiClient.resources.resource("related_items").post(body);
     }
 
-    async getItemsRelations(query: string) {
-        return await this.papiClient.get(`/addons/api/${this.addonUUID}/api/relation?${query}`);
+    async getItemsRelations(query: FindOptions) {
+        return await this.papiClient.resources.resource("related_items").get(query);
+    }
+
+    // get as parameter itemRelation and return the corresponding cpi-item
+    async getCPIItemsRelations(item: ItemRelations) {
+        const itemUUID = await this.getItemsUUID([item.ItemExternalID]) as any;
+        const CPIItemkey = `${item.CollectionName}_${itemUUID[0].UUID}`;
+        return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).find(
+            {
+                where: `Key='${CPIItemkey}'`
+            }
+        );
+    }
+
+    async getItemsUUID(itemsExternalIDs) {
+        if (itemsExternalIDs && itemsExternalIDs.length > 0) {
+            const externelIDsList = `(${ itemsExternalIDs.map(id => `'${id}'`).join(',') })`;
+            const query = { fields: ['UUID'], where: `ExternalID IN ${externelIDsList}` }
+            return await this.papiClient.items.find(query)
+        }
+        return [];
     }
 
     async callAuditLog(executionUUID: string) {
@@ -36,10 +71,13 @@ export class ResourceService {
         if (ansFromAuditLog.success === true) {
             return ansFromAuditLog.resultObject;
         }
+        else {
+            throw new Error(`Audit log failed: ${ansFromAuditLog.errorCode}`);
+        }
     }
 
     async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 60, validate = (res) => {
-        return res != null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
+        return res !== null && (res.Status.Name === 'Failure' || res.Status.Name === 'Success');
     }) {
         let attempts = 0;
 

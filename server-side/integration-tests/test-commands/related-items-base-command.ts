@@ -6,15 +6,19 @@ import { ItemsService } from '../services/items-service';
 
 
 export class BaseCommand extends BaseTest {
+    // default number of items the user needs for the tests
+    // 500 items for big data entities, 3 items for the related items of the last entity  because we add next 3 items
+    NUMBER_OF_ITEMS = 503;
+
     title = 'Test Title'
     items; // distribut items
     mockItemRelationsData: ItemRelations[] = [];
     testActionResult; //the answer from the test function
     dataToTest; // data for the test
-    
+
 
     protected papiClient: PapiClient;
-    
+
     constructor(protected client: Client) {
         super()
         this.papiClient = new PapiClient({
@@ -22,10 +26,10 @@ export class BaseCommand extends BaseTest {
             token: client.OAuthAccessToken,
             addonUUID: client.AddonUUID,
             addonSecretKey: client.AddonSecretKey,
-             actionUUID: client.ActionUUID,
+            actionUUID: client.ActionUUID,
         })
     }
-    
+
     tests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic): void {
         this.execute(describe, it, expect)
     }
@@ -35,7 +39,8 @@ export class BaseCommand extends BaseTest {
 
         describe(this.title, () => {
             it('prepareUserItems', async () => {
-               this.items = await itemsService.prepareUserItems();
+            // 500 items for big data entities, 3 items for the related items of the last entity  because we add next 3 items
+               this.items = await itemsService.prepareUserItems(this.NUMBER_OF_ITEMS);
             })
             it("initData", async () => {
                this.mockItemRelationsData = await this.initData(this.items);
@@ -43,15 +48,18 @@ export class BaseCommand extends BaseTest {
             it("testAction", async () => {
                 this.testActionResult = await this.testAction(this.mockItemRelationsData);
             })
-            it("processRes",async () => {
+            it("processRes", async () => {
                 this.dataToTest = await this.processTestAction(this.testActionResult);
             })
             it('Test and Cleanup', async () => {
                 try {
                 await this.test(this.testActionResult, this.dataToTest, expect)
-                } finally {
+                }
+                catch (err) {
+                    console.log(err);
+                }
+                finally {
                     await this.cleanup()
-                    
                 }
             })
         })

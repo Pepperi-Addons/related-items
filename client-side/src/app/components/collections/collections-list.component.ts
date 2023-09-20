@@ -12,6 +12,7 @@ import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { ViewContainerRef } from "@angular/core";
 import { DIMXHostObject, PepDIMXHelperService } from '@pepperi-addons/ngx-composite-lib';
 import { config } from '../../addon.config';
+import { Collection } from 'shared';
 
 
 @Component({
@@ -21,6 +22,25 @@ import { config } from '../../addon.config';
 })
 export class CollectionsListComponent implements OnInit {
   @ViewChild('glist1') glist1: GenericListComponent | undefined;
+
+  noDataMessage: string;
+  menuItems = [
+    {
+      key: 'import',
+      text: this.translate.instant("Import")
+    },
+    {
+      key: 'export',
+      text: this.translate.instant("Export")
+    }
+  ];
+  dataSource: IPepGenericListDataSource;
+
+  pager: IPepGenericListPager = {
+    type: 'scroll',
+  };
+
+  collectionsList: Collection[] = [];
 
   constructor(
     public addonService: AddonService,
@@ -35,7 +55,11 @@ export class CollectionsListComponent implements OnInit {
     this.addonService.addonUUID = config.AddonUUID;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // waiting for translate to load
+    await this.translate.get('No_Related_Collection_Error').toPromise();
+
+    this.dataSource = this.getDataSource();
     const dimxHostObject: DIMXHostObject = {
       DIMXAddonUUID: this.addonService.addonUUID,
       DIMXResource: "related_items",
@@ -45,33 +69,16 @@ export class CollectionsListComponent implements OnInit {
     })
   }
 
-  noDataMessage: string;
-  menuItems = [
-    {
-      key: 'import',
-      text: this.translate.instant("Import")
-    },
-    {
-      key: 'export',
-      text: this.translate.instant("Export")
-    }
-  ];
-  dataSource: IPepGenericListDataSource = this.getDataSource();
-
-  pager: IPepGenericListPager = {
-    type: 'scroll',
-  };
-
     getDataSource() {
-      this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+      this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
       return {
         init: async (params: any) => {
-          let res = await this.relatedItemsService.getCollections();
-          console.log("Collection after refresh:", res);
-          this.noDataMessage = this.noDataMessage = this.translate.instant("No_Related_Items_Error")
+          this.collectionsList = await this.relatedItemsService.getCollections();
+          console.log("Collection after refresh:", this.collectionsList);
+           this.noDataMessage = this.translate.instant("No_Related_Collection_Error")
           if (params.searchString != undefined && params.searchString != "") {
-            res = res.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
-            this.noDataMessage = this.noDataMessage = this.translate.instant("No_Results_Error")
+            this.collectionsList = this.collectionsList.filter(collection => collection.Name.toLowerCase().includes(params.searchString.toLowerCase()))
+             this.noDataMessage = this.translate.instant("No_Results_Error")
           }
           return Promise.resolve({
             dataView: {
@@ -119,8 +126,8 @@ export class CollectionsListComponent implements OnInit {
               FrozenColumnsCount: 0,
               MinimumColumnWidth: 0
             },
-            totalCount: res.length,
-            items: res
+            totalCount: this.collectionsList.length,
+            items: this.collectionsList
           });
         },
         inputs: 
@@ -129,7 +136,7 @@ export class CollectionsListComponent implements OnInit {
                 type: 'scroll'
               },
               selectionType: 'multi',
-              noDataFoundMsg: this.translate.instant(this.noDataMessage)
+              noDataFoundMsg: this.noDataMessage
             }
       ,
       } as IPepGenericListDataSource
@@ -160,16 +167,36 @@ export class CollectionsListComponent implements OnInit {
           });
         }
         if (data.rows.length >= 1 || data?.selectionType === 0) {
+          // if selectAll button was clicked configure the collection to delete
+          let collectionsToDelete = this.getCollectionsToDelete(data);
+          //  if selectAll button wasn'r clicked the 'collectionsToDelete' will be undefined and we need to delete the selected collections(objs)
+          collectionsToDelete = collectionsToDelete ? collectionsToDelete : objs;
           actions.push({
             title: this.translate.instant("Delete"),
             handler: async (data) => {
-              this.deleteCollections(objs);
+              this.deleteCollections(collectionsToDelete);
             }
           });
         }
         return actions;
       }
     }
+
+  getCollectionsToDelete(data: PepSelectionData, objs?: any[]) {
+    // selectAll button was clicked
+    if (data.selectionType === 0) {
+      // when selectAll button is clicked the getSelectedItems return the unselected items
+      const items = this.glist1.getSelectedItems();
+      let collectionsToDelete = this.collectionsList;
+      items.rows.forEach(row => {
+        let item = this.glist1.getItemById(row);
+        collectionsToDelete = collectionsToDelete.filter(collection => collection.Name !== item.Fields[0]?.FormattedValue);
+        
+      });
+        return collectionsToDelete
+    }
+    return undefined;
+  }
 
   async deleteCollections(objs) {
       const message = this.translate.instant("Delete_Collection_Validate");
@@ -221,7 +248,7 @@ export class CollectionsListComponent implements OnInit {
           this.dimxService?.export({
             DIMXExportFormat: "csv",
             DIMXExportIncludeDeleted: false,
-            DIMXExportFileName: "export",
+            DIMXExportFileName: "items_collections_export",
             DIMXExportFields: "CollectionName,ItemExternalID,RelatedItems",
             DIMXExportDelimiter: ","
           });

@@ -24,9 +24,9 @@ export async function install(client: Client, request: Request): Promise<any> {
     });
     const installationService = new InstallationService(papiClient);
 
-    await createADALSchemes(papiClient);
+    await create_adal_schemes(papiClient);
     await installationService.createPNSSubscription();
-    await createRelations(papiClient);
+    await create_relations(papiClient);
 
     return { success: true, resultObject: {} }
 }
@@ -36,7 +36,7 @@ export async function uninstall(client: Client, request: Request): Promise<any> 
 }
 
 export async function upgrade(client: Client, request: Request): Promise<any> {
-    console.log("*** Related Items Upgrade body",request.body);
+    console.log("*** Related Items Upgrade body", request.body);
     const papiClient = new PapiClient({
         baseURL: client.BaseURL,
         token: client.OAuthAccessToken,
@@ -46,9 +46,9 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
     });
     const installationService = new InstallationService(papiClient);
 
-    await createRelations(papiClient);
+    await create_relations(papiClient);
     const ansFromMigration = await installationService.performMigration(request.body.FromVersion);
-    if (ansFromMigration.success == false) {
+    if (ansFromMigration.success === false) {
         return { success: false, resultObject: "migration failed" }
     }
 
@@ -58,9 +58,9 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
 export async function downgrade(client: Client, request: Request): Promise<any> {
     return { success: true, resultObject: {} }
 }
-
-async function createRelations(papiClient: PapiClient) {
-    let relations: Relation[] = [
+/* eslint-disable */
+async function create_relations(papiClient: PapiClient) {
+    const relations: Relation[] = [
         {
             RelationName: "TransactionTypeListTabs",
             AddonUUID: "4f9f10f3-cd7d-43f8-b969-5029dad9d02b",
@@ -150,14 +150,14 @@ async function createRelations(papiClient: PapiClient) {
     catch (err) {
         return {
             success: false,
-            errorMessage:  err ? err : 'Unknown Error Occured',
+            errorMessage: err ? err : 'Unknown Error Occured',
         }
     }
 }
 
-async function createADALSchemes(papiClient: PapiClient) {
+async function create_adal_schemes(papiClient: PapiClient) {
     const installationService = new InstallationService(papiClient)
-    var collectionsScheme: AddonDataScheme = {
+    const collectionsScheme: AddonDataScheme = {
         Name: COLLECTION_TABLE_NAME,
         Type: 'meta_data',
         Fields: {
@@ -170,11 +170,11 @@ async function createADALSchemes(papiClient: PapiClient) {
         }
     };
 
-    var relationsScheme: AddonDataScheme = {
+    const relationsScheme: AddonDataScheme = {
         Name: RELATED_ITEM_CPI_META_DATA_TABLE_NAME,
         Type: 'cpi_meta_data' as any
     };
-    var relatedItemsAtdFieldsScheme: AddonDataScheme = {
+    const relatedItemsAtdFieldsScheme: AddonDataScheme = {
         Name: RELATED_ITEM_ATD_FIELDS_TABLE_NAME,
         Type: 'cpi_meta_data' as any
     };
@@ -183,6 +183,7 @@ async function createADALSchemes(papiClient: PapiClient) {
         await papiClient.addons.data.schemes.post(relationsScheme);
         await papiClient.addons.data.schemes.post(relatedItemsAtdFieldsScheme);
         await installationService.createRelatedItemsScheme()
+        await installationService.createPFSResource()
 
         return {
             success: true,
@@ -196,3 +197,5 @@ async function createADALSchemes(papiClient: PapiClient) {
         }
     }
 }
+/* eslint-enable */
+

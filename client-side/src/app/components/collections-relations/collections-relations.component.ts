@@ -1,14 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { RelatedItemsService } from '../../services/related-items.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '../../services/dialog.service';
 import { Collection } from 'shared';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { AddonService } from 'src/app/services/addon.service';
 import { PepDialogActionButton } from '@pepperi-addons/ngx-lib/dialog';
 import { GenericListComponent, IPepGenericListActions, IPepGenericListDataSource, IPepGenericListPager } from '@pepperi-addons/ngx-composite-lib/generic-list';
-import { state } from '@angular/animations';
 import { CollectionForm } from '../collection-form/collection-form.component';
 import { ItemSelectionComponent } from '../item-selection/item-selection.component';
 
@@ -22,6 +21,18 @@ import { config } from '../../addon.config'
 export class RelatedCollectionsComponent implements OnInit {
   @ViewChild('glist1') glist1: GenericListComponent | undefined;
   itemsInCollection = [];
+
+  collectionName: string;
+  collection: Collection = {
+    'Name': "",
+    'Description': ""
+  };
+  noDataMessage: string;
+  dataSource: IPepGenericListDataSource; 
+
+  pager: IPepGenericListPager = {
+    type: 'scroll',
+  };
 
   constructor(
     public translate: TranslateService,
@@ -39,28 +50,19 @@ export class RelatedCollectionsComponent implements OnInit {
     this.initializeData()
   }
 
-  collectionName: string;
-  collection: Collection = {
-    'Name': "",
-    'Description': ""
-  };
+  async ngOnInit() {
+    // waiting for translate to load
+    await this.translate.get('No_Related_Collection_Error').toPromise();
 
-  ngOnInit() {
+    this.dataSource = this.getDataSource();
   }
-
-  noDataMessage: string;
-  dataSource: IPepGenericListDataSource = this.getDataSource();
-
-  pager: IPepGenericListPager = {
-    type: 'scroll',
-  };
 
   async initializeData() {
     this.collection = await this.relatedItemsService.getCollections(`?Name=${this.collectionName}`).then(objs => objs[0]);
   }
 
   getDataSource() {
-    this.noDataMessage = this.translate.instant("No_Related_Collection_Error");
+    this.noDataMessage = this.translate.instant("No_Related_Items_Error");
     return {
       init: async (params: any) => {
         this.itemsInCollection = await this.relatedItemsService.getRelations(this.collectionName);
