@@ -45,7 +45,7 @@ export class RelatedCollectionsComponent implements OnInit {
   ) {
     this.addonService.addonUUID = config.AddonUUID;
 
-    this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
+    this.collectionName = decodeURIComponent(this.activatedRoute.snapshot.params["collection_name"]);
 
     this.initializeData()
   }
@@ -152,7 +152,7 @@ export class RelatedCollectionsComponent implements OnInit {
         actions.push({
           title: this.translate.instant("Edit"),
           handler: async (data) => {
-            this.router.navigate([objs[0].ItemExternalID], {
+            this.router.navigate([encodeURIComponent(objs[0].ItemExternalID)], {
               relativeTo: this.route,
               queryParamsHandling: 'merge'
             });
