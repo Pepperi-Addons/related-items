@@ -52,8 +52,8 @@ export class RelatedCollectionFormComponent implements OnInit {
   };
 
   async initializeData() {
-    this.collectionName = this.activatedRoute.snapshot.params["collection_name"];
-    this.externalID = this.activatedRoute.snapshot.params["external_id"];
+    this.collectionName = decodeURIComponent(this.activatedRoute.snapshot.params["collection_name"]);
+    this.externalID = decodeURIComponent(this.activatedRoute.snapshot.params["external_id"]);
     this.currentItem = await this.relatedItemsService.getItemsInCollection(this.collectionName, this.externalID);
     this.imageSource = this.currentItem.PresentedItem.ImageURL;
     this.itemTitle = this.currentItem.PresentedItem.ExternalID;
