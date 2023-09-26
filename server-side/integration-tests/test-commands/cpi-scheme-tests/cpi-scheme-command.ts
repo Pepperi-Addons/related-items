@@ -39,6 +39,6 @@ export class CPISchemeCommand extends ImportBaseCommand {
             const cpiItems = item.CPIItem[0]?.RelatedItems ? item.CPIItem[0]?.RelatedItems : [];
             expect(dataItems).to.deep.equal(cpiItems);
         });
-        await Promise.all(ans).catch(err => console.log(err));
+        await Promise.all(ans);
     }
 }
