@@ -7,7 +7,7 @@ export class CPISchemeCommand extends ImportBaseCommand {
     constructor(client: Client){
         super(client, 'CPI_Scheme_Command')
         this.numberOfEntities = 5;
-        this.timeToWait = 3000;
+        this.timeToWait = 5000;
     }
 
     timeToWait: number; // time to wait to PNS
@@ -39,6 +39,6 @@ export class CPISchemeCommand extends ImportBaseCommand {
             const cpiItems = item.CPIItem[0]?.RelatedItems ? item.CPIItem[0]?.RelatedItems : [];
             expect(dataItems).to.deep.equal(cpiItems);
         });
-        await Promise.all(ans).catch(err => console.log(err));
+        await Promise.all(ans);
     }
 }
