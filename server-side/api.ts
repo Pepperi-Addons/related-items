@@ -50,7 +50,7 @@ export async function delete_collections(client: Client, request: Request): Prom
     const service = new RelatedItemsService(client)
 
     if (request.method === 'POST') {
-        return service.deleteCollections(request.body);
+        return await service.deleteCollections(request.body);
     }
     else {
         throw new Error(`Method ${request.method} not supported`);
