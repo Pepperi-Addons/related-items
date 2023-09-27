@@ -22,9 +22,14 @@ export class CPISchemeCommand extends ImportBaseCommand {
      async processTestAction(testActionRes) {
         // waiting for PNS
         await this.resourceService.sleep(this.timeToWait);
+        //get all the cpi items
+        const cpiItems = await this.resourceService.getCPIItemsRelations(this.collectionName);
         const res = this.mockItemRelationsData.map(async (item) => {
+            const itemUUID = await this.resourceService.getItemsUUID([item.ItemExternalID]).then(objs => objs[0].UUID);
             // get the corresponding item from the cpi_meta_data type scheme
-            const cpiItem = await this.resourceService.getCPIItemsRelations(item);
+            const cpiItem = cpiItems.find(obj => {
+                return obj.Key === `${item.CollectionName}_${itemUUID}`
+            });
             return {CPIItem: cpiItem, ADALItem: item}
         });
          return await Promise.all(res);
@@ -36,7 +41,7 @@ export class CPISchemeCommand extends ImportBaseCommand {
             //get all the related items uuids
             const dataRelatedItems = await this.resourceService.getItemsUUID(item.ADALItem.RelatedItems);
             const dataItems = dataRelatedItems.map(obj => obj.UUID);
-            const cpiItems = item.CPIItem[0]?.RelatedItems ? item.CPIItem[0]?.RelatedItems : [];
+            const cpiItems = item.CPIItem?.RelatedItems ? item.CPIItem?.RelatedItems : [];
             expect(dataItems).to.deep.equal(cpiItems);
         });
         await Promise.all(ans);
