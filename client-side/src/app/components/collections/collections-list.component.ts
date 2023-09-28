@@ -201,9 +201,10 @@ export class CollectionsListComponent implements OnInit {
   async deleteCollections(objs) {
       const message = this.translate.instant("Delete_Collection_Validate");
       const actionButtons = [
-        new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', () => this.relatedItemsService.deleteCollections(objs).then(() => {
-          this.dataSource = this.getDataSource();
-        })),
+        new PepDialogActionButton(this.translate.instant("Delete"), 'main strong', async() =>  {
+          await this.relatedItemsService.deleteCollections(objs);
+          this.dataSource = this.getDataSource(); 
+        }),
         new PepDialogActionButton(this.translate.instant("Cancel"), 'main weak')
       ];
       return this.dialogService.openDefaultDialog(this.translate.instant("Delete"), actionButtons, message);
