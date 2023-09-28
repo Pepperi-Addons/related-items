@@ -16,6 +16,7 @@ export class ItemsService {
                 UniqueFieldList: [...chunk]
             }
             const items = await this.papiClient.resources.resource('items').search(searchBody) as SearchData<AddonData>;
+            console.log(`getItemsByExternalID items: ${JSON.stringify(items)}`);
             items.Objects.forEach(item => {
                 itemsMap.set(item.ExternalID, item);
             });

@@ -3,6 +3,7 @@ import { BatchApiResponse, PapiClient} from "@pepperi-addons/papi-sdk";
 import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from "shared";
 import config from "../../addon.config.json";
 import { ItemsService } from "../items-service";
+import split from 'just-split';
 
 // this class converts item relations to cpi side format
 // cpi side format is to use uuids instead of external ids (for items)
@@ -44,6 +45,8 @@ export class CPISideHanler {
             "UUID"
         ], "ExternalID");
 
+        console.log(`itemsMap: ${JSON.stringify(itemsMap)}`);
+
         return itemsMap;
     }
 
@@ -67,6 +70,7 @@ export class CPISideHanler {
             return cpiRelationItem as ItemRelations;
         });
 
+        console.log(`@@@itemsRelationsForCPI: ${JSON.stringify(itemsRelationsForCPI)}`);
         const res = itemsRelationsForCPI.filter(item => item !== undefined) as ItemRelations[];
         return res;
     }
