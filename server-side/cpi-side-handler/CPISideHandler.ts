@@ -19,17 +19,26 @@ export class CPISideHanler {
         // get all items relations objects
         const itemsRelations = await this.getRelatedItemsByKeyList(itemsRelationsKeys);
 
-        // get all distinct external ids
-        const distinctExternalIDs = this.getDistinctExternalIDsArray(itemsRelations);
-
-        // get all items mapped by external id
-        const items = await this.getItemsMappedByExternalID(distinctExternalIDs);
+        // replace external ids with uuids
+        const items = await this.getItemsMap(itemsRelations);
 
         // convert itemsRelations to CPI format
         const itemsRelationWithUUID = this.convertToCPIFormat(itemsRelations, items);
 
         // update related items CPI table - with uuids
         return await this.updateRelatedItemsTable(itemsRelationWithUUID);
+    }
+
+    // get items mapped by external id
+    // params: itemsRelations - array of items relations objects
+    async getItemsMap(itemsRelations: ItemRelations[]): Promise<Map<string, any>>{
+        // get all distinct external ids
+        const distinctExternalIDs = this.getDistinctExternalIDsArray(itemsRelations);
+
+        // get all items mapped by external id
+        const items = await this.getItemsMappedByExternalID(distinctExternalIDs);
+
+        return items
     }
 
     // batch update related items table for CPI

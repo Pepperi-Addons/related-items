@@ -1,6 +1,7 @@
 import { Client } from "@pepperi-addons/debug-server/dist"
 import { DataImportInput } from "@pepperi-addons/papi-sdk";
 import { ImportBaseCommand } from "../import-tests/import-base-command";
+import { CPISideHanler } from "../../../cpi-side-handler/CPISideHandler";
 
 export class CPISchemeCommand extends ImportBaseCommand {
 
@@ -24,8 +25,9 @@ export class CPISchemeCommand extends ImportBaseCommand {
         await this.resourceService.sleep(this.timeToWait);
         //get all the cpi items
         const cpiItems = await this.resourceService.getCPIItemsRelations(this.collectionName);
+        const items = await new CPISideHanler(this.papiClient).getItemsMap(this.mockItemRelationsData);
         const res = this.mockItemRelationsData.map(async (item) => {
-            const itemUUID = await this.resourceService.getItemsUUID([item.ItemExternalID]).then(objs => objs[0].UUID);
+            const itemUUID = items.get(item.ItemExternalID!).Key;
             // get the corresponding item from the cpi_meta_data type scheme
             const cpiItem = cpiItems.find(obj => {
                 return obj.Key === `${item.CollectionName}_${itemUUID}`
