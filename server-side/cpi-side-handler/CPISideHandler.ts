@@ -12,7 +12,7 @@ export class CPISideHanler {
     }
 
     async handlePNS(body: any) {
-        const itemsRelationsKeys = body.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+        const itemsRelationsKeys = body.Message.ModifiedObjects;
         // the keys are in the format of: "{CollectionName}_ItemExternalID"
         console.log("itemsRelationsKeys: ", itemsRelationsKeys);
 
@@ -92,9 +92,9 @@ export class CPISideHanler {
     }
     // get related items object by key list
     private async getRelatedItemsByKeyList(keyList: string[]): Promise<ItemRelations[]> {
-        const itemRelations = await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: keyList}) as any;
-        console.log(`getRelatedItemsByKeyList itemRelations: ${JSON.stringify(itemRelations.Objects)}`);
-        return itemRelations.Objects;
+        const itemRelations: ItemRelations[] = await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: keyList}) as any;
+        console.log(`getRelatedItemsByKeyList itemRelations: ${JSON.stringify(itemRelations)}`);
+        return itemRelations;
     }
 
     // creates an string array of all the items external ids and related items external ids
