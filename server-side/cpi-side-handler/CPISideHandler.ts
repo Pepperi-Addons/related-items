@@ -12,7 +12,7 @@ export class CPISideHanler {
     }
 
     async handlePNS(body: any) {
-        const itemsRelationsKeys = body.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+        const itemsRelationsKeys = body.Message.ModifiedObjects;
         // the keys are in the format of: "{CollectionName}_ItemExternalID"
         console.log("itemsRelationsKeys: ", itemsRelationsKeys);
 
@@ -34,10 +34,7 @@ export class CPISideHanler {
 
     // batch update related items table for CPI
     private async updateRelatedItemsTable(itemsRelations: ItemRelations[]): Promise<BatchApiResponse[]> {
-        debugger
-        console.log(`updateRelatedItemsTable itemsRelations: ${JSON.stringify(itemsRelations)}`);
-        return await this.papiClient.post('addons/data/batch/config.AddonUUID/RELATED_ITEM_CPI_META_DATA_TABLE_NAME', itemsRelations);
-       // return await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).batch(itemsRelations);
+        return await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).batch(itemsRelations);
     }
 
     // get all items mapped by external id
@@ -45,7 +42,7 @@ export class CPISideHanler {
         const itemsService = new ItemsService(this.papiClient);
         const itemsMap = await itemsService.getItemsByExternalID(externalIdsArray, [
             "ExternalID",
-            "InternalID"
+            "UUID"
         ], "ExternalID");
 
         console.log(`itemsMap: ${JSON.stringify(itemsMap)}`);
@@ -59,13 +56,13 @@ export class CPISideHanler {
     private convertToCPIFormat(itemsRelations: ItemRelations[], items: Map<string, any>): ItemRelations[] {
         const itemsRelationsForCPI = itemsRelations.map(itemRelation => {
             // get primary item uuid
-            const itemUUID = items.get(itemRelation.ItemExternalID!).InternalID;
+            const itemUUID = items.get(itemRelation.ItemExternalID!).UUID;
             if (!itemUUID) {
                 console.error(`itemUUID was not found for itemExternalID: ${itemRelation.ItemExternalID}`);
                 return undefined;
             }
             // get related items uuids
-            const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => items.get(ri).InternalID);
+            const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => items.get(ri).UUID);
             console.log(`@@@itemUUID: ${itemUUID} relatedItemsUUIDs: ${relatedItemsUUIDs}`);
             const key = `${itemRelation.CollectionName}_${itemUUID}`;
             const cpiRelationItem = { 'Key': key, 'Hidden': itemRelation.Hidden, RelatedItems: relatedItemsUUIDs }
@@ -79,9 +76,9 @@ export class CPISideHanler {
     }
     // get related items object by key list
     private async getRelatedItemsByKeyList(keyList: string[]): Promise<ItemRelations[]> {
-        const itemRelations = await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: keyList}) as any;
-        console.log(`getRelatedItemsByKeyList itemRelations: ${JSON.stringify(itemRelations.Objects)}`);
-        return itemRelations.Objects;
+        const itemRelations: ItemRelations[] = await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: keyList}) as any;
+        console.log(`getRelatedItemsByKeyList itemRelations: ${JSON.stringify(itemRelations)}`);
+        return itemRelations;
     }
 
     // creates an string array of all the items external ids and related items external ids
