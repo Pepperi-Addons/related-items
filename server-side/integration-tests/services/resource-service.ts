@@ -11,9 +11,11 @@ export class ResourceService {
         this.addonUUID = client.AddonUUID;
     }
 
-    sleep = (milliseconds) => {
-        return new Promise(resolve => setTimeout(resolve, milliseconds));
-    };
+    async sleep(ms: number) {
+        return new Promise<void>((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      }
 
     async importData(body: DataImportInput) {
         return await this.papiClient.resources.resource("related_items").import.data(body);
@@ -46,13 +48,12 @@ export class ResourceService {
         return await this.papiClient.resources.resource("related_items").get(query);
     }
 
-    // get as parameter itemRelation and return the corresponding cpi-item
-    async getCPIItemsRelations(item: ItemRelations) {
-        const itemUUID = await this.getItemsUUID([item.ItemExternalID]) as any;
-        const CPIItemkey = `${item.CollectionName}_${itemUUID[0].UUID}`;
+    // get as parameter collectionName and return all the items of the collection from cpi_meta_data type scheme
+    async getCPIItemsRelations(collectionName: string) {
         return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).find(
             {
-                where: `Key='${CPIItemkey}'`
+                where: `Key like '${collectionName}_%'`,
+                page_size: -1
             }
         );
     }

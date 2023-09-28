@@ -55,9 +55,6 @@ export class BaseCommand extends BaseTest {
                 try {
                 await this.test(this.testActionResult, this.dataToTest, expect)
                 }
-                catch (err) {
-                    console.log(err);
-                }
                 finally {
                     await this.cleanup()
                 }
