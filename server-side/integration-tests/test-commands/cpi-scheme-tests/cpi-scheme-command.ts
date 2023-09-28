@@ -26,7 +26,7 @@ export class CPISchemeCommand extends ImportBaseCommand {
         //get all the cpi items
         const cpiItems = await this.resourceService.getCPIItemsRelations(this.collectionName);
         const items = await new CPISideHanler(this.papiClient).getItemsMap(this.mockItemRelationsData);
-        const res = this.mockItemRelationsData.map(async (item) => {
+        const res = this.mockItemRelationsData.map((item) => {
             const itemUUID = items.get(item.ItemExternalID!).Key;
             // get the corresponding item from the cpi_meta_data type scheme
             const cpiItem = cpiItems.find(obj => {
@@ -34,7 +34,7 @@ export class CPISchemeCommand extends ImportBaseCommand {
             });
             return {CPIItem: cpiItem, ADALItem: item}
         });
-         return await Promise.all(res);
+        return res;
     }
 
      async test(res, data, expect) {
