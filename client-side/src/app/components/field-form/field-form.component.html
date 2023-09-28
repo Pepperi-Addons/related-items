@@ -36,8 +36,7 @@
             {{ 'Field' | translate}}
           </span>
         </mat-radio-button>
-        <pep-select [showTitle]="false" [emptyOption]="false" [(value)]=this.dialogData.fieldData.ListSource
-           [options]="options" (valueChange)="onValueChanged('ListSource', $event)">
+        <pep-select [showTitle]="false" [emptyOption]="false" [(value)]="this.dialogData.fieldData.ListName" [options]="options" (valueChange)="onValueChanged('ListSource', $event)">
         </pep-select>
       </div>
     </mat-radio-group> 

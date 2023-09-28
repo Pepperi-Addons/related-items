@@ -81,7 +81,7 @@ class RelatedItemsService {
             // delete the collection
             await this.upsertRelatedCollection(collectionToDelete);
         });
-        Promise.all(arr);
+        await Promise.all(arr);
 
         return collectionsToDelete;
     }
