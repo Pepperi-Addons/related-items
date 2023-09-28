@@ -5,8 +5,6 @@ import { DialogService } from 'src/app/services/dialog.service';
 import { RelatedItemsService } from 'src/app/services/related-items.service';
 import { MessageDialogComponent } from '../message-dialog/message-dialog.component';
 import { ListSourceType } from 'shared';
-import { config } from '../../addon.config';
-import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'addon-field-form',
