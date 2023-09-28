@@ -3,7 +3,7 @@ import { BatchApiResponse, PapiClient} from "@pepperi-addons/papi-sdk";
 import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from "shared";
 import config from "../../addon.config.json";
 import { ItemsService } from "../items-service";
-import split from 'just-split';
+import async from 'async';
 
 // this class converts item relations to cpi side format
 // cpi side format is to use uuids instead of external ids (for items)
@@ -19,11 +19,8 @@ export class CPISideHanler {
         // get all items relations objects
         const itemsRelations = await this.getRelatedItemsByKeyList(itemsRelationsKeys);
 
-        // get all distinct external ids
-        const distinctExternalIDs = this.getDistinctExternalIDsArray(itemsRelations);
-
-        // get all items mapped by external id
-        const items = await this.getItemsMappedByExternalID(distinctExternalIDs);
+        // replace external ids with uuids
+        const items = await this.getItemsMap(itemsRelations);
 
         // convert itemsRelations to CPI format
         const itemsRelationWithUUID = this.convertToCPIFormat(itemsRelations, items);
@@ -32,9 +29,37 @@ export class CPISideHanler {
         return await this.updateRelatedItemsTable(itemsRelationWithUUID);
     }
 
+    // get items mapped by external id
+    // params: itemsRelations - array of items relations objects
+    async getItemsMap(itemsRelations: ItemRelations[]): Promise<Map<string, any>>{
+        // get all distinct external ids
+        const distinctExternalIDs = this.getDistinctExternalIDsArray(itemsRelations);
+
+        // get all items mapped by external id
+        const items = await this.getItemsMappedByExternalID(distinctExternalIDs);
+
+        return items
+    }
+
     // batch update related items table for CPI
-    private async updateRelatedItemsTable(itemsRelations: ItemRelations[]): Promise<BatchApiResponse[]> {
-        return await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).batch(itemsRelations);
+    private async updateRelatedItemsTable(itemsRelations: ItemRelations[]) {
+        console.log(`updateRelatedItemsTable itemsRelations: ${JSON.stringify(itemsRelations)}`);
+        async.mapLimit(
+            itemsRelations,
+            100,
+            (item) => {
+                 this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
+            },
+            (error, results) => {
+              if (error) {
+                console.error('Error:', error);
+                return error;
+              } else {
+                console.log('Results:', results);
+                return results;
+              }
+            }
+          );
     }
 
     // get all items mapped by external id
@@ -42,7 +67,7 @@ export class CPISideHanler {
         const itemsService = new ItemsService(this.papiClient);
         const itemsMap = await itemsService.getItemsByExternalID(externalIdsArray, [
             "ExternalID",
-            "UUID"
+            "Key"
         ], "ExternalID");
 
         console.log(`itemsMap: ${JSON.stringify(itemsMap)}`);
@@ -56,13 +81,13 @@ export class CPISideHanler {
     private convertToCPIFormat(itemsRelations: ItemRelations[], items: Map<string, any>): ItemRelations[] {
         const itemsRelationsForCPI = itemsRelations.map(itemRelation => {
             // get primary item uuid
-            const itemUUID = items.get(itemRelation.ItemExternalID!).UUID;
+            const itemUUID = items.get(itemRelation.ItemExternalID!).Key;
             if (!itemUUID) {
                 console.error(`itemUUID was not found for itemExternalID: ${itemRelation.ItemExternalID}`);
                 return undefined;
             }
             // get related items uuids
-            const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => items.get(ri).UUID);
+            const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => items.get(ri).Key);
             console.log(`@@@itemUUID: ${itemUUID} relatedItemsUUIDs: ${relatedItemsUUIDs}`);
             const key = `${itemRelation.CollectionName}_${itemUUID}`;
             const cpiRelationItem = { 'Key': key, 'Hidden': itemRelation.Hidden, RelatedItems: relatedItemsUUIDs }

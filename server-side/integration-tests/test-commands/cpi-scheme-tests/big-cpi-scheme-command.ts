@@ -6,7 +6,7 @@ export class BigCPISchemeCommand extends CPISchemeCommand {
     constructor(client: Client){
         super(client);
         this.numberOfEntities = 500;
-        this.timeToWait = 10000;
+        this.timeToWait = 180000;
         this.title = 'Big_CPI_Scheme_Command'
     }
 }
