@@ -3,6 +3,7 @@ import { BaseCommand } from "../related-items-base-command";
 import { ItemRelations } from "shared";
 import { v4 as uuid } from 'uuid';
 import { ResourceService } from "../../services/resource-service";
+import { PapiClient } from "@pepperi-addons/papi-sdk";
 
 // base class for all import tests
 export class ImportBaseCommand extends BaseCommand {
@@ -13,7 +14,17 @@ export class ImportBaseCommand extends BaseCommand {
 
     constructor(protected client: Client, title: string) {
         super(client)
-         this.resourceService = new ResourceService(this.papiClient, client);
+        
+        const dimxPapiClient = new PapiClient({
+            baseURL: this.client.BaseURL,
+            token: this.client.OAuthAccessToken,
+            addonUUID: this.client.AddonUUID,
+            addonSecretKey: this.client.AddonSecretKey,
+            // removed action uuid because when running tests async and calling async dimx the test will end on dimx commands
+            // actionUUID: client.ActionUUID,
+        })
+
+         this.resourceService = new ResourceService(dimxPapiClient, client);
          this.title = title;
          this.collectionName = `${this.title }_${ uuid()}`;
     }
