@@ -9,16 +9,20 @@ export class DimxValidator {
     }
 
     async handleDimxObjItem(): Promise<DIMXObject[]> {
-        // get the dimxobject and return object that meets the restriction :
+       const itemsRelations: ItemRelations[] = this.dimxObjects.map(dimxObj => dimxObj.Object);
+
+        // if all itemsRelation are hidden - no need to validate
+        if (itemsRelations.every(obj => obj.Hidden === true)) {
+            return this.dimxObjects;
+        }
+        // else - validate the restriction :
         // * the main item and all the related items are exist
         // * no more than 25 related items
         // * not pointing to itself
-       // const itemsRelations: ItemRelations[] = this.dimxObjects.map(dimxObj => dimxObj.Object);
-        const itemsRelations: ItemRelations[] = this.dimxObjects
         const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this.relatedItemsService, itemsRelations);
         await relatedItemsValidator.loadData();
         this.dimxObjects.map(obj => {
-            const valid: ItemRelationValidate = relatedItemsValidator.validate(obj);
+            const valid: ItemRelationValidate = relatedItemsValidator.validate(obj.Object);
             const dimxObj = {
                 Object: valid.relationItem,
                 OverwriteObject: true
