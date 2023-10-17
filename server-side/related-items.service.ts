@@ -165,7 +165,7 @@ class RelatedItemsService {
             const dataImportInput = {
                 "Objects": chunk
             }
-            return await this.papiClient.resources.resource(RELATED_ITEM_META_DATA_TABLE_NAME).import.data(dataImportInput);
+            return this.papiClient.resources.resource(RELATED_ITEM_META_DATA_TABLE_NAME).import.data(dataImportInput);
         });
         const dimxResultObjs = await Promise.all(arr) as any;
         const faildItems: any[] = [];

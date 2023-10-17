@@ -19,20 +19,25 @@ export class ImportDataBaseCommand extends ImportBaseCommand {
 
      // get items from adal and save them in map with key = itemExternalID
     async processTestAction(testActionRes) {
-        const entities = await this.resourceService.getItemsRelations({where: `CollectionName="${this.collectionName}"`});
+        const entities = await this.resourceService.getItemsRelations({where: `CollectionName="${this.collectionName}"`, page_size: -1});
+        console.log(`entities: ${JSON.stringify(entities)}`);
         const itemsMap = new Map();
         entities.forEach((item: ItemRelations) => {
             itemsMap.set(item.ItemExternalID, item);
         }
         );
+        console.log(`itemsMap: ${JSON.stringify(itemsMap)}`);
         return itemsMap;
     }
 
     async test(res: any, data: any, expect: Chai.ExpectStatic): Promise<any> {
-        this.mockItemRelationsData.forEach((itemRelation: ItemRelations) => {
+        console.log(`data: ${JSON.stringify(data)}`);
+        for (const itemRelation of this.mockItemRelationsData) {
             const item = data.get(itemRelation.ItemExternalID);
-            expect(item.RelatedItems.to.deep.equal(itemRelation.RelatedItems));
-        });
+            console.log(`item: ${JSON.stringify(item)}, itemRelation: ${JSON.stringify(itemRelation.ItemExternalID)}`);
+            expect(item).to.not.be.undefined;
+            expect(item.RelatedItems).to.deep.equal(itemRelation.RelatedItems);
+        }
     }
 
 }
