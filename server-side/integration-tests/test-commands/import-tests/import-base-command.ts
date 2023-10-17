@@ -14,7 +14,7 @@ export class ImportBaseCommand extends BaseCommand {
 
     constructor(protected client: Client, title: string) {
         super(client)
-        
+
         const dimxPapiClient = new PapiClient({
             baseURL: this.client.BaseURL,
             token: this.client.OAuthAccessToken,
