@@ -43,17 +43,17 @@ export class CPISideHanler {
         console.log(`updateRelatedItemsTable itemsRelations: ${JSON.stringify(itemsRelations)}`);
         async.mapLimit(
             itemsRelations,
-            100,
-            (item) => {
-                 this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
+            5,
+            async(item) => {
+                console.log(`async mapLimit item before: ${JSON.stringify(item)}`);
+                await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
+                console.log(`async mapLimit item after: ${JSON.stringify(item)}`);
             },
             (error, results) => {
               if (error) {
-                console.error('Error:', error);
-                return error;
+                console.error('async mapLimit Error:', error);
               } else {
-                console.log('Results:', results);
-                return results;
+                console.log('async mapLimit Results:', results);
               }
             }
           );

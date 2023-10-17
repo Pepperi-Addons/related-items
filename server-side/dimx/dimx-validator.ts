@@ -13,12 +13,12 @@ export class DimxValidator {
         // * the main item and all the related items are exist
         // * no more than 25 related items
         // * not pointing to itself
-        const itemsRelations: ItemRelations[] = this.dimxObjects.map(dimxObj => dimxObj.Object);
+       // const itemsRelations: ItemRelations[] = this.dimxObjects.map(dimxObj => dimxObj.Object);
+        const itemsRelations: ItemRelations[] = this.dimxObjects
         const relatedItemsValidator = new RelatedItemsValidator(this.papiClient, this.relatedItemsService, itemsRelations);
-
         await relatedItemsValidator.loadData();
         this.dimxObjects.map(obj => {
-            const valid: ItemRelationValidate = relatedItemsValidator.validate(obj.Object);
+            const valid: ItemRelationValidate = relatedItemsValidator.validate(obj);
             const dimxObj = {
                 Object: valid.relationItem,
                 OverwriteObject: true

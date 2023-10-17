@@ -7,7 +7,7 @@ export class CPSchemeDeleteItemsCommand extends CPISchemeCommand {
     constructor(client: Client){
         super(client)
         this.numberOfEntities = 5;
-        this.timeToWait = 3000;
+        this.timeToWait = 5000;
         this.title = 'CPI_Scheme_Delete_Items_Command';
     }
 
