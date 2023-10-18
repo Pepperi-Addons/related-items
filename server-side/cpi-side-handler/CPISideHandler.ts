@@ -41,7 +41,7 @@ export class CPISideHanler {
     // batch update related items table for CPI
     private async updateRelatedItemsTable(itemsRelations: ItemRelations[]) {
         console.log(`updateRelatedItemsTable itemsRelations: ${JSON.stringify(itemsRelations)}`);
-        await async.mapLimit(
+        return await async.mapLimit(
             itemsRelations,
             5,
             async(item) => {
