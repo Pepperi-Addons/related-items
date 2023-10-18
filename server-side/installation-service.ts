@@ -106,7 +106,7 @@ export class InstallationService {
             const ansFromImport = await this.importFileToRelatedItems(fileURI);
             const ansFromAuditLog = await this.pollExecution(this.papiClient, ansFromImport.ExecutionUUID);
             if (ansFromAuditLog.success === true) {
-                this.purgeOldScheme();
+                await this.purgeOldScheme();
             }
         }
         else {
