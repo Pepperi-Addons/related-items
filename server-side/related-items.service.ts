@@ -29,9 +29,7 @@ class RelatedItemsService {
     async trigeredByPNS(body) {
         console.log(`@@@trigeredByPNS was called with body: ${JSON.stringify(body)}`);
         const cpiSideHandler = new CPISideHanler(this.papiClient);
-        const res = await cpiSideHandler.handlePNS(body);
-        console.log(`@@@trigeredByPNS was called with res: ${JSON.stringify(res)}`);
-        return res;
+        await cpiSideHandler.handlePNS(body);
     }
 
     //Collection table functions
