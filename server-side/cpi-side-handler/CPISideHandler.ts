@@ -41,22 +41,15 @@ export class CPISideHanler {
     // batch update related items table for CPI
     private async updateRelatedItemsTable(itemsRelations: ItemRelations[]) {
         console.log(`updateRelatedItemsTable itemsRelations: ${JSON.stringify(itemsRelations)}`);
-        return await async.mapLimit(
+        const ans = await async.mapLimit(
             itemsRelations,
             5,
             async(item) => {
                 console.log(`async mapLimit item before: ${JSON.stringify(item)}`);
-                await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
-                console.log(`async mapLimit item after: ${JSON.stringify(item)}`);
-            },
-            (error, results) => {
-              if (error) {
-                console.error('async mapLimit Error:', error);
-              } else {
-                console.log('async mapLimit Results:', results);
-              }
+                return await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
             }
           );
+          ans.then((results) => console.log(`async mapLimit item results: ${JSON.stringify(results)}`))
     }
 
     // get all items mapped by external id
