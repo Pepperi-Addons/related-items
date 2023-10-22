@@ -60,7 +60,7 @@ export async function delete_collections(client: Client, request: Request): Prom
 export async function triggered_by_pns(client: Client, request: Request): Promise<any> {
     const service = new RelatedItemsService(client)
 
-    await service.trigeredByPNS(request.body);
+    return await service.trigeredByPNS(request.body);
 }
 
 // RELATED_ITEM_META_DATA_TABLE_NAME endpoints

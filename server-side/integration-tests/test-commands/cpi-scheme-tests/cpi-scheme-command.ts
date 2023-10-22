@@ -38,21 +38,14 @@ export class CPISchemeCommand extends ImportBaseCommand {
     }
 
      async test(res, data, expect) {
-        let i = 0;
         // every entity in data contains itemRelation and it corresponding cpi-item(represent with UUID) and we check that its related items identical
         const ans = data.map( async (item) => {
             //get all the related items uuids
             const dataRelatedItems = await this.resourceService.getItemsUUID(item.ADALItem.RelatedItems);
             const dataItems = dataRelatedItems.map(obj => obj.UUID);
             const cpiItems = item.CPIItem?.RelatedItems ? item.CPIItem?.RelatedItems : [];
-            // count the number of items that not equal - should be 0 for success
-            // the following check is just for debug
-            if (dataItems !== cpiItems) {
-                i++
-                console.log(`not equal CPI items: ${ cpiItems}`);
-                console.log(`not equal ADAL items: ${ dataItems}`);
-                console.log(`not equal i: ${ i}`);
-            }
+            console.log(`dataItems: ${JSON.stringify(dataItems)}`);
+            console.log(`cpiItems: ${JSON.stringify(cpiItems)}`);
             expect(dataItems).to.deep.equal(cpiItems);
         });
         await Promise.all(ans);

@@ -48,8 +48,9 @@ export class CPISideHanler {
                 console.log(`async mapLimit item before: ${JSON.stringify(item)}`);
                 return await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
             }
-          );
-          ans.then((results) => console.log(`async mapLimit item results: ${JSON.stringify(results)}`))
+        );
+        console.log(`async mapLimit ans: ${JSON.stringify(ans)}`);
+        return ans;
     }
 
     // get all items mapped by external id
