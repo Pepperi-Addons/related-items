@@ -5,8 +5,9 @@ import { CPISideHanler } from "../../../cpi-side-handler/CPISideHandler";
 
 export class CPISchemeCommand extends ImportBaseCommand {
 
-    constructor(client: Client){
-        super(client, 'CPI_Scheme_Command')
+    constructor(client: Client, title?: string){
+        const testTitle = title ? title : 'CPI_Scheme_Command';
+        super(client, testTitle)
         this.numberOfEntities = 5;
         this.timeToWait = 10000;
     }

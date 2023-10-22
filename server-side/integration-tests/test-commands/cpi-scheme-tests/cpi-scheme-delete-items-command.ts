@@ -5,10 +5,9 @@ import { DataImportInput } from "@pepperi-addons/papi-sdk";
 export class CPSchemeDeleteItemsCommand extends CPISchemeCommand {
 
     constructor(client: Client){
-        super(client)
+        super(client, 'CPI_Scheme_Delete_Items_Command')
         this.numberOfEntities = 5;
         this.timeToWait = 5000;
-        this.title = 'CPI_Scheme_Delete_Items_Command';
     }
 
     async testAction() {
