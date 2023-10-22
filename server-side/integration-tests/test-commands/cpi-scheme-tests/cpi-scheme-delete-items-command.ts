@@ -31,4 +31,9 @@ export class CPSchemeDeleteItemsCommand extends CPISchemeCommand {
         const cpiItems = await this.resourceService.getCPIItemsRelations(this.collectionName);
         expect(cpiItems.length).to.equal(0);
     }
+
+    async cleanup(): Promise<any> {
+        // do nothing
+        return Promise.resolve();
+    }
 }
