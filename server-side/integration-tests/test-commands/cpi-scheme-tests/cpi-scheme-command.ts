@@ -8,7 +8,7 @@ export class CPISchemeCommand extends ImportBaseCommand {
     constructor(client: Client){
         super(client, 'CPI_Scheme_Command')
         this.numberOfEntities = 5;
-        this.timeToWait = 5000;
+        this.timeToWait = 10000;
     }
 
     timeToWait: number; // time to wait to PNS
@@ -38,12 +38,19 @@ export class CPISchemeCommand extends ImportBaseCommand {
     }
 
      async test(res, data, expect) {
+        let i = 0;
         // every entity in data contains itemRelation and it corresponding cpi-item(represent with UUID) and we check that its related items identical
         const ans = data.map( async (item) => {
             //get all the related items uuids
             const dataRelatedItems = await this.resourceService.getItemsUUID(item.ADALItem.RelatedItems);
             const dataItems = dataRelatedItems.map(obj => obj.UUID);
             const cpiItems = item.CPIItem?.RelatedItems ? item.CPIItem?.RelatedItems : [];
+            if (dataItems !== cpiItems) {
+                i++
+                console.log(`not equal CPI items: ${ cpiItems}`);
+                console.log(`not equal ADAL items: ${ dataItems}`);
+                console.log(`not equal i: ${ i}`);
+            }
             expect(dataItems).to.deep.equal(cpiItems);
         });
         await Promise.all(ans);

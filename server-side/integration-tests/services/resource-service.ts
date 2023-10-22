@@ -31,6 +31,7 @@ export class ResourceService {
 
     async deleteItems(itemsToDelete: ItemRelations[]) {
         const arr = itemsToDelete.map(async (item) => {
+            item.Key = `${item.CollectionName}_${item.ItemExternalID}`;
             return item.Hidden = true;
         });
         Promise.all(arr);
