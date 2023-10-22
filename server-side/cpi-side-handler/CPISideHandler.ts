@@ -1,5 +1,5 @@
 
-import { BatchApiResponse, PapiClient} from "@pepperi-addons/papi-sdk";
+import { PapiClient } from "@pepperi-addons/papi-sdk";
 import { ItemRelations, RELATED_ITEM_CPI_META_DATA_TABLE_NAME, RELATED_ITEM_META_DATA_TABLE_NAME } from "shared";
 import config from "../../addon.config.json";
 import { ItemsService } from "../items-service";

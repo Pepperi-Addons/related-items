@@ -17,6 +17,7 @@ export class CPSchemeDeleteItemsCommand extends CPISchemeCommand {
             "Objects": this.mockItemRelationsData
         }
         await this.resourceService.importData(dimxObj);
+        await this.resourceService.sleep(this.timeToWait);
         // delete collection with items in order to test that this collection deleted from the cpi-scheme
         return await this.resourceService.deleteItems(this.mockItemRelationsData);
     }
