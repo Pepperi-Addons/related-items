@@ -45,6 +45,8 @@ export class CPISchemeCommand extends ImportBaseCommand {
             const dataRelatedItems = await this.resourceService.getItemsUUID(item.ADALItem.RelatedItems);
             const dataItems = dataRelatedItems.map(obj => obj.UUID);
             const cpiItems = item.CPIItem?.RelatedItems ? item.CPIItem?.RelatedItems : [];
+            // count the number of items that not equal - should be 0 for success
+            // the following check is just for debug
             if (dataItems !== cpiItems) {
                 i++
                 console.log(`not equal CPI items: ${ cpiItems}`);
