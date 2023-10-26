@@ -9,7 +9,7 @@ export class CPISchemeCommand extends ImportBaseCommand {
         const testTitle = title ? title : 'CPI_Scheme_Command';
         super(client, testTitle)
         this.numberOfEntities = 5;
-        this.timeToWait = 10000;
+        this.timeToWait = 20000; // due to we can't update cpi_meta_data type items in a batch
     }
 
     timeToWait: number; // time to wait to PNS

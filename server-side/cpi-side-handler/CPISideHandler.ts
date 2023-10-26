@@ -41,6 +41,8 @@ export class CPISideHanler {
     // batch update related items table for CPI
     private async updateRelatedItemsTable(itemsRelations: ItemRelations[]) {
         console.log(`updateRelatedItemsTable itemsRelations: ${JSON.stringify(itemsRelations)}`);
+        // bulk upsert is not supported for cpi_meta_data type
+        // so we need to use async mapLimit that will affects performance
         const ans = await async.mapLimit(
             itemsRelations,
             5,
