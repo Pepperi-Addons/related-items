@@ -100,7 +100,7 @@ class RelatedItemsService {
             body.Key = `${body.CollectionName}_${body.ItemExternalID}`;
         }
         try {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(body.Key).get();
+            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).find({where: `Key ='${body.Key}'`}).then(objs => objs[0]);
         }
         catch (error) {
 

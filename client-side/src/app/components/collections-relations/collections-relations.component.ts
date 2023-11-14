@@ -58,7 +58,7 @@ export class RelatedCollectionsComponent implements OnInit {
   }
 
   async initializeData() {
-    this.collection = await this.relatedItemsService.getCollections(`?Name=${this.collectionName}`).then(objs => objs[0]);
+    this.collection = await this.relatedItemsService.getCollections(`?where=Name=${this.collectionName}`).then(objs => objs[0]);
   }
 
   getDataSource() {
@@ -194,7 +194,7 @@ export class RelatedCollectionsComponent implements OnInit {
           }
           else {
             await this.relatedItemsService.addRelatedItems({ 'CollectionName': this.collectionName, 'ItemExternalID': data.ItemExternalID, 'RelatedItems': [] })
-            this.router.navigate([`${data.ItemExternalID}`], {
+            this.router.navigate([encodeURIComponent(`${data.ItemExternalID}`)], {
               relativeTo: this.route,
               queryParamsHandling: 'merge'
             });
