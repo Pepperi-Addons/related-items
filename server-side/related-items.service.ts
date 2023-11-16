@@ -101,10 +101,13 @@ class RelatedItemsService {
         }
         try {
             const itemRelation = await this.papiClient.addons.data.search.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: [body.Key]}) as any;
+            if (itemRelation.Objects.length === 0) {
+                throw new Error(`Relation with key = ${body.Key} does not exist`);
+            }
             return itemRelation.Objects[0];
         }
         catch (error) {
-
+            console.log(error)
         }
     }
 
