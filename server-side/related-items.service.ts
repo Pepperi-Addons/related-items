@@ -100,10 +100,14 @@ class RelatedItemsService {
             body.Key = `${body.CollectionName}_${body.ItemExternalID}`;
         }
         try {
-            return await this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).key(body.Key).get();
+            const itemRelation = await this.papiClient.addons.data.search.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: [body.Key]}) as any;
+            if (itemRelation.Objects.length === 0) {
+                throw new Error(`Relation with key = ${body.Key} does not exist`);
+            }
+            return itemRelation.Objects[0];
         }
         catch (error) {
-
+            console.log(error)
         }
     }
 
@@ -200,7 +204,6 @@ class RelatedItemsService {
             const collection = await this.upsertRelatedCollection({ "Name": body.CollectionName! });
             if (collection) {
                 let item = await this.getRelationWithExternalIDByKey(body);
-
                 const itemsToAdd = body.RelatedItems ? body.RelatedItems : [];
                 let numberOfItemsToAdd = itemsToAdd.length;
 
@@ -313,7 +316,7 @@ class RelatedItemsService {
         if (itemsToRemove) {
             if (body.CollectionName && body.ItemExternalID) {
                 const item = await this.getRelationWithExternalIDByKey(body);
-                if (item) {
+                if (item && item.RelatedItems) {
                     item.RelatedItems = await this.deleteItemsFromGivenArray(itemsToRemove, item.RelatedItems);
 
                     return this.papiClient.addons.data.uuid(this.addonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).upsert(item);
