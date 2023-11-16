@@ -49,9 +49,6 @@ export class AtdEditorComponent implements OnInit {
     return {
       init: async (params: any) => {
         let res = await this.relatedItemsService.getFieldsFromADAL(this.configID);
-        res.map(item => {
-          item.ListName = item.ListSource;
-        });
         return Promise.resolve({
           dataView: {
             Context: {
@@ -77,7 +74,7 @@ export class AtdEditorComponent implements OnInit {
                 ReadOnly: true
               },
               {
-                FieldID: 'ListName',
+                FieldID: 'ListSource',
                 Type: 'TextBox',
                 Title: this.translate.instant("List_Source_Title"),
                 Mandatory: false,
@@ -123,7 +120,7 @@ export class AtdEditorComponent implements OnInit {
           let object = {
             "Name": item.Fields[0]?.FormattedValue,
             "FieldID": item.Fields[1]?.FormattedValue,
-            "ListName": item.Fields[2]?.FormattedValue
+            "ListSource": item.Fields[2]?.FormattedValue
           }
           objs.push(object);
         }
