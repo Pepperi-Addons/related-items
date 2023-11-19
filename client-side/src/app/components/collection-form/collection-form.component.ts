@@ -55,7 +55,7 @@ export class CollectionForm implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!this.isAddMode) {
-      this.title = this.translate.instant("Edit_Collection");
+      this.title = this.translate.instant("Edit_Collection_Title");
       this.rightButtonTitle = "Update";
     }
   }
