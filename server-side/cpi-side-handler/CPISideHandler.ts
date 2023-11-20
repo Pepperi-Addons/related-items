@@ -48,7 +48,9 @@ export class CPISideHanler {
             5,
             async(item) => {
                 console.log(`async mapLimit item before: ${JSON.stringify(item)}`);
-                return await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
+                const cpiAns = await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
+                console.log(`Ans from cpi-upsert : ${JSON.stringify(cpiAns)}, with item: ${JSON.stringify(item)}`);
+                return cpiAns;
             }
         );
         console.log(`async mapLimit ans: ${JSON.stringify(ans)}`);

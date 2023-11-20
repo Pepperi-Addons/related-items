@@ -39,7 +39,7 @@ export class RelatedItemsValidator {
                 this.validateRelatedItems(itemRelation);
             }
             else {
-                msgError = `failed with the following error: $itemRelation.ItemExternalID} ItemExternalID does not exist`;
+                msgError = `failed with the following error: ${itemRelation.ItemExternalID} ItemExternalID does not exist`;
             }
         }
         else {
