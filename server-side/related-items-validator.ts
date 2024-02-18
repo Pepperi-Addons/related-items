@@ -1,4 +1,4 @@
-import { PapiClient, AddonData, SearchBody, SearchData } from '@pepperi-addons/papi-sdk'
+import { PapiClient } from '@pepperi-addons/papi-sdk'
 import RelatedItemsService from './related-items.service';
 import { Collection, ItemRelations } from 'shared'
 import { ItemRelationValidate } from 'shared/entities';

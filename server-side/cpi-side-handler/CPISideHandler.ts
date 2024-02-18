@@ -28,7 +28,7 @@ export class CPISideHanler {
 
     // get items mapped by external id
     // params: itemsRelations - array of items relations objects
-    async getItemsMap(itemsRelations: ItemRelations[]): Promise<Map<string, any>>{
+    async getItemsMap(itemsRelations: ItemRelations[]): Promise<Map<string, any>> {
         // get all distinct external ids
         const distinctExternalIDs = this.getDistinctExternalIDsArray(itemsRelations);
 
@@ -46,7 +46,7 @@ export class CPISideHanler {
         const ans = await async.mapLimit(
             itemsRelations,
             5,
-            async(item) => {
+            async (item) => {
                 console.log(`async mapLimit item before: ${JSON.stringify(item)}`);
                 const cpiAns = await this.papiClient.addons.data.uuid(config.AddonUUID).table(RELATED_ITEM_CPI_META_DATA_TABLE_NAME).upsert(item);
                 console.log(`Ans from cpi-upsert : ${JSON.stringify(cpiAns)}, with item: ${JSON.stringify(item)}`);
@@ -76,27 +76,39 @@ export class CPISideHanler {
     private convertToCPIFormat(itemsRelations: ItemRelations[], items: Map<string, any>): ItemRelations[] {
         const itemsRelationsForCPI = itemsRelations.map(itemRelation => {
             // get primary item uuid
-            const itemUUID = items.get(itemRelation.ItemExternalID!).Key;
-            if (!itemUUID) {
-                console.error(`itemUUID was not found for itemExternalID: ${itemRelation.ItemExternalID}`);
-                return undefined;
-            }
-            // get related items uuids
-            const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => items.get(ri).Key);
-            console.log(`@@@itemUUID: ${itemUUID} relatedItemsUUIDs: ${relatedItemsUUIDs}`);
-            const key = `${itemRelation.CollectionName}_${itemUUID}`;
-            const cpiRelationItem = { 'Key': key, 'Hidden': itemRelation.Hidden, RelatedItems: relatedItemsUUIDs }
-            console.log(`@@@cpiRelationItem ${cpiRelationItem.Key} was created`);
-            return cpiRelationItem as ItemRelations;
-        });
+            const item = items.get(itemRelation.ItemExternalID!);
+            console.log(`@@@item: ${item}`);
+            if (item && item.Key !== undefined) {
+                const itemUUID = item.Key;
+                if (!itemUUID) {
+                    console.error(`itemUUID was not found for itemExternalID: ${itemRelation.ItemExternalID}`);
+                }
+                // get related items uuids
+                const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => {
+                    const riObj = items.get(ri);
+                    console.log(`@@@ri: ${riObj}`);
+                    if (riObj && riObj.Key !== undefined) {
+                        return riObj.Key;
+                    }
+                    else {
+                        console.log(`@@@Key was not found for ri: ${riObj}`);
+                    }
+                });
+                console.log(`@@@itemUUID: ${itemUUID} relatedItemsUUIDs: ${relatedItemsUUIDs}`);
+                const key = `${itemRelation.CollectionName}_${itemUUID}`;
 
+                const cpiRelationItem = { 'Key': key, 'Hidden': itemRelation.Hidden, RelatedItems: relatedItemsUUIDs }
+                console.log(`@@@cpiRelationItem ${cpiRelationItem.Key} was created`);
+                return cpiRelationItem as ItemRelations;
+            }
+        });
         console.log(`@@@itemsRelationsForCPI: ${JSON.stringify(itemsRelationsForCPI)}`);
         const res = itemsRelationsForCPI.filter(item => item !== undefined) as ItemRelations[];
         return res;
     }
     // get related items object by key list
     private async getRelatedItemsByKeyList(keyList: string[]): Promise<ItemRelations[]> {
-        const itemRelations = await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({KeyList: keyList}) as any;
+        const itemRelations = await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(RELATED_ITEM_META_DATA_TABLE_NAME).post({ KeyList: keyList }) as any;
         console.log(`getRelatedItemsByKeyList itemRelations: ${JSON.stringify(itemRelations)}`);
         return itemRelations.Objects;
     }
