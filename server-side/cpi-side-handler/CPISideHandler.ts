@@ -86,7 +86,6 @@ export class CPISideHanler {
                 // get related items uuids
                 const relatedItemsUUIDs = itemRelation.RelatedItems?.map(ri => {
                     const riObj = items.get(ri);
-                    console.log(`@@@ri: ${riObj}`);
                     if (riObj && riObj.Key !== undefined) {
                         return riObj.Key;
                     }
